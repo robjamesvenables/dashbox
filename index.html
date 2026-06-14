@@ -1638,18 +1638,12 @@ async function refreshAll(){
   if(badge) { badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
 
   const data = await fetchLiveStrength();
-  const pairCount = data ? Object.keys(data).length : 0;
-  if(data && pairCount >= 7){
-    const live = calculateStrengthFromQuotes(data);
-    // Only accept if we got meaningful scores (not all zeros)
-    const maxScore = Math.max(...live.map(s=>Math.abs(s.score)));
-    if(maxScore > 0.5){
-      currentScores = live;
-      if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
-    } else {
-      if(badge){ badge.textContent='● MARKET CLOSED'; badge.className='api-badge demo'; }
-    }
+  if(data && Object.keys(data).length>0){
+    currentScores = calculateStrengthFromQuotes(data);
+    if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
   } else {
+    // Markets may be closed - use demo scores
+    currentScores = getDemoScores();
     if(badge){ badge.textContent='● MARKET CLOSED'; badge.className='api-badge demo'; }
   }
 
@@ -1733,21 +1727,21 @@ setInterval(updateClock,1000);
 updateClock();
 
 async function loadLiveData(){
+  // Try live data with strict 3 second timeout
   let scores = null;
   try {
     const url = 'https://api.twelvedata.com/price?symbol=EUR/USD,GBP/USD,AUD/USD,NZD/USD,USD/CAD,USD/CHF,USD/JPY,EUR/JPY&apikey=' + TWELVE_KEY;
     const p = fetch(url).then(r=>r.json());
     const timeout = new Promise((_,reject)=>setTimeout(()=>reject('timeout'),3000));
     const data = await Promise.race([p, timeout]);
-    if(data && !data.code && !data.message && Object.keys(data).length>=7){
-      const live = calculateStrengthFromQuotes(data);
-      const maxScore = Math.max(...live.map(s=>Math.abs(s.score)));
-      if(maxScore > 0.5) scores = live;
+    if(data && !data.code && !data.message && Object.keys(data).length>0){
+      scores = calculateStrengthFromQuotes(data);
     }
-  } catch(e) { console.log('API unavailable:', e); }
+  } catch(e) {
+    console.log('API unavailable:', e);
+  }
 
-  if(scores) currentScores = scores;
-  // else keep existing currentScores (already set to getDemoScores() at init)
+  currentScores = scores || getDemoScores();
 
   document.getElementById('tab-index').innerHTML = `
     <div class="controls">
@@ -1771,13 +1765,11 @@ async function reloadData(){
     const p = fetch(url).then(r=>r.json());
     const timeout = new Promise((_,reject)=>setTimeout(()=>reject('timeout'),3000));
     const data = await Promise.race([p, timeout]);
-    if(data && !data.code && !data.message && Object.keys(data).length>=7){
-      const live = calculateStrengthFromQuotes(data);
-      const maxScore = Math.max(...live.map(s=>Math.abs(s.score)));
-      if(maxScore > 0.5) scores = live;
+    if(data && !data.code && !data.message && Object.keys(data).length>0){
+      scores = calculateStrengthFromQuotes(data);
     }
   } catch(e) { console.log('API:', e); }
-  if(scores) currentScores = scores;
+  currentScores = scores || getDemoScores();
   if(badge){ badge.textContent=scores?'● LIVE':'● MARKET CLOSED'; badge.className=scores?'api-badge live':'api-badge demo'; }
   renderIndex();
 }
