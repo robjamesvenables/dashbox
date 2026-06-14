@@ -1638,13 +1638,18 @@ async function refreshAll(){
   if(badge) { badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
 
   const data = await fetchLiveStrength();
-  // Only use live data if we got all 8 pairs back — partial data causes unstable signals
   const pairCount = data ? Object.keys(data).length : 0;
   if(data && pairCount >= 7){
-    currentScores = calculateStrengthFromQuotes(data);
-    if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
+    const live = calculateStrengthFromQuotes(data);
+    // Only accept if we got meaningful scores (not all zeros)
+    const maxScore = Math.max(...live.map(s=>Math.abs(s.score)));
+    if(maxScore > 0.5){
+      currentScores = live;
+      if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
+    } else {
+      if(badge){ badge.textContent='● MARKET CLOSED'; badge.className='api-badge demo'; }
+    }
   } else {
-    currentScores = getDemoScores();
     if(badge){ badge.textContent='● MARKET CLOSED'; badge.className='api-badge demo'; }
   }
 
@@ -1735,13 +1740,14 @@ async function loadLiveData(){
     const timeout = new Promise((_,reject)=>setTimeout(()=>reject('timeout'),3000));
     const data = await Promise.race([p, timeout]);
     if(data && !data.code && !data.message && Object.keys(data).length>=7){
-      scores = calculateStrengthFromQuotes(data);
+      const live = calculateStrengthFromQuotes(data);
+      const maxScore = Math.max(...live.map(s=>Math.abs(s.score)));
+      if(maxScore > 0.5) scores = live;
     }
-  } catch(e) {
-    console.log('API unavailable:', e);
-  }
+  } catch(e) { console.log('API unavailable:', e); }
 
-  currentScores = scores || getDemoScores();
+  if(scores) currentScores = scores;
+  // else keep existing currentScores (already set to getDemoScores() at init)
 
   document.getElementById('tab-index').innerHTML = `
     <div class="controls">
@@ -1766,10 +1772,12 @@ async function reloadData(){
     const timeout = new Promise((_,reject)=>setTimeout(()=>reject('timeout'),3000));
     const data = await Promise.race([p, timeout]);
     if(data && !data.code && !data.message && Object.keys(data).length>=7){
-      scores = calculateStrengthFromQuotes(data);
+      const live = calculateStrengthFromQuotes(data);
+      const maxScore = Math.max(...live.map(s=>Math.abs(s.score)));
+      if(maxScore > 0.5) scores = live;
     }
   } catch(e) { console.log('API:', e); }
-  currentScores = scores || getDemoScores();
+  if(scores) currentScores = scores;
   if(badge){ badge.textContent=scores?'● LIVE':'● MARKET CLOSED'; badge.className=scores?'api-badge live':'api-badge demo'; }
   renderIndex();
 }
