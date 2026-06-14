@@ -296,26 +296,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 <!-- SIGNALS -->
 <div class="page" id="tab-signals">
-  <div class="controls">
-    <button class="btn primary" id="scanBtn" onclick="scanSignals()">⚡ Scan Signals</button>
-    <span id="signalBadge" class="api-badge" style="display:none"></span>
-    <span id="signalCount" class="item-count" style="margin-left:auto"></span>
-  </div>
-  <div class="filters" id="signalFilters" style="display:none">
-    <button class="filt-btn active" onclick="filterSignalView('all',this)">ALL</button>
-    <button class="filt-btn" onclick="filterSignalView('forex',this)">FOREX</button>
-    <button class="filt-btn" onclick="filterSignalView('metals',this)">METALS</button>
-    <button class="filt-btn" onclick="filterSignalView('crypto',this)">CRYPTO</button>
-  </div>
-  <div id="signalFilterLog" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;font-size:10px;color:var(--muted);line-height:2"></div>
-  <div class="sl" id="signalSL" style="display:none">Filtered Setups</div>
-  <div id="signalList">
-    <div style="text-align:center;padding:48px 20px">
-      <div style="font-size:36px;margin-bottom:12px">⚡</div>
-      <div style="font-size:14px;font-weight:600;color:#e8ecf4;margin-bottom:6px">Signal Filter Engine</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.7">Tap Scan to run the full filter pipeline:<br>Strength · Pivot Block · 80-pip TP · 1:2 R:R · Fundamentals</div>
-    </div>
-  </div>
+  <div class="sl">Best Setups — All Markets</div>
+  <div id="signalList"></div>
 </div>
 
 <!-- FOREX -->
@@ -363,6 +345,16 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
     <button class="filt-btn" onclick="filterPivots('unconfirmed',this)">⚪ NEW</button>
   </div>
   <div id="pivotList"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="modal-back" onclick="closeModal()">←</button>
+      <div class="modal-title" id="modalTitle">--</div>
+    </div>
+    <div class="modal-body" id="modalBody"><div class="loading">Analysing...</div></div>
+  </div>
 </div>
 
 <!-- CHECK -->
@@ -738,197 +730,34 @@ function buildMarketOpps(items, market){
   }).sort((a,b)=>b.conf-a.conf);
 }
 
-// ═══════════ SIGNAL FILTER ENGINE ═══════════
-let lastScannedSignals = [];
-let currentSignalFilter = 'all';
+// ═══════════ SIGNALS TAB ═══════════
+function renderSignals(){
+  const forexOpps=buildForexOpps(currentScores);
+  const metalsOpps=buildMarketOpps(METALS,'metals');
+  const indicesOpps=buildMarketOpps(INDICES,'indices');
+  const cryptoOpps=buildMarketOpps(CRYPTO,'crypto');
+  const all=[...forexOpps,...metalsOpps,...indicesOpps,...cryptoOpps]
+    .filter(o=>o.conf>=8).sort((a,b)=>b.conf-a.conf).slice(0,10);
 
-// Fundamentals risk flags per pair/currency
-const FUNDAMENTALS = {
-  JPY: { risk: 'BOJ intervention risk above 160. Sudden spikes possible.', flag: 'warn' },
-  CAD: { risk: 'CAD sensitive to oil prices and BOC rate decisions.', flag: 'warn' },
-  CHF: { risk: 'SNB can intervene without warning. Use tight SL.', flag: 'warn' },
-  NZD: { risk: 'RBNZ dovish — NZD weakness expected to continue.', flag: 'hot' },
-  AUD: { risk: 'RBA dovish. Risk-off environments pressure AUD further.', flag: 'hot' },
-  EUR: { risk: 'ECB rate path uncertain. Watch EU data releases.', flag: 'warn' },
-  GBP: { risk: 'BOE holding. UK economic data mixed — watch CPI.', flag: 'warn' },
-  USD: { risk: 'FOMC Jun 17-18. USD likely to remain supported pre-meeting.', flag: 'hot' },
-  XAUUSD: { risk: 'Gold spikes on geopolitical events. Monitor news flow.', flag: 'warn' },
-  BTCUSD: { risk: 'High volatility crypto. Use conservative sizing.', flag: 'warn' },
-};
-
-// Get pip value and pip count helper
-function getPipCount(price1, price2, pair) {
-  const diff = Math.abs(price1 - price2);
-  if (pair && pair.includes('JPY')) return Math.round(diff / 0.01);
-  if (pair && (pair.includes('XAU') || pair === 'XAUUSD')) return Math.round(diff);
-  if (pair && (pair.includes('XAG') || pair === 'XAGUSD')) return Math.round(diff / 0.01);
-  if (pair && (pair === 'BTCUSD' || pair === 'ETHUSD')) return Math.round(diff);
-  if (pair && (pair === 'NAS100' || pair === 'SPX500' || pair === 'DOW' || pair === 'DAX' || pair === 'FTSE')) return Math.round(diff);
-  return Math.round(diff / 0.0001);
-}
-
-// Check if price is within 75 pips of any Fortress/Strong pivot level
-function isBlockedByPivot(pair, price, direction) {
-  const relevantPivots = PIVOT_LEVELS.filter(p => p.pair === pair && p.touches >= 2);
-  for (const piv of relevantPivots) {
-    const pipsAway = getPipCount(price, piv.level, pair);
-    const blockPips = 75;
-    // Check if pivot is in the path toward TP (blocking)
-    if (pipsAway <= blockPips) {
-      // If buying and resistance is within 75 pips above — blocked
-      if (direction === 'BUY' && piv.type === 'resistance' && piv.level > price) return { blocked: true, pivot: piv, pips: pipsAway };
-      // If selling and support is within 75 pips below — blocked
-      if (direction === 'SELL' && piv.type === 'support' && piv.level < price) return { blocked: true, pivot: piv, pips: pipsAway };
+  const container=document.getElementById('signalList');
+  if(all.length===0){container.innerHTML='<div class="no-signals">No high-conviction signals right now.</div>';return;}
+  container.innerHTML='';
+  all.forEach(o=>{
+    const grade=o.conf>=9?'a':o.conf>=8?'b':'c';
+    const gradeLabel=o.conf>=9?'A':o.conf>=8?'B':'C';
+    const price=o.price||(DEMO_PRICES[o.pair]||1);
+    const dec=o.dec!==undefined?o.dec:(price>10?2:price>1?4:5);
+    const isJpy=o.pair&&o.pair.includes('JPY');
+    const pipVal=isJpy?0.01:0.0001;
+    const baseSLPips=isJpy?70:(o.diff>4?40:55);
+    let sl=o.sl,tp=o.tp,partial=o.partial;
+    if(!sl){
+      if(o.direction==='BUY'){sl=parseFloat((price-baseSLPips*pipVal).toFixed(dec));tp=parseFloat((price+baseSLPips*2*pipVal).toFixed(dec));partial=parseFloat((price+baseSLPips*pipVal).toFixed(dec));}
+      else{sl=parseFloat((price+baseSLPips*pipVal).toFixed(dec));tp=parseFloat((price-baseSLPips*2*pipVal).toFixed(dec));partial=parseFloat((price-baseSLPips*pipVal).toFixed(dec));}
     }
-  }
-  return { blocked: false };
-}
-
-// W/D/4H simulated strength scoring (based on current score + momentum simulation)
-function getMultiTFStrength(code, currentScore) {
-  // Simulate W/D/4H alignment from current score + change
-  const cur = currentScores.find(s => s.code === code) || { score: 0, change: 0 };
-  const weeklyScore = cur.score * 1.1 + (cur.change || 0) * 0.5;
-  const dailyScore = cur.score + (cur.change || 0) * 0.3;
-  const h4Score = cur.score * 0.9 + (cur.change || 0) * 0.1;
-  const aligned = (weeklyScore > 0.3 && dailyScore > 0.3 && h4Score > 0.3) ||
-                  (weeklyScore < -0.3 && dailyScore < -0.3 && h4Score < -0.3);
-  const bullish = (weeklyScore + dailyScore + h4Score) > 0;
-  return { weekly: weeklyScore, daily: dailyScore, h4: h4Score, aligned, bullish };
-}
-
-// Main signal filter pipeline
-function runSignalFilterEngine(rawOpps) {
-  const log = [];
-  const passed = [];
-  const blocked = [];
-
-  rawOpps.forEach(o => {
-    const price = o.price || DEMO_PRICES[o.pair] || 1;
-    const isJpy = o.pair && o.pair.includes('JPY');
-    const pipVal = isJpy ? 0.01 : (o.pair === 'XAUUSD' ? 1 : o.pair === 'XAGUSD' ? 0.01 : 0.0001);
-    const dec = o.dec !== undefined ? o.dec : (price > 1000 ? 0 : price > 10 ? 2 : price > 1 ? 4 : 5);
-
-    // ── FILTER 1: Minimum strength differential ──
-    if (o.market === 'forex' && (o.diff === undefined || o.diff < 1.5)) {
-      blocked.push({ ...o, reason: `❌ Strength diff too low (${(o.diff||0).toFixed(1)} < 1.5pt)` });
-      return;
-    }
-
-    // ── FILTER 2: W/D/4H alignment check (forex only) ──
-    if (o.market === 'forex') {
-      const baseTF = getMultiTFStrength(o.base, o);
-      const quoteTF = getMultiTFStrength(o.quote, o);
-      const baseAligned = o.direction === 'BUY' ? baseTF.bullish : !baseTF.bullish;
-      const quoteAligned = o.direction === 'BUY' ? !quoteTF.bullish : quoteTF.bullish;
-      if (!baseAligned && !quoteAligned) {
-        blocked.push({ ...o, reason: `❌ W/D/4H not aligned — ${o.base} & ${o.quote} both against direction` });
-        return;
-      }
-    }
-
-    // ── FILTER 3: Confidence minimum 7.5 ──
-    if (o.conf < 7.5) {
-      blocked.push({ ...o, reason: `❌ Confidence too low (${o.conf}/10 < 7.5)` });
-      return;
-    }
-
-    // ── FILTER 4: Calculate SL/TP ──
-    const baseSLPips = o.market === 'metals' ? (o.pair === 'XAUUSD' ? 150 : 150) :
-                       o.market === 'indices' ? 100 :
-                       o.market === 'crypto' ? 200 :
-                       isJpy ? 70 : 50;
-    let sl, tp, partial;
-    if (o.direction === 'BUY') {
-      sl = parseFloat((price - baseSLPips * pipVal).toFixed(dec));
-      tp = parseFloat((price + baseSLPips * 2 * pipVal).toFixed(dec));
-      partial = parseFloat((price + baseSLPips * pipVal).toFixed(dec));
-    } else {
-      sl = parseFloat((price + baseSLPips * pipVal).toFixed(dec));
-      tp = parseFloat((price - baseSLPips * 2 * pipVal).toFixed(dec));
-      partial = parseFloat((price - baseSLPips * pipVal).toFixed(dec));
-    }
-
-    // ── FILTER 5: Minimum 80 pip TP ──
-    const tpPips = getPipCount(price, tp, o.pair);
-    if (tpPips < 80 && o.market === 'forex') {
-      blocked.push({ ...o, reason: `❌ TP too close (${tpPips} pips < 80 pip minimum)` });
-      return;
-    }
-
-    // ── FILTER 6: 1:2 R:R check ──
-    const slPips = getPipCount(price, sl, o.pair);
-    const rrRatio = slPips > 0 ? tpPips / slPips : 0;
-    if (rrRatio < 1.9 && o.market === 'forex') {
-      blocked.push({ ...o, reason: `❌ R:R too low (${rrRatio.toFixed(1)} < 1:2)` });
-      return;
-    }
-
-    // ── FILTER 7: Pivot block check ──
-    const pivotCheck = isBlockedByPivot(o.pair, price, o.direction);
-    if (pivotCheck.blocked) {
-      blocked.push({ ...o, reason: `❌ Pivot block — ${pivotCheck.pivot.touches}x ${pivotCheck.pivot.type} at ${pivotCheck.pivot.level} only ${pivotCheck.pips} pips away` });
-      return;
-    }
-
-    // ── FILTER 8: Fundamentals layer ──
-    const fundFlags = [];
-    const base = o.base || '';
-    const quote = o.quote || '';
-    if (FUNDAMENTALS[base]) fundFlags.push({ text: FUNDAMENTALS[base].risk, flag: FUNDAMENTALS[base].flag });
-    if (FUNDAMENTALS[quote]) fundFlags.push({ text: FUNDAMENTALS[quote].risk, flag: FUNDAMENTALS[quote].flag });
-    if (FUNDAMENTALS[o.pair]) fundFlags.push({ text: FUNDAMENTALS[o.pair].risk, flag: FUNDAMENTALS[o.pair].flag });
-
-    // ── ALL FILTERS PASSED ──
-    passed.push({ ...o, sl, tp, partial, dec, tpPips, slPips, rrRatio, fundFlags });
-    log.push(`✅ ${o.pair} ${o.direction} — conf ${o.conf}/10 · ${tpPips}pip TP · 1:${rrRatio.toFixed(1)} R:R · no pivot block`);
-  });
-
-  return { passed, blocked, log };
-}
-
-// Auto-fire Telegram alerts
-async function autoTelegramAlerts(signals) {
-  let alert1Count = 0, alert2Count = 0;
-  for (const o of signals) {
-    const price = o.price || DEMO_PRICES[o.pair] || 1;
-    const dec = o.dec || 4;
-    if (o.conf >= 8.5) {
-      await sendAlert2(o.pair, o.direction, o.conf, price.toFixed(dec), o.sl.toFixed(dec), o.tp.toFixed(dec));
-      alert2Count++;
-    } else if (o.conf >= 7.5) {
-      await sendAlert1(o.pair, o.direction, o.conf, price.toFixed(dec), o.sl.toFixed(dec), o.tp.toFixed(dec));
-      alert1Count++;
-    }
-  }
-  return { alert1Count, alert2Count };
-}
-
-// Render signal cards
-function renderSignalCards(signals) {
-  const container = document.getElementById('signalList');
-  if (signals.length === 0) {
-    container.innerHTML = '<div class="no-signals">No signals passed all filters right now.<br><span style="font-size:10px;color:var(--muted)">Check back at London open (3PM SGT)</span></div>';
-    return;
-  }
-  container.innerHTML = '';
-  signals.forEach(o => {
-    const price = o.price || DEMO_PRICES[o.pair] || 1;
-    const dec = o.dec || 4;
-    const grade = o.conf >= 9 ? 'a' : o.conf >= 8 ? 'b' : 'c';
-    const gradeLabel = o.conf >= 9 ? 'A' : o.conf >= 8 ? 'B' : 'C';
-    const mktLabel = o.market || 'forex';
-    const reason = o.reason || `<strong>${o.base||o.pair}</strong> vs <strong>${o.quote||'USD'}</strong> — ${(o.diff||0).toFixed(1)}pt strength differential.`;
-    const fundHTML = o.fundFlags && o.fundFlags.length > 0
-      ? o.fundFlags.map(f => `<div class="sc-tag ${f.flag}">${f.text}</div>`).join('')
-      : '';
-    const alertBadge = o.conf >= 8.5
-      ? '<div class="sc-tag hot">⚡ ALERT 2 SENT</div>'
-      : o.conf >= 7.5
-      ? '<div class="sc-tag warn">👀 ALERT 1 SENT</div>'
-      : '';
-
-    container.innerHTML += `
+    const mktLabel=o.market||'forex';
+    const reason=o.reason||`<strong>${o.base||o.pair}</strong> vs <strong>${o.quote||'USD'}</strong> — ${(o.diff||0).toFixed(1)}pt differential. ${o.conf>=8?'Highest conviction signal.':'Solid setup — wait for clean candle.'}`;
+    container.innerHTML+=`
       <div class="signal-card grade-${grade}" onclick="openReport('${o.pair}','${o.direction}',${o.conf},'${mktLabel}')">
         <div class="sc-header">
           <div class="sc-grade ${grade}">${gradeLabel}</div>
@@ -941,99 +770,19 @@ function renderSignalCards(signals) {
           <div class="sc-reason">${reason}</div>
           <div class="sc-levels">
             <div class="sc-level"><div class="sc-level-label">Entry</div><div class="sc-level-val entry">${price.toFixed(dec)}</div></div>
-            <div class="sc-level"><div class="sc-level-label">Stop</div><div class="sc-level-val sl">${o.sl.toFixed(dec)}</div></div>
-            <div class="sc-level"><div class="sc-level-label">50% TP</div><div class="sc-level-val partial">${o.partial.toFixed(dec)}</div></div>
-            <div class="sc-level"><div class="sc-level-label">Full TP</div><div class="sc-level-val tp">${o.tp.toFixed(dec)}</div></div>
+            <div class="sc-level"><div class="sc-level-label">Stop</div><div class="sc-level-val sl">${sl.toFixed(dec)}</div></div>
+            <div class="sc-level"><div class="sc-level-label">50% TP</div><div class="sc-level-val partial">${partial.toFixed(dec)}</div></div>
+            <div class="sc-level"><div class="sc-level-label">Full TP</div><div class="sc-level-val tp">${tp.toFixed(dec)}</div></div>
           </div>
           <div class="sc-tags">
-            <div class="sc-tag">1:${o.rrRatio ? o.rrRatio.toFixed(1) : '2.0'} R:R</div>
-            <div class="sc-tag">${o.tpPips || '--'} pip TP</div>
+            <div class="sc-tag">1:2 R:R</div>
             <div class="sc-tag">0.02 lots</div>
-            ${alertBadge}
-            ${fundHTML}
+            ${o.conf>=8?'<div class="sc-tag hot">HIGH CONVICTION</div>':''}
+            ${o.pair&&o.pair.includes('JPY')?'<div class="sc-tag warn">BOJ Risk</div>':''}
           </div>
         </div>
       </div>`;
   });
-}
-
-// Filter signal view by market
-function filterSignalView(f, btn) {
-  currentSignalFilter = f;
-  document.querySelectorAll('#tab-signals .filt-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const filtered = f === 'all' ? lastScannedSignals : lastScannedSignals.filter(o => o.market === f);
-  document.getElementById('signalCount').textContent = filtered.length + ' signals';
-  renderSignalCards(filtered);
-}
-
-// Main scan function
-async function scanSignals() {
-  const btn = document.getElementById('scanBtn');
-  const badge = document.getElementById('signalBadge');
-  btn.textContent = '⟳ Scanning...';
-  btn.disabled = true;
-  badge.style.display = 'inline';
-  badge.textContent = '● SCANNING';
-  badge.className = 'api-badge demo';
-
-  document.getElementById('signalList').innerHTML = '<div class="loading">⟳ Running filter engine...</div>';
-  document.getElementById('signalFilters').style.display = 'none';
-  document.getElementById('signalFilterLog').style.display = 'none';
-  document.getElementById('signalSL').style.display = 'none';
-
-  // Small delay for UX
-  await new Promise(r => setTimeout(r, 600));
-
-  // Build raw opportunities
-  const forexOpps = buildForexOpps(currentScores);
-  const metalsOpps = buildMarketOpps(METALS, 'metals');
-  const cryptoOpps = buildMarketOpps(CRYPTO, 'crypto');
-  const allRaw = [...forexOpps, ...metalsOpps, ...cryptoOpps];
-
-  // Run filter engine
-  const { passed, blocked, log } = runSignalFilterEngine(allRaw);
-  lastScannedSignals = passed.sort((a, b) => b.conf - a.conf);
-
-  // Build filter log
-  const logEl = document.getElementById('signalFilterLog');
-  const blockedSummary = blocked.slice(0, 8).map(b => `${b.pair} — ${b.reason}`).join('<br>');
-  logEl.innerHTML = `<strong style="color:var(--accent)">Filter Engine Log</strong><br>
-    ${log.join('<br>')}
-    ${blocked.length > 0 ? `<br><span style="color:var(--weak)">${blocked.length} pairs blocked:</span><br>${blockedSummary}` : ''}`;
-  logEl.style.display = 'block';
-
-  // Update UI
-  document.getElementById('signalFilters').style.display = 'flex';
-  document.getElementById('signalSL').style.display = 'block';
-  document.getElementById('signalCount').textContent = passed.length + ' signals';
-
-  badge.textContent = passed.length > 0 ? `● ${passed.length} SIGNALS` : '● NO SIGNALS';
-  badge.className = passed.length > 0 ? 'api-badge live' : 'api-badge demo';
-
-  btn.textContent = '⚡ Scan Again';
-  btn.disabled = false;
-
-  // Render cards
-  renderSignalCards(lastScannedSignals);
-
-  // Auto Telegram alerts
-  if (passed.length > 0) {
-    const { alert1Count, alert2Count } = await autoTelegramAlerts(passed);
-    if (alert1Count + alert2Count > 0) {
-      const tgNote = document.createElement('div');
-      tgNote.style.cssText = 'font-size:10px;color:var(--accent);text-align:center;padding:8px;margin-bottom:8px';
-      tgNote.textContent = `📲 Telegram: ${alert2Count} Alert 2 + ${alert1Count} Alert 1 sent`;
-      document.getElementById('signalList').insertAdjacentElement('beforebegin', tgNote);
-    }
-  }
-}
-
-// Legacy renderSignals for tab switch compatibility
-function renderSignals() {
-  if (lastScannedSignals.length > 0) {
-    renderSignalCards(lastScannedSignals);
-  }
 }
 
 // ═══════════ FOREX TAB ═══════════
@@ -1983,15 +1732,24 @@ function updateClock(){
 
 // ═══════════ INIT ═══════════
 currentScores = getDemoScores();
+
+// Show welcome screen with big refresh button
+document.getElementById('tab-index').innerHTML = `
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:20px">
+    <div style="font-size:48px;margin-bottom:20px">📊</div>
+    <div style="font-size:20px;font-weight:600;color:#e8ecf4;margin-bottom:8px">Dashbox</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:32px">Currency Intelligence</div>
+    <button onclick="loadLiveData()" style="background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:12px;padding:18px 48px;font-size:16px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);letter-spacing:0.05em">
+      ⚡ Load Live Data
+    </button>
+    <div style="font-size:11px;color:var(--muted);margin-top:16px">Tap to fetch latest currency strength</div>
+  </div>`;
+
 setInterval(updateClock,1000);
 updateClock();
-// Auto-load live data on startup
-loadLiveData();
 
 async function loadLiveData(){
-  const badge = document.getElementById('apiBadge');
-  if(badge){ badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
-
+  // Try live data with strict 3 second timeout
   let scores = null;
   try {
     const url = 'https://api.twelvedata.com/price?symbol=EUR/USD,GBP/USD,AUD/USD,NZD/USD,USD/CAD,USD/CHF,USD/JPY,EUR/JPY&apikey=' + TWELVE_KEY;
@@ -2006,7 +1764,17 @@ async function loadLiveData(){
   }
 
   currentScores = scores || getDemoScores();
-  if(badge){ badge.textContent=scores?'● LIVE':'● MARKET CLOSED'; badge.className=scores?'api-badge live':'api-badge demo'; }
+
+  document.getElementById('tab-index').innerHTML = `
+    <div class="controls">
+      <button class="btn primary" onclick="reloadData()">↻ Refresh</button>
+      <span class="api-badge ${scores?'live':'demo'}" id="apiBadge">${scores?'● LIVE':'● MARKET CLOSED'}</span>
+      <button class="btn" onclick="testTelegram()" style="margin-left:auto">📲 Test Alert</button>
+    </div>
+    <div class="sl">Currency Strength Index</div>
+    <div class="chart-wrap"><canvas id="barChart" width="340" height="300"></canvas></div>
+    <div class="index-legend" id="indexLegend"></div>`;
+
   renderIndex();
 }
 
