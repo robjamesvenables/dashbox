@@ -845,6 +845,9 @@ function renderSignals(){
     const watchlist = [];
 
     forexOpps.forEach(o=>{
+      // Minimum 2.0pt differential required
+      if(o.diff < 2.0) return;
+
       const price = getPrice(o.pair) || 1;
       const dec = price > 50 ? 2 : price > 1 ? 4 : 5;
       const isJpy = o.pair.includes('JPY');
