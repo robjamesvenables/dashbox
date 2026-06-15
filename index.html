@@ -1726,9 +1726,10 @@ function renderWatchlist(){
       if(baseS && quoteS){
         const bounceDir = p.type==='resistance'?'SELL':'BUY';
         const diff = bounceDir==='SELL' ? quoteS.score - baseS.score : baseS.score - quoteS.score;
-        if(diff > 1.5) strengthNote = `<span style="color:var(--strong);font-size:10px">✓ Strength confirms ${bounceDir}</span>`;
-        else if(diff > 0) strengthNote = `<span style="color:var(--gold);font-size:10px">~ Partial confirmation</span>`;
-        else strengthNote = `<span style="color:var(--muted);font-size:10px">Strength not yet aligned</span>`;
+        const bDir = p.type==='resistance'?'SELL':'BUY';
+        if(diff > 1.5) strengthNote = `<span style="color:var(--strong);font-size:10px">✓ Strength confirms ${bDir}</span>`;
+        else if(diff > 0) strengthNote = `<span style="color:var(--gold);font-size:10px">~ Partial confirmation for ${bDir}</span>`;
+        else strengthNote = `<span style="color:var(--muted);font-size:10px">Strength not aligned — monitor only</span>`;
       }
 
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct });
@@ -1754,9 +1755,10 @@ function renderWatchlist(){
       const typeLabel = p.type==='support'?'SUPPORT':'RESISTANCE';
       const bounceDir = p.type==='resistance'?'SELL':'BUY';
       const touchDots = '●'.repeat(Math.min(p.touches,5))+'○'.repeat(Math.max(0,5-p.touches));
+      const dirColor = bounceDir==='BUY'?'var(--strong)':'var(--weak)';
 
       container.innerHTML += `
-        <div style="background:var(--surface);border:1px solid ${isNear?rankColor:'var(--border)'};border-radius:8px;margin-bottom:8px;padding:14px;">
+        <div onclick="openReport('${p.pair}','${bounceDir}',${Math.round(5+p.touches*0.8)},'forex')" style="background:var(--surface);border:1px solid ${isNear?rankColor:'var(--border)'};border-left:4px solid ${dirColor};border-radius:8px;margin-bottom:8px;padding:14px;cursor:pointer;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
             <div style="display:flex;align-items:center;gap:8px;">
               <span style="font-size:15px;font-weight:600;color:#e8ecf4">${p.pair}</span>
