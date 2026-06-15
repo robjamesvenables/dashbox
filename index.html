@@ -576,7 +576,7 @@ function showTab(name){
   if(name==='metals') renderMetals();
   if(name==='indices') renderIndices();
   if(name==='crypto') { fetchCryptoPrices().then(()=>renderCrypto()); }
-  if(name==='pivots') renderPivots();
+  if(name==='pivots') fetchPricesFromTelegram().then(()=>renderPivots());
   if(name==='check') renderCheck();
 }
 
@@ -1085,6 +1085,7 @@ function applyPivotFilter(f){
         </div>`;
 
     section.items.forEach(p=>{
+      p.price = getPrice(p.pair) || p.price;
       const pips = getPipsAway(p.price, p.level, p.dec);
       const threshold = getThreshold(p.price);
       const isInZone = Math.abs(p.price - p.level) <= threshold * 0.33;  // ~25 pips
