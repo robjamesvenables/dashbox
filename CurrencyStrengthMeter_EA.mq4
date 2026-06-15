@@ -200,6 +200,22 @@ string DetectPivots(string sym)
 }
 
 //+------------------------------------------------------------------+
+double CalcMomentum(string sym)
+{
+   double total=0; int valid=0;
+   int periods[3]={PERIOD_W1,PERIOD_D1,PERIOD_H4};
+   for(int i=0;i<3;i++){
+      double c=iClose(sym,periods[i],1);
+      double ma=iMA(sym,periods[i],MAPeriod,0,MODE_EMA,PRICE_CLOSE,1);
+      double atr=iATR(sym,periods[i],ATRPeriod,1);
+      if(ma==0||atr==0) continue;
+      total+=MathMax(MathMin((c-ma)/atr,3.0),-3.0);
+      valid++;
+   }
+   return valid>0?total/valid:0;
+}
+
+//+------------------------------------------------------------------+
 void PostAll()
 {
    string json="{";
