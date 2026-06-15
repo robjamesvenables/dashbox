@@ -12,8 +12,8 @@ extern string JsonbinBinId      = "6a2f6bf4f5f4af5e29f2bdc9";
 extern int    PostIntervalSecs  = 60;
 extern int    MAPeriod          = 14;
 extern int    ATRPeriod         = 14;
-extern int    PivotLookback     = 100;   // Daily candles to scan for pivots
-extern int    PivotStrength     = 3;     // Candles each side for swing detection
+extern int    PivotLookback     = 60;    // Daily candles to scan for pivots
+extern int    PivotStrength     = 2;     // Candles each side for swing detection
 extern double PivotMergePct     = 0.003; // Merge levels within 0.3% of each other
 extern bool   EnableLogging     = false;
 
@@ -127,7 +127,7 @@ string DetectPivots(string sym)
 
    int S=PivotStrength;
 
-   for(int i=S+1;i<PivotLookback-S&&found<40;i++)
+   for(int i=S+1;i<PivotLookback-S&&found<15;i++)
    {
       double hi=iHigh(sym,PERIOD_D1,i);
       double lo=iLow(sym,PERIOD_D1,i);
