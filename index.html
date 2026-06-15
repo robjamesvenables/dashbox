@@ -793,109 +793,95 @@ function buildMarketOpps(items, market){
   }).sort((a,b)=>b.conf-a.conf);
 }
 
-// ═══════════ WATCHLIST TAB ═══════════
-function checkPivotClear(pair, direction, entryPrice, tpPrice){
-  const livePrice = getPrice(pair) || entryPrice;
-  for(const p of PIVOT_LEVELS){
-    if(p.pair !== pair) continue;
-    if(p.touches < 3) continue; // only fortress/strong levels block
-    const level = p.level;
-    const threshold = getThreshold(livePrice);
-    // Block if price is AT a resistance zone and direction is BUY
-    const nearZone = threshold * 0.5;
-    if(direction === 'BUY'){
-      // Block if ANY strong level is above price within nearZone (resistance overhead)
-      if(level > livePrice && level <= livePrice + nearZone) return {clear:false, blocker:p};
-      // Block if resistance between entry and TP
-      if(p.type === 'resistance' && level > entryPrice && level < tpPrice) return {clear:false, blocker:p};
-    }
-    if(direction === 'SELL'){
-      // Block if ANY strong level is below price within nearZone (support underfoot)
-      if(level < livePrice && level >= livePrice - nearZone) return {clear:false, blocker:p};
-      // Block if support between entry and TP
-      if(p.type === 'support' && level < entryPrice && level > tpPrice) return {clear:false, blocker:p};
-    }
-  }
-  return {clear:true, blocker:null};
-}
-
-function getPivotBoost(pair, direction, entryPrice){
-  // Only boost if price is near a level that CONFIRMS direction
-  // BUY near SUPPORT = good. SELL near RESISTANCE = good.
-  // BUY near RESISTANCE = bad (blocked by checkPivotClear). SELL near SUPPORT = bad.
-  const livePrice = getPrice(pair) || entryPrice;
-  const threshold = getThreshold(livePrice);
-  const nearZone = threshold * 0.4;
-  for(const p of PIVOT_LEVELS){
-    if(p.pair !== pair) continue;
-    if(p.touches < 2) continue;
-    const dist = Math.abs(livePrice - p.level);
-    if(dist > nearZone) continue; // must be very close to level
-    // Confirm direction matches level type
-    if(direction === 'BUY' && p.type === 'support')    return p.touches >= 4 ? 2.5 : p.touches === 3 ? 1.5 : 0.8;
-    if(direction === 'SELL' && p.type === 'resistance') return p.touches >= 4 ? 2.5 : p.touches === 3 ? 1.5 : 0.8;
-    // Wrong type near price — no boost (blocking handled separately)
-  }
-  return 0;
-}
-
+// ═══════════ WATCHLIST TAB — PIVOT FIRST, STRENGTH CONFIRMS ═══════════
 function renderSignals(){
   const container = document.getElementById('signalList');
-  container.innerHTML = '<div class="loading">Building watchlist...</div>';
+  container.innerHTML = '<div class="loading">Scanning pivot levels...</div>';
 
-  // Fetch fresh prices first
   fetchFromJsonbin().then(()=>{
-    // Update pivot prices
     PIVOT_LEVELS.forEach(p=>{ p.price = getPrice(p.pair) || p.price; });
 
-    const forexOpps = buildForexOpps(currentScores);
     const watchlist = [];
+    const processed = new Set();
 
-    forexOpps.forEach(o=>{
-      // Minimum 2.0pt differential required
-      const price = getPrice(o.pair) || 1;
-      const dec = price > 50 ? 2 : price > 1 ? 4 : 5;
-      const isJpy = o.pair.includes('JPY');
+    // STEP 1: Find pairs where price is AT a key Daily pivot level
+    PIVOT_LEVELS.forEach(p=>{
+      if(p.touches < 2) return;
+      const livePrice = getPrice(p.pair) || 0;
+      if(!livePrice) return;
+
+      const threshold = getThreshold(livePrice);
+      const nearZone = threshold * 0.6;
+      const dist = Math.abs(livePrice - p.level);
+      if(dist > nearZone) return; // not near this level
+
+      // Bounce direction from this level
+      const bounceDir = p.type === 'resistance' ? 'SELL' : 'BUY';
+      const pairKey = p.pair + bounceDir;
+      if(processed.has(pairKey)) return;
+      processed.add(pairKey);
+
+      // STEP 2: Check strength indexes confirm the bounce
+      const base = p.pair.slice(0,3);
+      const quote = p.pair.slice(3,6);
+      const baseS = currentScores.find(s=>s.code===base);
+      const quoteS = currentScores.find(s=>s.code===quote);
+      if(!baseS || !quoteS) return;
+
+      const bScore = baseS.score;
+      const qScore = quoteS.score;
+
+      // SELL from resistance: quote must be stronger than base (base weak, quote strong)
+      // BUY from support: base must be stronger than quote (base strong, quote weak)
+      let diff = 0;
+      if(bounceDir === 'SELL') diff = qScore - bScore; // positive = confirms SELL
+      else diff = bScore - qScore;                       // positive = confirms BUY
+
+      if(diff <= 0) return; // strength doesn't confirm — skip
+
+      // Calculate conviction
+      const touchBoost = p.touches >= 4 ? 2.5 : p.touches === 3 ? 1.5 : 0.5;
+      const strengthBoost = Math.min(diff * 0.8, 3.0);
+      const finalConf = Math.min(5 + touchBoost + strengthBoost, 10);
+
+      // Levels
+      const dec = livePrice > 50 ? 2 : livePrice > 1 ? 4 : 5;
+      const isJpy = p.pair.includes('JPY');
       const pipVal = isJpy ? 0.01 : 0.0001;
-      const baseSLPips = isJpy ? 70 : 50;
+      const slPips = isJpy ? 70 : 50;
 
       let sl, tp;
-      if(o.direction === 'BUY'){
-        sl = parseFloat((price - baseSLPips*pipVal).toFixed(dec));
-        tp = parseFloat((price + baseSLPips*2*pipVal).toFixed(dec));
+      if(bounceDir === 'BUY'){
+        sl = parseFloat((livePrice - slPips*pipVal).toFixed(dec));
+        tp = parseFloat((livePrice + slPips*2*pipVal).toFixed(dec));
       } else {
-        sl = parseFloat((price + baseSLPips*pipVal).toFixed(dec));
-        tp = parseFloat((price - baseSLPips*2*pipVal).toFixed(dec));
+        sl = parseFloat((livePrice + slPips*pipVal).toFixed(dec));
+        tp = parseFloat((livePrice - slPips*2*pipVal).toFixed(dec));
       }
 
-      // Check pivot clear path
-      const pivotCheck = checkPivotClear(o.pair, o.direction, price, tp);
-      if(!pivotCheck.clear) return; // blocked — skip
+      const pivotRank = p.touches >= 4 ? 'Fortress' : p.touches === 3 ? 'Strong' : 'Valid';
 
-      // Pivot boost if at a confirming level
-      const pivotBoost = getPivotBoost(o.pair, o.direction, price);
-      const finalConf = Math.min(o.conf + pivotBoost, 10);
-
-      watchlist.push({...o, price, dec, sl, tp, finalConf, pivotBoost});
+      watchlist.push({ pair:p.pair, base, quote, direction:bounceDir,
+        price:livePrice, dec, sl, tp, finalConf,
+        pivotLevel:p.level, pivotType:p.type, touches:p.touches, pivotRank,
+        diff, bScore, qScore });
     });
 
-    // Sort by final confidence, show top 8
     watchlist.sort((a,b)=>b.finalConf-a.finalConf);
     const top = watchlist.slice(0,8);
 
     if(top.length === 0){
-      container.innerHTML = '<div class="no-signals">No clear setups right now — all pairs have pivot levels blocking the path.</div>';
+      container.innerHTML = `<div class="no-signals" style="padding:40px;text-align:center;color:var(--muted);font-size:12px;">
+        No setups right now — waiting for price to reach a key level with strength confirmation.
+      </div>`;
       return;
     }
 
     container.innerHTML = '';
     top.forEach(o=>{
-      const grade = o.finalConf >= 9 ? 'a' : o.finalConf >= 7 ? 'b' : 'c';
-      const gradeLabel = o.finalConf >= 9 ? 'A' : o.finalConf >= 7 ? 'B' : 'C';
-      const pivotTag = o.pivotBoost > 0
-        ? `<div class="sc-tag hot">🎯 AT KEY LEVEL +${o.pivotBoost.toFixed(1)}</div>`
-        : '';
-      const reason = `<strong>${o.base}</strong> vs <strong>${o.quote}</strong> — ${o.diff.toFixed(1)}pt differential. ${o.pivotBoost>0?'Price at confirming pivot level — high conviction.':'Clear path to TP — no major levels blocking.'}`;
+      const grade = o.finalConf >= 8.5 ? 'a' : o.finalConf >= 7 ? 'b' : 'c';
+      const gradeLabel = o.finalConf >= 8.5 ? 'A' : o.finalConf >= 7 ? 'B' : 'C';
+      const reason = `<strong>${o.base}</strong> ${o.bScore>0?'+':''}${o.bScore.toFixed(1)} vs <strong>${o.quote}</strong> ${o.qScore>0?'+':''}${o.qScore.toFixed(1)} — indexes confirm ${o.direction} from ${o.pivotRank} ${o.pivotType} at ${o.pivotLevel.toFixed(o.dec)} (tested ${o.touches}x).`;
 
       container.innerHTML += `
         <div class="signal-card grade-${grade}" onclick="openReport('${o.pair}','${o.direction}',${Math.round(o.finalConf)},'forex')">
@@ -915,15 +901,16 @@ function renderSignals(){
               <div class="sc-level"><div class="sc-level-label">R:R</div><div class="sc-level-val partial">1:2</div></div>
             </div>
             <div class="sc-tags">
-              <div class="sc-tag">0.5% risk</div>
+              <div class="sc-tag hot">🎯 ${o.pivotRank} ${o.pivotType}</div>
+              <div class="sc-tag">0.5% risk · 1:2 R:R</div>
               ${o.pair.includes('JPY')?'<div class="sc-tag warn">BOJ Risk</div>':''}
-              ${pivotTag}
             </div>
           </div>
         </div>`;
     });
   });
 }
+
 
 // ═══════════ FOREX TAB ═══════════
 function renderForex(filter){
