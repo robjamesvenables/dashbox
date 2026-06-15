@@ -1712,7 +1712,8 @@ function renderWatchlist(){
       // Only show if IN ZONE (within 60% of threshold = ~45 pips)
       if(pct > 0.6) return;
 
-      const key = p.pair + p.level;
+      // Only keep closest level per pair
+      const key = p.pair;
       if(processed.has(key)) return;
       processed.add(key);
 
