@@ -31,6 +31,17 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 #modeText{font-size:10px;color:var(--muted);}
 #clockEl{font-size:10px;color:var(--muted);}
 
+/* SPLASH OVERLAY */
+#splashOverlay{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;}
+#splashOverlay.hidden{display:none;}
+.splash-logo{display:flex;align-items:center;gap:12px;margin-bottom:48px;}
+.splash-logo-icon{width:48px;height:48px;background:linear-gradient(135deg,#00d4aa,#00a86b);border-radius:12px;display:flex;align-items:flex-end;justify-content:center;gap:4px;padding:8px 8px 10px;}
+.splash-logo-bar{background:white;border-radius:2px;width:8px;}
+.slb1{height:10px;opacity:0.4;}.slb2{height:16px;opacity:0.7;}.slb3{height:22px;opacity:1;}
+.splash-title{font-size:28px;font-weight:600;letter-spacing:-0.5px;}
+.splash-title span.d{color:#fff;}.splash-title span.b{color:var(--accent);}
+.splash-sub{font-size:13px;color:var(--muted);margin-bottom:48px;text-align:center;}
+
 /* MARKET TABS */
 .market-bar{display:flex;border-bottom:1px solid var(--border);background:var(--surface);overflow-x:auto;padding:0 4px;}
 .market-bar::-webkit-scrollbar{display:none;}
@@ -257,6 +268,23 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 </style>
 </head>
 <body>
+
+<!-- SPLASH OVERLAY -->
+<div id="splashOverlay">
+  <div class="splash-logo">
+    <div class="splash-logo-icon">
+      <div class="splash-logo-bar slb1"></div>
+      <div class="splash-logo-bar slb2"></div>
+      <div class="splash-logo-bar slb3"></div>
+    </div>
+    <div class="splash-title"><span class="d">Dash</span><span class="b">box</span></div>
+  </div>
+  <div class="splash-sub">Currency Intelligence · MT4 Live</div>
+  <button onclick="splashRefresh()" style="width:100%;max-width:320px;padding:20px;background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:14px;font-size:18px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);letter-spacing:0.02em;">
+    ↻ Load Live Data
+  </button>
+  <div id="splashStatus" style="margin-top:20px;font-size:12px;color:var(--muted);text-align:center;min-height:20px;"></div>
+</div>
 
 <header>
   <div class="logo" onclick="showTab('index')" style="cursor:pointer">
@@ -1864,34 +1892,58 @@ function updateClock(){
   document.getElementById('clockEl').textContent=t;
 }
 
+// ═══════════ SPLASH ═══════════
+async function splashRefresh(){
+  const btn = document.querySelector('#splashOverlay button');
+  const status = document.getElementById('splashStatus');
+  btn.textContent = '⟳ Fetching live data...';
+  btn.style.opacity = '0.7';
+  btn.disabled = true;
+  status.textContent = 'Connecting to MT4...';
+
+  const result = await fetchFromJsonbin();
+
+  if(result && result.scores && result.scores.length > 0){
+    currentScores = result.scores;
+    status.textContent = '✓ Live data loaded';
+    setTimeout(()=>{
+      document.getElementById('splashOverlay').classList.add('hidden');
+      renderIndex();
+    }, 400);
+  } else {
+    status.textContent = '⚠ No MT4 signal — check EA is running';
+    btn.textContent = '↻ Try Again';
+    btn.style.opacity = '1';
+    btn.disabled = false;
+  }
+}
+
 // ═══════════ INIT ═══════════
 currentScores = getDemoScores();
 setInterval(updateClock,1000);
 updateClock();
-loadLiveData();
 
 async function loadLiveData(){
   const badge = document.getElementById('apiBadge');
   const ageEl = document.getElementById('scoreAge');
+  if(badge){ badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
 
-  // Fetch scores and prices in parallel
-  const [result] = await Promise.all([fetchStrengthFromTelegram(), fetchPricesFromTelegram()]);
+  const result = await fetchFromJsonbin();
 
-  if(result && result.scores.length > 0){
+  if(result && result.scores && result.scores.length > 0){
     currentScores = result.scores;
     if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
     if(ageEl) ageEl.textContent = getAgeString(result.ts);
   } else {
-    currentScores = getDemoScores();
     if(badge){ badge.textContent='● NO MT4 SIGNAL'; badge.className='api-badge demo'; }
-    if(ageEl) ageEl.textContent = 'Is the EA running?';
+    if(ageEl) ageEl.textContent = 'Check EA on VPS';
   }
   renderIndex();
 
-  // Auto-refresh every 60s in sync with EA
+  // Auto-refresh every 60s
   setInterval(async ()=>{
-    const r = await fetchStrengthFromTelegram();
-    if(r && r.scores.length > 0){
+    const r = await fetchFromJsonbin();
+    if(r && r.scores && r.scores.length > 0){
       currentScores = r.scores;
       if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
       if(ageEl) ageEl.textContent = getAgeString(r.ts);
