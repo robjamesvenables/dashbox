@@ -553,17 +553,49 @@ async function fetchFromJsonbin(){
     const data = await res.json();
     const record = data.record;
     if(!record) return null;
+
     if(record.prices) LIVE_PRICES = record.prices;
     if(record.ts)     LIVE_TS     = record.ts * 1000;
-    if(record.scores){
+
+    // Load auto pivot levels from EA
+    if(record.pivots) loadLivePivots(record.pivots);
+
+    // Use H4 scores for index display
+    const scoreData = record.scores_H4 || record.scores;
+    if(scoreData){
       const SCORE_MAP = {DXY:'USD',EXY:'EUR',BXY:'GBP',AXY:'AUD',NXY:'NZD',CAD:'CAD',CHF:'CHF',JXY:'JPY'};
-      const scores = Object.entries(record.scores).map(([k,v])=>({
-        code: SCORE_MAP[k], score: parseFloat(parseFloat(v).toFixed(2)), change:0, ts: record.ts*1000
+      const scores = Object.entries(scoreData).map(([k,v])=>({
+        code: SCORE_MAP[k], score: parseFloat(parseFloat(v).toFixed(2)), change:0, ts: record.ts*1000,
+        scoreW: record.scores_W ? parseFloat((record.scores_W[k]||0).toFixed(2)) : 0,
+        scoreD: record.scores_D ? parseFloat((record.scores_D[k]||0).toFixed(2)) : 0,
       })).filter(s=>s.code).sort((a,b)=>b.score-a.score);
       return { scores, ts: record.ts*1000 };
     }
     return null;
   } catch(e){ console.log('Jsonbin fetch error:', e.message); return null; }
+}
+
+// Convert EA pivot format to PIVOT_LEVELS format
+function loadLivePivots(pivotData){
+  // Clear existing auto-detected pivots (keep none — all from EA now)
+  PIVOT_LEVELS.length = 0;
+  Object.entries(pivotData).forEach(([pair, levels])=>{
+    if(!Array.isArray(levels)) return;
+    const price = getPrice(pair) || 1;
+    const dec = price > 50 ? 2 : price > 1 ? 4 : 5;
+    levels.forEach(lv=>{
+      PIVOT_LEVELS.push({
+        pair,
+        level: lv.l,
+        type: lv.t,
+        touches: lv.c,
+        price,
+        dec,
+        note: `Auto-detected — ${lv.c} touches on Daily chart`
+      });
+    });
+  });
+  if(EnableLogging) console.log('Loaded', PIVOT_LEVELS.length, 'live pivot levels');
 }
 
 // Keep old Telegram functions as stubs so nothing breaks
@@ -1098,7 +1130,7 @@ function generateReport(sym,direction,conf,market){
 let currentPivotFilter = 'all';
 
 // Demo data with touch counts and key levels
-const PIVOT_LEVELS = [
+let PIVOT_LEVELS = [
   // FORTRESS — 4+ touches
   {pair:'GBPAUD',level:2.0450,type:'resistance',touches:5,price:2.0180,dec:4,note:'Multi-month resistance — rejected 5 times since Jan'},
   {pair:'EURUSD',level:1.1500,type:'support',touches:4,price:1.1578,dec:4,note:'Major round number + weekly S1 — held 4 times'},
