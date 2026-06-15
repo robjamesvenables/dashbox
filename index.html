@@ -2164,8 +2164,9 @@ async function splashRefresh(){
     status.textContent = '✓ Live data loaded';
     setTimeout(()=>{
       document.getElementById('splashOverlay').classList.add('hidden');
+      const b=document.getElementById('apiBadge');if(b){b.textContent='● MT4 LIVE';b.className='api-badge live';}
       renderIndex();
-      startWatchlistAlerts(); // start background alert checking
+      startWatchlistAlerts();
     }, 400);
   } else {
     // Try old scores format as fallback
