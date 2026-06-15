@@ -802,14 +802,18 @@ function checkPivotClear(pair, direction, entryPrice, tpPrice){
     const level = p.level;
     const threshold = getThreshold(livePrice);
     // Block if price is AT a resistance zone and direction is BUY
-    const nearZone = threshold * 0.4; // within 40% of threshold = at level
-    if(direction === 'BUY' && p.type === 'resistance'){
-      if(Math.abs(livePrice - level) <= nearZone) return {clear:false, blocker:p}; // at resistance
-      if(level > entryPrice && level < tpPrice) return {clear:false, blocker:p}; // blocking path
+    const nearZone = threshold * 0.5;
+    if(direction === 'BUY'){
+      // Block if ANY strong level is above price within nearZone (resistance overhead)
+      if(level > livePrice && level <= livePrice + nearZone) return {clear:false, blocker:p};
+      // Block if resistance between entry and TP
+      if(p.type === 'resistance' && level > entryPrice && level < tpPrice) return {clear:false, blocker:p};
     }
-    if(direction === 'SELL' && p.type === 'support'){
-      if(Math.abs(livePrice - level) <= nearZone) return {clear:false, blocker:p}; // at support
-      if(level < entryPrice && level > tpPrice) return {clear:false, blocker:p}; // blocking path
+    if(direction === 'SELL'){
+      // Block if ANY strong level is below price within nearZone (support underfoot)
+      if(level < livePrice && level >= livePrice - nearZone) return {clear:false, blocker:p};
+      // Block if support between entry and TP
+      if(p.type === 'support' && level < entryPrice && level > tpPrice) return {clear:false, blocker:p};
     }
   }
   return {clear:true, blocker:null};
