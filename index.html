@@ -303,7 +303,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 <div class="market-bar">
   <button class="mkt-btn active" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
-  <button class="mkt-btn" id="tb-signals" onclick="showTab('signals')">🎯 WATCHLIST</button>
+  <button class="mkt-btn" id="tb-signals" onclick="showTab('signals')">⚡ ALERTS</button>
+  <button class="mkt-btn" id="tb-watchlist" onclick="showTab('watchlist')">🎯 WATCHLIST</button>
   <button class="mkt-btn" id="tb-check" onclick="showTab('check')">🔍 CHECK</button>
 </div>
 
@@ -387,6 +388,15 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
     </div>
     <div class="modal-body" id="modalBody"><div class="loading">Analysing...</div></div>
   </div>
+</div>
+
+<!-- WATCHLIST -->
+<div class="page" id="tab-watchlist">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div class="sl" style="margin-bottom:0;border:none">Key Pivot Levels — Monitor</div>
+    <button class="btn primary" onclick="renderWatchlist()" style="font-size:10px;padding:5px 12px;">↻ Refresh</button>
+  </div>
+  <div id="watchlistList"></div>
 </div>
 
 <!-- CHECK -->
@@ -640,6 +650,7 @@ function showTab(name){
   if(name==='crypto') { fetchCryptoPrices().then(()=>renderCrypto()); }
   if(name==='pivots') fetchPricesFromTelegram().then(()=>renderPivots());
   if(name==='check') renderCheck();
+  if(name==='watchlist') renderWatchlist();
 }
 
 // ═══════════ INDEX TAB ═══════════
@@ -1675,6 +1686,102 @@ function drawPivotChart(pair, level, currentPrice, type, touches, color){
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText(`${touches} touch${touches>1?'es':''}`, padL+4, padT+2);
+}
+
+// ═══════════ WATCHLIST TAB — KEY PIVOT LEVELS ═══════════
+function renderWatchlist(){
+  const container = document.getElementById('watchlistList');
+  container.innerHTML = '<div class="loading">Loading pivot levels...</div>';
+
+  fetchFromJsonbin().then(()=>{
+    PIVOT_LEVELS.forEach(p=>{ p.price = getPrice(p.pair) || p.price; });
+
+    // Group all meaningful pivot levels by distance from price
+    const items = [];
+    const processed = new Set();
+
+    PIVOT_LEVELS.forEach(p=>{
+      if(p.touches < 2) return;
+      const livePrice = getPrice(p.pair) || 0;
+      if(!livePrice) return;
+
+      const threshold = getThreshold(livePrice);
+      const dist = Math.abs(livePrice - p.level);
+      const pct = dist / threshold; // 0 = at level, 1 = at threshold edge
+
+      // Only show levels within 2x threshold
+      if(pct > 2) return;
+
+      const key = p.pair + p.level;
+      if(processed.has(key)) return;
+      processed.add(key);
+
+      const dec = p.dec || (livePrice > 50 ? 2 : 4);
+      const pips = Math.round(getPipsAway(livePrice, p.level, dec));
+      const unit = getUnit(livePrice);
+      const isNear = pct <= 0.6;
+      const pivotRank = p.touches>=4?'Fortress':p.touches===3?'Strong':'Valid';
+      const rankColor = p.touches>=4?'#e05c5c':p.touches===3?'#f97316':'#c9a84c';
+
+      // Check if strength agrees (for info only — not a filter)
+      let strengthNote = '';
+      const base = p.pair.slice(0,3), quote = p.pair.slice(3,6);
+      const baseS = currentScores.find(s=>s.code===base);
+      const quoteS = currentScores.find(s=>s.code===quote);
+      if(baseS && quoteS){
+        const bounceDir = p.type==='resistance'?'SELL':'BUY';
+        const diff = bounceDir==='SELL' ? quoteS.score - baseS.score : baseS.score - quoteS.score;
+        if(diff > 1.5) strengthNote = `<span style="color:var(--strong);font-size:10px">✓ Strength confirms ${bounceDir}</span>`;
+        else if(diff > 0) strengthNote = `<span style="color:var(--gold);font-size:10px">~ Partial confirmation</span>`;
+        else strengthNote = `<span style="color:var(--muted);font-size:10px">Strength not yet aligned</span>`;
+      }
+
+      items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct });
+    });
+
+    // Sort by closest to price
+    items.sort((a,b)=>a.pct-b.pct);
+
+    if(items.length === 0){
+      container.innerHTML = '<div class="no-signals">No pivot levels loaded yet — check EA is running.</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    items.forEach(({p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote})=>{
+      const typeColor = p.type==='support'?'var(--strong)':'var(--weak)';
+      const typeLabel = p.type==='support'?'SUPPORT':'RESISTANCE';
+      const bounceDir = p.type==='resistance'?'SELL':'BUY';
+      const touchDots = '●'.repeat(Math.min(p.touches,5))+'○'.repeat(Math.max(0,5-p.touches));
+
+      container.innerHTML += `
+        <div style="background:var(--surface);border:1px solid ${isNear?rankColor:'var(--border)'};border-radius:8px;margin-bottom:8px;padding:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:15px;font-weight:600;color:#e8ecf4">${p.pair}</span>
+              <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;background:${p.type==='support'?'rgba(0,212,170,0.12)':'rgba(224,92,92,0.12)'};color:${typeColor}">${typeLabel}</span>
+              <span style="font-size:10px;font-weight:600;color:${rankColor}">${pivotRank}</span>
+            </div>
+            ${isNear?`<span style="font-size:11px;font-weight:600;color:${rankColor}">⚡ IN ZONE</span>`:`<span style="font-size:11px;color:var(--muted)">${pips} ${unit} away</span>`}
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;">
+              <div style="font-size:9px;color:var(--muted);margin-bottom:3px">KEY LEVEL</div>
+              <div style="font-size:17px;font-weight:600;color:${rankColor}">${p.level.toFixed(dec)}</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;">
+              <div style="font-size:9px;color:var(--muted);margin-bottom:3px">CURRENT PRICE</div>
+              <div style="font-size:17px;font-weight:600;color:#e8ecf4">${livePrice.toFixed(dec)}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:13px;color:${rankColor};letter-spacing:3px">${touchDots}</div>
+            <div style="font-size:11px;color:${rankColor}">Tested ${p.touches}x</div>
+          </div>
+          ${strengthNote?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${strengthNote}</div>`:''}
+        </div>`;
+    });
+  });
 }
 
 // ═══════════ CHECK TAB ═══════════
