@@ -250,20 +250,22 @@ void PostAll()
       json+="\""+ALL_PAIRS[i]+"\":"+pivJson;
       firstPiv=false;
    }
-   // Extra instrument pivots + momentum
+   // Extra instrument pivots + momentum — always included
    int extTotal=ArraySize(EXTRA_INSTRUMENTS);
    for(int i=0;i<extTotal;i++){
       string sym=EXTRA_INSTRUMENTS[i];
-      string pivJson=DetectPivots(sym);
       double mom=CalcMomentum(sym);
-      if(pivJson!="[]"){
-         if(!firstPiv) json+=",";
-         json+="""+sym+"":"+pivJson;
-         firstPiv=false;
+      string pivJson=DetectPivots(sym);
+      if(!firstPiv) json+=",";
+      firstPiv=false;
+      // Embed momentum score as special entry in array
+      string momEntry="{\"l\":0,\"t\":\"mom\",\"c\":0,\"m\":"+DoubleToStr(mom,4)+"}";
+      if(pivJson=="[]")
+         json+="\""+sym+"\":["+momEntry+"]";
+      else {
+         string inner=StringSubstr(pivJson,1,StringLen(pivJson)-2);
+         json+="\""+sym+"\":["+inner+","+momEntry+"]";
       }
-      // Add momentum score
-      string momKey = "mom_" + sym;
-      json += ",\"" + momKey + "\":" + DoubleToStr(mom,4);
    }
 
    json+="}}";
