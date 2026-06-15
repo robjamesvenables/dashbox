@@ -1709,8 +1709,8 @@ function renderWatchlist(){
       const dist = Math.abs(livePrice - p.level);
       const pct = dist / threshold; // 0 = at level, 1 = at threshold edge
 
-      // Only show levels within 2x threshold
-      if(pct > 2) return;
+      // Only show levels within threshold (75 pip equivalent)
+      if(pct > 1) return;
 
       const key = p.pair + p.level;
       if(processed.has(key)) return;
