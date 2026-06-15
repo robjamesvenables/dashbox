@@ -1758,7 +1758,7 @@ function renderWatchlist(){
       const dirColor = bounceDir==='BUY'?'var(--strong)':'var(--weak)';
 
       container.innerHTML += `
-        <div onclick="openReport('${p.pair}','${bounceDir}',${Math.round(5+p.touches*0.8)},'forex')" style="background:var(--surface);border:1px solid var(--border);border-left:4px solid ${dirColor};border-radius:8px;margin-bottom:8px;padding:14px;cursor:pointer;">
+        <div onclick="openReport('${p.pair}','${bounceDir}',${Math.round(5+p.touches*0.8)},'forex')" style="background:var(--surface);border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);border-left:4px solid ${dirColor};border-radius:8px;margin-bottom:8px;padding:14px;cursor:pointer;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
             <div style="display:flex;align-items:center;gap:8px;">
               <span style="font-size:15px;font-weight:600;color:#e8ecf4">${p.pair}</span>
