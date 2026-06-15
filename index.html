@@ -525,8 +525,19 @@ const DEMO_PRICES = {
   AUDCHF:0.6220,NZDCAD:0.8160,NZDCHF:0.5170,CADCHF:0.6330
 };
 
-// Live prices from MT4 via Telegram — overrides demo when available
+// ═══════════ LIVE PRICES FROM MT4 ═══════════
 let LIVE_PRICES = {};
+
+function parsePricesSection(section){
+  const parts = section.split('|');
+  const prices = {};
+  parts.forEach(p => {
+    if(!p || p === 'DASHBOX_PRICES' || p.startsWith('ts:')) return;
+    const idx = p.indexOf(':');
+    if(idx > 0){ prices[p.substring(0,idx)] = parseFloat(p.substring(idx+1)); }
+  });
+  if(Object.keys(prices).length > 0) LIVE_PRICES = prices;
+}
 
 async function fetchPricesFromTelegram(){
   try {
@@ -537,16 +548,53 @@ async function fetchPricesFromTelegram(){
     const updates = [...(data.result||[])].reverse();
     for(const upd of updates){
       const text = upd && upd.message && upd.message.text ? upd.message.text : '';
-      if(!text.startsWith('DASHBOX_PRICES')) continue;
-      const parts = text.split('|');
-      const prices = {};
-      parts.forEach(p => {
-        if(p === 'DASHBOX_PRICES' || p.startsWith('ts:')) return;
-        const idx = p.indexOf(':');
-        if(idx > 0){ prices[p.substring(0,idx)] = parseFloat(p.substring(idx+1)); }
-      });
-      if(Object.keys(prices).length > 0) LIVE_PRICES = prices;
-      break;
+      if(text.startsWith('DASHBOX_SCORES') && text.includes('||DASHBOX_PRICES')){
+        parsePricesSection(text.split('||DASHBOX_PRICES')[1]);
+        break;
+      }
+      if(text.startsWith('DASHBOX_PRICES')){
+        parsePricesSection(text);
+        break;
+      }
+    }
+  } catch(e){ console.log('Price fetch error:', e.message); }
+}
+
+function getPrice(sym){ return LIVE_PRICES[sym] || DEMO_PRICES[sym] || 0; }
+
+// Live prices from MT4 via Telegram — overrides demo when available
+let LIVE_PRICES = {};
+
+function parsePricesSection(section){
+  const parts = section.split('|');
+  const prices = {};
+  parts.forEach(p => {
+    if(!p || p === 'DASHBOX_PRICES' || p.startsWith('ts:')) return;
+    const idx = p.indexOf(':');
+    if(idx > 0){ prices[p.substring(0,idx)] = parseFloat(p.substring(idx+1)); }
+  });
+  if(Object.keys(prices).length > 0) LIVE_PRICES = prices;
+}
+
+async function fetchPricesFromTelegram(){
+  try {
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!data.ok) return;
+    const updates = [...(data.result||[])].reverse();
+    for(const upd of updates){
+      const text = upd && upd.message && upd.message.text ? upd.message.text : '';
+      // Handle combined message format
+      if(text.startsWith('DASHBOX_SCORES') && text.includes('||DASHBOX_PRICES')){
+        parsePricesSection(text.split('||DASHBOX_PRICES')[1]);
+        break;
+      }
+      // Handle legacy separate DASHBOX_PRICES message
+      if(text.startsWith('DASHBOX_PRICES')){
+        parsePricesSection(text);
+        break;
+      }
     }
   } catch(e){ console.log('Price fetch error:', e.message); }
 }
@@ -1655,19 +1703,21 @@ const SCORE_MAP = {
 
 async function fetchStrengthFromTelegram(){
   try {
-    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=50&allowed_updates=["message"]`;
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
     const controller = new AbortController();
     const timer = setTimeout(()=>controller.abort(), 8000);
     const res = await fetch(url, {signal: controller.signal});
     clearTimeout(timer);
     const data = await res.json();
     if(!data.ok) return null;
-    // Walk newest-first to find latest DASHBOX_SCORES message
     const updates = [...(data.result||[])].reverse();
     for(const upd of updates){
       const text = upd?.message?.text || '';
       if(!text.startsWith('DASHBOX_SCORES')) continue;
-      const parsed = parseDashboxScores(text);
+      if(text.includes('||DASHBOX_PRICES')){
+        parsePricesSection(text.split('||DASHBOX_PRICES')[1]);
+      }
+      const parsed = parseDashboxScores(text.split('||')[0]);
       if(parsed) return parsed;
     }
     return null;
@@ -1777,8 +1827,8 @@ async function reloadData(){
     if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
     if(ageEl) ageEl.textContent = getAgeString(result.ts);
   } else {
-    if(badge){ badge.textContent='● NO MT4 SIGNAL'; badge.className='api-badge demo'; }
-    if(ageEl) ageEl.textContent = 'Check EA is running on VPS';
+    if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
+    if(ageEl) ageEl.textContent = getAgeString(currentScores[0]&&currentScores[0].ts);
   }
   renderIndex();
 }
