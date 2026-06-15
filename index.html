@@ -1613,74 +1613,80 @@ async function testTelegram(){
   alert('Test alert sent to Telegram!');
 }
 
-// ═══════════ TWELVE DATA LIVE PRICES ═══════════
-async function fetchLiveStrength(){
+// ═══════════ MT4 → TELEGRAM → DASHBOX STRENGTH ═══════════
+const SCORE_MAP = {
+  DXY:'USD', EXY:'EUR', BXY:'GBP', AXY:'AUD',
+  NXY:'NZD', CAD:'CAD', CHF:'CHF', JXY:'JPY'
+};
+
+async function fetchStrengthFromTelegram(){
   try {
-    const url = 'https://api.twelvedata.com/quote?symbol=EUR/USD,GBP/USD,AUD/USD,NZD/USD,USD/CAD,USD/CHF,USD/JPY,EUR/JPY&apikey=' + TWELVE_KEY;
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=50&allowed_updates=["message"]`;
     const controller = new AbortController();
     const timer = setTimeout(()=>controller.abort(), 8000);
     const res = await fetch(url, {signal: controller.signal});
     clearTimeout(timer);
     const data = await res.json();
-    if(data && !data.code && !data.status) return data;
+    if(!data.ok) return null;
+    // Walk newest-first to find latest DASHBOX_SCORES message
+    const updates = [...(data.result||[])].reverse();
+    for(const upd of updates){
+      const text = upd?.message?.text || '';
+      if(!text.startsWith('DASHBOX_SCORES')) continue;
+      const parsed = parseDashboxScores(text);
+      if(parsed) return parsed;
+    }
     return null;
-  } catch(e) {
-    console.log('Fetch failed:', e.message);
+  } catch(e){
+    console.log('Telegram fetch failed:', e.message);
     return null;
   }
+}
+
+function parseDashboxScores(text){
+  // Format: DASHBOX_SCORES|DXY:1.2345|EXY:-0.4567|...|ts:1718435200
+  const parts = text.split('|');
+  const raw = {};
+  let ts = null;
+  parts.forEach(p => {
+    const [k, v] = p.split(':');
+    if(SCORE_MAP[k]) raw[k] = parseFloat(v);
+    if(k === 'ts') ts = parseInt(v) * 1000;
+  });
+  if(Object.keys(raw).length < 8) return null;
+  const scores = Object.entries(raw).map(([key, score])=>({
+    code: SCORE_MAP[key],
+    score: parseFloat(score.toFixed(2)),
+    change: 0,
+    ts
+  })).sort((a,b)=>b.score-a.score);
+  return { scores, ts };
+}
+
+function getAgeString(ts){
+  if(!ts) return '';
+  const age = Math.round((Date.now() - ts) / 1000);
+  if(age < 60) return `${age}s ago`;
+  return `${Math.round(age/60)}m ago`;
 }
 
 // ═══════════ REFRESH / LIVE ═══════════
 async function refreshAll(){
-  const badge=document.getElementById('apiBadge');
+  const badge = document.getElementById('apiBadge');
   if(badge){ badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
-  const data = await fetchLiveStrength();
-  if(data && Object.keys(data).length>0){
-    const scores = calculateStrengthFromQuotes(data);
-    if(scores && scores.length>0) currentScores = scores;
-    if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
+  const result = await fetchStrengthFromTelegram();
+  if(result && result.scores.length > 0){
+    currentScores = result.scores;
+    if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
   } else {
-    // API failed — keep existing scores, never overwrite with demo
-    if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
+    if(badge){ badge.textContent='● NO SIGNAL'; badge.className='api-badge demo'; }
   }
-  const active=document.querySelector('.page.active');
+  const active = document.querySelector('.page.active');
   if(active){ showTab(active.id.replace('tab-','')); } else { renderIndex(); }
-}
-
-function calculateStrengthFromQuotes(data){
-  const chg={USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
-  const cnt={USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
-  const pairMap={'EUR/USD':{base:'EUR',quote:'USD'},'GBP/USD':{base:'GBP',quote:'USD'},
-    'AUD/USD':{base:'AUD',quote:'USD'},'NZD/USD':{base:'NZD',quote:'USD'},
-    'USD/CAD':{base:'USD',quote:'CAD'},'USD/CHF':{base:'USD',quote:'CHF'},
-    'USD/JPY':{base:'USD',quote:'JPY'},'EUR/JPY':{base:'EUR',quote:'JPY'}};
-  Object.entries(data).forEach(([sym,q])=>{
-    if(!q||q.code) return;
-    const pair=pairMap[sym]; if(!pair) return;
-    const price=parseFloat(q.close||q.price);
-    const open=parseFloat(q.open);
-    if(!price||!open||isNaN(price)||isNaN(open)||open===0) return;
-    const pct=((price-open)/open)*100;
-    if(chg[pair.base]!==undefined){chg[pair.base]+=pct;cnt[pair.base]++;}
-    if(chg[pair.quote]!==undefined){chg[pair.quote]-=pct;cnt[pair.quote]++;}
-  });
-  const scores=Object.keys(chg).map(code=>({
-    code, score:cnt[code]>0?chg[code]/cnt[code]:0,
-    change:cnt[code]>0?chg[code]/cnt[code]*0.1:0
-  })).sort((a,b)=>b.score-a.score);
-  const maxAbs=Math.max(...scores.map(s=>Math.abs(s.score)),0.01);
-  return scores.map(s=>({...s,
-    score:parseFloat((s.score/maxAbs*3).toFixed(1)),
-    change:parseFloat((s.change/maxAbs*0.3).toFixed(3))
-  }));
 }
 
 function toggleLive(){
   liveMode=!liveMode;
-  document.getElementById('apiLabel').textContent=liveMode?'Live':'Demo';
-  const badge=document.getElementById('apiBadge'),dot=document.getElementById('liveDot'),mt=document.getElementById('modeText');
-  if(liveMode){badge.textContent='● LIVE';badge.className='api-badge live';dot.classList.add('live');mt.textContent='LIVE';}
-  else{badge.textContent='● DEMO';badge.className='api-badge demo';dot.classList.remove('live');mt.textContent='DEMO';}
   refreshAll();
 }
 
@@ -1694,7 +1700,6 @@ function updateClock(){
 // ═══════════ INIT ═══════════
 currentScores = getDemoScores();
 
-// Show welcome screen with big refresh button
 document.getElementById('tab-index').innerHTML = `
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:20px">
     <div style="font-size:48px;margin-bottom:20px">📊</div>
@@ -1703,39 +1708,63 @@ document.getElementById('tab-index').innerHTML = `
     <button onclick="loadLiveData()" style="background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:12px;padding:18px 48px;font-size:16px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);letter-spacing:0.05em">
       ⚡ Load Live Data
     </button>
-    <div style="font-size:11px;color:var(--muted);margin-top:16px">Tap to fetch latest currency strength</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:16px">Reads live scores from MT4 via Telegram</div>
   </div>`;
 
 setInterval(updateClock,1000);
 updateClock();
 
 async function loadLiveData(){
-  let scores = null;
-  const data = await fetchLiveStrength();
-  if(data) scores = calculateStrengthFromQuotes(data);
-  currentScores = scores || getDemoScores();
   document.getElementById('tab-index').innerHTML = `
     <div class="controls">
       <button class="btn primary" onclick="reloadData()">↻ Refresh</button>
-      <span class="api-badge ${scores?'live':'demo'}" id="apiBadge">${scores?'● LIVE':'● MARKET CLOSED'}</span>
+      <span class="api-badge demo" id="apiBadge">● FETCHING...</span>
+      <span id="scoreAge" style="font-size:10px;color:var(--muted);margin-left:8px"></span>
       <button class="btn" onclick="testTelegram()" style="margin-left:auto">📲 Test Alert</button>
     </div>
-    <div class="sl">Currency Strength Index</div>
+    <div class="sl">Currency Strength Index — MT4 Live</div>
     <div class="chart-wrap"><canvas id="barChart" width="340" height="300"></canvas></div>
     <div class="index-legend" id="indexLegend"></div>`;
+
+  const result = await fetchStrengthFromTelegram();
+  const badge = document.getElementById('apiBadge');
+  const ageEl = document.getElementById('scoreAge');
+
+  if(result && result.scores.length > 0){
+    currentScores = result.scores;
+    if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
+    if(ageEl) ageEl.textContent = getAgeString(result.ts);
+  } else {
+    currentScores = getDemoScores();
+    if(badge){ badge.textContent='● NO MT4 SIGNAL'; badge.className='api-badge demo'; }
+    if(ageEl) ageEl.textContent = 'Is the EA running?';
+  }
   renderIndex();
+
+  // Auto-refresh every 60s in sync with EA
+  setInterval(async ()=>{
+    const r = await fetchStrengthFromTelegram();
+    if(r && r.scores.length > 0){
+      currentScores = r.scores;
+      if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
+      if(ageEl) ageEl.textContent = getAgeString(r.ts);
+      renderIndex();
+    }
+  }, 60000);
 }
 
 async function reloadData(){
-  const badge=document.getElementById('apiBadge');
+  const badge = document.getElementById('apiBadge');
+  const ageEl = document.getElementById('scoreAge');
   if(badge){ badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
-  const data=await fetchLiveStrength();
-  if(data){
-    const scores=calculateStrengthFromQuotes(data);
-    if(scores&&scores.length>0) currentScores=scores;
-    if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
+  const result = await fetchStrengthFromTelegram();
+  if(result && result.scores.length > 0){
+    currentScores = result.scores;
+    if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
+    if(ageEl) ageEl.textContent = getAgeString(result.ts);
   } else {
-    if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
+    if(badge){ badge.textContent='● NO MT4 SIGNAL'; badge.className='api-badge demo'; }
+    if(ageEl) ageEl.textContent = 'Check EA is running on VPS';
   }
   renderIndex();
 }
