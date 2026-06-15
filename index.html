@@ -525,40 +525,36 @@ const DEMO_PRICES = {
   AUDCHF:0.6220,NZDCAD:0.8160,NZDCHF:0.5170,CADCHF:0.6330
 };
 
-// ═══════════ LIVE PRICES FROM MT4 ═══════════
+// ═══════════ LIVE DATA FROM MT4 VIA JSONBIN ═══════════
+const JSONBIN_ID  = '6a2f6bf4f5f4af5e29f2bdc9';
+const JSONBIN_KEY = '$2a$10$Ac9QwenauyC33dSBuR863OVTtKBL3NTZYR5DCg.SjFoRnzkKbWQG.';
+
 let LIVE_PRICES = {};
+let LIVE_TS     = null;
 
-function parsePricesSection(section){
-  const parts = section.split('|');
-  const prices = {};
-  parts.forEach(p => {
-    if(!p || p === 'DASHBOX_PRICES' || p.startsWith('ts:')) return;
-    const idx = p.indexOf(':');
-    if(idx > 0){ prices[p.substring(0,idx)] = parseFloat(p.substring(idx+1)); }
-  });
-  if(Object.keys(prices).length > 0) LIVE_PRICES = prices;
-}
-
-async function fetchPricesFromTelegram(){
+async function fetchFromJsonbin(){
   try {
-    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
-    const res = await fetch(url);
+    const url = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
+    const res = await fetch(url, { headers: { 'X-Master-Key': JSONBIN_KEY } });
     const data = await res.json();
-    if(!data.ok) return;
-    const updates = [...(data.result||[])].reverse();
-    for(const upd of updates){
-      const text = upd && upd.message && upd.message.text ? upd.message.text : '';
-      if(text.startsWith('DASHBOX_SCORES') && text.includes('||DASHBOX_PRICES')){
-        parsePricesSection(text.split('||DASHBOX_PRICES')[1]);
-        break;
-      }
-      if(text.startsWith('DASHBOX_PRICES')){
-        parsePricesSection(text);
-        break;
-      }
+    const record = data.record;
+    if(!record) return null;
+    if(record.prices) LIVE_PRICES = record.prices;
+    if(record.ts)     LIVE_TS     = record.ts * 1000;
+    if(record.scores){
+      const SCORE_MAP = {DXY:'USD',EXY:'EUR',BXY:'GBP',AXY:'AUD',NXY:'NZD',CAD:'CAD',CHF:'CHF',JXY:'JPY'};
+      const scores = Object.entries(record.scores).map(([k,v])=>({
+        code: SCORE_MAP[k], score: parseFloat(parseFloat(v).toFixed(2)), change:0, ts: record.ts*1000
+      })).filter(s=>s.code).sort((a,b)=>b.score-a.score);
+      return { scores, ts: record.ts*1000 };
     }
-  } catch(e){ console.log('Price fetch error:', e.message); }
+    return null;
+  } catch(e){ console.log('Jsonbin fetch error:', e.message); return null; }
 }
+
+// Keep old Telegram functions as stubs so nothing breaks
+async function fetchStrengthFromTelegram(){ return fetchFromJsonbin(); }
+async function fetchPricesFromTelegram(){ return fetchFromJsonbin(); }
 
 function getPrice(sym){ return LIVE_PRICES[sym] || DEMO_PRICES[sym] || 0; }
 
