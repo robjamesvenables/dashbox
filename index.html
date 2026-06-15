@@ -916,7 +916,7 @@ function renderSignals(){
 
     // STEP 1: Find pairs where price is AT a key Daily pivot level
     PIVOT_LEVELS.forEach(p=>{
-      if(p.touches < 2) return;
+      if(p.touches < 3) return; // minimum 3 touches required
       const livePrice = getPrice(p.pair) || 0;
       if(!livePrice) return;
 
@@ -947,7 +947,7 @@ function renderSignals(){
       if(bounceDir === 'SELL') diff = qScore - bScore; // positive = confirms SELL
       else diff = bScore - qScore;                       // positive = confirms BUY
 
-      if(diff <= 0) return; // strength doesn't confirm — skip
+      if(diff <= 1.5) return; // need 1.5pt differential minimum
 
       // Calculate conviction
       const touchBoost = p.touches >= 4 ? 2.5 : p.touches === 3 ? 1.5 : 0.5;
