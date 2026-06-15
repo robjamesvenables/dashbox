@@ -378,11 +378,12 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   <div id="pivotList"></div>
 </div>
 
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-header">
       <button class="modal-back" onclick="closeModal()">←</button>
       <div class="modal-title" id="modalTitle">--</div>
+      <button onclick="closeModal()" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;">×</button>
     </div>
     <div class="modal-body" id="modalBody"><div class="loading">Analysing...</div></div>
   </div>
