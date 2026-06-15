@@ -1988,10 +1988,24 @@ async function splashRefresh(){
       renderIndex();
     }, 400);
   } else {
-    status.textContent = '⚠ No MT4 signal — check EA is running';
-    btn.textContent = '↻ Try Again';
-    btn.style.opacity = '1';
-    btn.disabled = false;
+    // Try old scores format as fallback
+    const raw = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {headers:{'X-Master-Key':JSONBIN_KEY}}).then(r=>r.json()).catch(()=>null);
+    const rec = raw && raw.record;
+    const scoreData = rec && (rec.scores_H4 || rec.scores);
+    if(scoreData){
+      const SCORE_MAP = {DXY:'USD',EXY:'EUR',BXY:'GBP',AXY:'AUD',NXY:'NZD',CAD:'CAD',CHF:'CHF',JXY:'JPY'};
+      currentScores = Object.entries(scoreData).map(([k,v])=>({
+        code:SCORE_MAP[k], score:parseFloat(parseFloat(v).toFixed(2)), change:0
+      })).filter(s=>s.code).sort((a,b)=>b.score-a.score);
+      if(rec.prices) LIVE_PRICES = rec.prices;
+      status.textContent = '✓ Live data loaded';
+      setTimeout(()=>{ document.getElementById('splashOverlay').classList.add('hidden'); renderIndex(); }, 400);
+    } else {
+      status.textContent = '⚠ No MT4 signal — check EA is running on VPS';
+      btn.textContent = '↻ Try Again';
+      btn.style.opacity = '1';
+      btn.disabled = false;
+    }
   }
 }
 
