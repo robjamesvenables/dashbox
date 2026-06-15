@@ -735,15 +735,24 @@ function buildMarketOpps(items, market){
 
 // ═══════════ WATCHLIST TAB ═══════════
 function checkPivotClear(pair, direction, entryPrice, tpPrice){
-  // Returns {clear: bool, blockingLevel: obj|null}
-  // Check if there's a fortress/strong pivot between entry and TP
+  const livePrice = getPrice(pair) || entryPrice;
   for(const p of PIVOT_LEVELS){
     if(p.pair !== pair) continue;
+    if(p.touches < 2) continue;
     const level = p.level;
-    if(p.touches < 2) continue; // only valid+ levels block
-    // Check if level is between entry and TP
-    if(direction === 'BUY' && level > entryPrice && level < tpPrice) return {clear:false, blocker:p};
-    if(direction === 'SELL' && level < entryPrice && level > tpPrice) return {clear:false, blocker:p};
+    const threshold = getThreshold(livePrice);
+    // Block if price is AT a resistance zone and direction is BUY
+    if(direction === 'BUY' && p.type === 'resistance'){
+      const dist = livePrice - level;
+      if(Math.abs(dist) <= threshold) return {clear:false, blocker:p}; // at resistance — don't buy
+      if(level > entryPrice && level < tpPrice) return {clear:false, blocker:p}; // resistance blocking path
+    }
+    // Block if price is AT a support zone and direction is SELL
+    if(direction === 'SELL' && p.type === 'support'){
+      const dist = level - livePrice;
+      if(Math.abs(dist) <= threshold) return {clear:false, blocker:p}; // at support — don't sell
+      if(level < entryPrice && level > tpPrice) return {clear:false, blocker:p}; // support blocking path
+    }
   }
   return {clear:true, blocker:null};
 }
