@@ -309,11 +309,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 <!-- INDEX -->
 <div class="page active" id="tab-index">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-    <span class="api-badge demo" id="apiBadge">● FETCHING...</span>
-    <span id="scoreAge" style="font-size:10px;color:var(--muted)"></span>
-    <button class="btn" onclick="reloadData()" style="font-size:10px;padding:5px 12px;">↻ Refresh</button>
-    <button class="btn" onclick="testTelegram()" style="font-size:10px;padding:5px 10px;">📲 Test</button>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+    <span class="api-badge demo" id="apiBadge" style="font-size:12px;">● FETCHING...</span>
+    <span id="scoreAge" style="font-size:11px;color:var(--muted)"></span>
+    <div style="margin-left:auto;display:flex;gap:6px;">
+      <button class="btn primary" onclick="reloadData()" style="font-size:11px;padding:6px 14px;">↻ Refresh</button>
+      <button class="btn" onclick="testTelegram()" style="font-size:11px;padding:6px 10px;">📲</button>
+    </div>
   </div>
   <div class="sl">Currency Strength Index — MT4 Live</div>
   <div class="chart-wrap"><canvas id="barChart" width="340" height="300"></canvas></div>
