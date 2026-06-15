@@ -1739,8 +1739,9 @@ function renderWatchlist(){
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct });
     });
 
-    // Sort by closest to price
+    // Sort by closest to price, show top 15 only
     items.sort((a,b)=>a.pct-b.pct);
+    items.splice(15);
 
     if(items.length === 0){
       container.innerHTML = '<div class="no-signals">No pivot levels loaded yet — check EA is running.</div>';
