@@ -246,7 +246,8 @@ void PostAll()
          firstPiv=false;
       }
       // Add momentum score
-      json+=","mom_"+sym+"":"+DoubleToStr(mom,4);
+      string momKey = "mom_" + sym;
+      json += ",\"" + momKey + "\":" + DoubleToStr(mom,4);
    }
 
    json+="}}";
