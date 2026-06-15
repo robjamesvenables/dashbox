@@ -1049,11 +1049,19 @@ function renderSignals(){
       container.innerHTML += `
         <div class="signal-card grade-${grade}" onclick="openReport('${o.pair}','${o.direction}',${Math.round(o.finalConf)},'forex')">
           <div class="sc-header">
-            <div class="sc-grade ${grade}">${gradeLabel}</div>
-            <div class="sc-pair">${o.pair}</div>
-            <span class="sc-mkt ${o.market||'forex'}">${(o.market||'forex').toUpperCase()}</span>
-            <div class="sc-dir ${o.direction.toLowerCase()}">${o.direction}</div>
-            <div class="sc-conf">${o.finalConf.toFixed(1)}/10 <span>conf</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-right:12px;min-width:48px;">
+              <div style="font-size:22px;font-weight:700;color:${o.finalConf>=8.5?'var(--strong)':o.finalConf>=7?'var(--gold)':'var(--weak)'};line-height:1">${o.finalConf.toFixed(1)}</div>
+              <div style="font-size:9px;color:var(--muted);letter-spacing:0.05em">/10</div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+                <div class="sc-pair">${o.pair}</div>
+                <div class="sc-dir ${o.direction.toLowerCase()}">${o.direction}</div>
+              </div>
+              <div style="display:flex;gap:5px;">
+                <span class="sc-mkt ${o.market||'forex'}">${(o.market||'forex').toUpperCase()}</span>
+              </div>
+            </div>
           </div>
           <div class="sc-body">
             <div class="sc-reason">${reason}</div>
