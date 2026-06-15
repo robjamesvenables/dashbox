@@ -2128,7 +2128,7 @@ async function refreshAll(){
   const result = await fetchStrengthFromTelegram();
   if(result && result.scores.length > 0){
     currentScores = result.scores;
-    if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
+    if(badge){ badge.textContent='● Connected'; badge.className='api-badge live'; }
   } else {
     if(badge){ badge.textContent='● NO SIGNAL'; badge.className='api-badge demo'; }
   }
@@ -2164,7 +2164,7 @@ async function splashRefresh(){
     status.textContent = '✓ Live data loaded';
     setTimeout(()=>{
       document.getElementById('splashOverlay').classList.add('hidden');
-      const b=document.getElementById('apiBadge');if(b){b.textContent='● MT4 LIVE';b.className='api-badge live';}
+      const b=document.getElementById('apiBadge');if(b){b.textContent='● Connected';b.className='api-badge live';}
       renderIndex();
       startWatchlistAlerts();
     }, 400);
@@ -2204,10 +2204,10 @@ async function loadLiveData(){
 
   if(result && result.scores && result.scores.length > 0){
     currentScores = result.scores;
-    if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
+    if(badge){ badge.textContent='● Connected'; badge.className='api-badge live'; }
     if(ageEl) ageEl.textContent = getAgeString(result.ts);
   } else {
-    if(badge){ badge.textContent='● NO MT4 SIGNAL'; badge.className='api-badge demo'; }
+    if(badge){ badge.textContent='● Not Connected'; badge.className='api-badge demo'; }
     if(ageEl) ageEl.textContent = 'Check EA on VPS';
   }
   renderIndex();
@@ -2217,7 +2217,7 @@ async function loadLiveData(){
     const r = await fetchFromJsonbin();
     if(r && r.scores && r.scores.length > 0){
       currentScores = r.scores;
-      if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
+      if(badge){ badge.textContent='● Connected'; badge.className='api-badge live'; }
       if(ageEl) ageEl.textContent = getAgeString(r.ts);
       renderIndex();
     }
@@ -2231,10 +2231,10 @@ async function reloadData(){
   const [result] = await Promise.all([fetchStrengthFromTelegram(), fetchPricesFromTelegram()]);
   if(result && result.scores.length > 0){
     currentScores = result.scores;
-    if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
+    if(badge){ badge.textContent='● Connected'; badge.className='api-badge live'; }
     if(ageEl) ageEl.textContent = getAgeString(result.ts);
   } else {
-    if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
+    if(badge){ badge.textContent='● Connected'; badge.className='api-badge live'; }
     if(ageEl) ageEl.textContent = getAgeString(currentScores[0]&&currentScores[0].ts);
   }
   renderIndex();
