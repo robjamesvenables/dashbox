@@ -1006,19 +1006,60 @@ function generateReport(sym,direction,conf,market){
   const vIcon=conf>=8?'✅':conf>=7?'⚠️':'❌';
   const vSub=conf>=9?'High conviction. All factors aligned.':conf>=8?'Good setup. Wait for entry candle.':conf>=7?'Below ideal — do not enter yet. Wait for stronger signal.':'Not a valid entry. Stand aside.';
 
+  // Build specific pair analysis
+  const base = sym.slice(0,3), quote = sym.slice(3,6);
+  const baseScore = currentScores.find(s=>s.code===base);
+  const quoteScore = currentScores.find(s=>s.code===quote);
+  const bScore = baseScore ? baseScore.score : 0;
+  const qScore = quoteScore ? quoteScore.score : 0;
+  const diff = Math.abs(bScore - qScore).toFixed(1);
+
+  // Find any nearby pivot for this pair
+  let pivotNote = '';
+  for(const p of PIVOT_LEVELS){
+    if(p.pair !== sym) continue;
+    const liveP = getPrice(sym) || price;
+    const thresh = getThreshold(liveP);
+    if(Math.abs(liveP - p.level) <= thresh){
+      const pType = p.touches >= 4 ? 'fortress' : p.touches === 3 ? 'strong' : 'valid';
+      pivotNote = ` Price is within ${Math.round(getPipsAway(liveP, p.level, 4))} pips of a ${pType} ${p.type} zone at ${p.level.toFixed(p.dec)} (tested ${p.touches}x).`;
+      break;
+    }
+  }
+
+  // Pair-specific risks
+  const risks = {
+    JPY: 'BOJ intervention risk above 160 — watch for sudden JPY spikes.',
+    CAD: 'CAD sensitive to oil price movements — check crude.',
+    AUD: 'AUD risk-sensitive — watch global risk sentiment.',
+    NZD: 'NZD follows AUD broadly — thin liquidity at extremes.',
+    CHF: 'SNB may intervene if CHF strengthens too fast.',
+    GBP: 'GBP volatile around UK data — check economic calendar.',
+    EUR: 'ECB policy sensitive — watch EU CPI and rate commentary.',
+    USD: 'FOMC meetings and US CPI key drivers for USD.'
+  };
+  const pairRisk = risks[base] || risks[quote] || '';
+
+  const dirWord = direction === 'BUY' ? 'bullish' : 'bearish';
+  const strongCur = direction === 'BUY' ? base : quote;
+  const weakCur = direction === 'BUY' ? quote : base;
+  const strongScore = direction === 'BUY' ? bScore : qScore;
+  const weakScore = direction === 'BUY' ? qScore : bScore;
+
+  const specificAnalysis = `${base} is ${bScore >= 0 ? 'strong' : 'weak'} (${bScore > 0 ? '+' : ''}${bScore.toFixed(1)}) vs ${quote} ${qScore >= 0 ? 'strong' : 'weak'} (${qScore > 0 ? '+' : ''}${qScore.toFixed(1)}) — a ${diff}pt differential clearly favouring a ${direction}. ${strongCur} ranks among the ${direction==='BUY'?'strongest':'weakest'} currencies on the index while ${weakCur} is ${direction==='BUY'?'weakest':'strongest'} — maximum divergence setup.${pivotNote} Wait for a clean ${direction==='BUY'?'bullish':'bearish'} entry candle before committing.`;
+
   const mktAnalysis={
-    forex:`Currency strength differential clearly favours ${direction==='BUY'?'buyers':'sellers'} on this pair. Weekly/Daily bias aligns with 4H momentum. `,
-    metals:`${isGold?'Gold':'Silver'} ${direction==='BUY'?'bullish':'bearish'} on USD weakness. Safe haven demand ${direction==='BUY'?'building':'fading'}. `,
-    indices:`Risk sentiment ${direction==='BUY'?'positive':'negative'} for ${sym}. USD dynamics and economic data support ${direction==='BUY'?'bullish':'bearish'} bias. Wait for session open confirmation.`,
-    crypto:`${sym} showing ${direction==='BUY'?'bullish':'bearish'} momentum on USD weakness. Market structure supports ${direction}. High volatility — use conservative lot sizing.`
+    forex: specificAnalysis,
+    metals:`${isGold?'Gold':'Silver'} ${dirWord} — USD score ${usd.score > 0 ? '+' : ''}${usd.score.toFixed(1)}. ${usd.score < 0 ? 'Dollar weakness supports metals prices.' : 'Dollar strength pressures metals — wait for USD to turn.'} Safe haven flows ${direction==='BUY'?'building':'fading'}.`,
+    indices:`${sym} ${dirWord} on risk sentiment. USD at ${usd.score > 0 ? '+' : ''}${usd.score.toFixed(1)} — ${usd.score < 1 ? 'supportive for equities.' : 'headwind for indices.'} Wait for session open and first 15-min candle confirmation.`,
+    crypto:`${sym} ${dirWord} — crypto following USD weakness. USD score ${usd.score > 0 ? '+' : ''}${usd.score.toFixed(1)}. High volatility asset — use strict 0.5% risk and expect wide swings.`
   };
 
   const warnings=[];
-  if(sym.includes('JPY')) warnings.push('⚠ BOJ intervention risk. Sudden JPY spikes possible above 160.');
-  if(sym.includes('CAD')) warnings.push('⚠ CAD sensitive to oil price moves.');
-  if(market==='crypto') warnings.push('⚠ High volatility asset. Use strict position sizing.');
+  if(pairRisk) warnings.push('⚠ ' + pairRisk);
+  if(market==='crypto') warnings.push('⚠ High volatility asset. Use strict position sizing — 0.01 lots max.');
   if(market==='indices') warnings.push('⚠ Check economic calendar before entry. News can cause sharp moves.');
-  if(isGold) warnings.push('⚠ Gold can spike on geopolitical events. Monitor news.');
+  if(isGold) warnings.push('⚠ Gold can spike on geopolitical events. Monitor news flow.');
 
   const usd=currentScores.find(s=>s.code==='USD')||{score:0};
 
