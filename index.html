@@ -1044,6 +1044,7 @@ function generateReport(sym,direction,conf,market){
   };
   const pairRisk = risks[base] || risks[quote] || '';
 
+  const usd=currentScores.find(s=>s.code==='USD')||{score:0};
   const dirWord = direction === 'BUY' ? 'bullish' : 'bearish';
   const strongCur = direction === 'BUY' ? base : quote;
   const weakCur = direction === 'BUY' ? quote : base;
@@ -1065,7 +1066,6 @@ function generateReport(sym,direction,conf,market){
   if(market==='indices') warnings.push('⚠ Check economic calendar before entry. News can cause sharp moves.');
   if(isGold) warnings.push('⚠ Gold can spike on geopolitical events. Monitor news flow.');
 
-  const usd=currentScores.find(s=>s.code==='USD')||{score:0};
 
   document.getElementById('modalBody').innerHTML=`
     <div class="verdict ${vClass}"><div class="verdict-icon">${vIcon}</div><div class="verdict-title">${verdict}</div><div class="verdict-sub">${vSub}</div></div>
