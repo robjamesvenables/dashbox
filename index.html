@@ -967,7 +967,7 @@ function openReport(sym,direction,conf,market){
   document.getElementById('modalTitle').textContent=sym+' — TRADE REPORT';
   document.getElementById('modalOverlay').classList.add('open');
   document.getElementById('modalBody').innerHTML='<div class="loading">⟳ Analysing...</div>';
-  setTimeout(()=>generateReport(sym,direction,conf,market),500);
+  generateReport(sym,direction,conf,market);
 }
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
 
@@ -1016,16 +1016,20 @@ function generateReport(sym,direction,conf,market){
 
   // Find any nearby pivot for this pair
   let pivotNote = '';
-  for(const p of PIVOT_LEVELS){
-    if(p.pair !== sym) continue;
+  try {
     const liveP = getPrice(sym) || price;
-    const thresh = getThreshold(liveP);
-    if(Math.abs(liveP - p.level) <= thresh){
-      const pType = p.touches >= 4 ? 'fortress' : p.touches === 3 ? 'strong' : 'valid';
-      pivotNote = ` Price is within ${Math.round(getPipsAway(liveP, p.level, 4))} pips of a ${pType} ${p.type} zone at ${p.level.toFixed(p.dec)} (tested ${p.touches}x).`;
-      break;
+    for(const p of PIVOT_LEVELS){
+      if(p.pair !== sym) continue;
+      const thresh = getThreshold(liveP);
+      if(Math.abs(liveP - p.level) <= thresh){
+        const pType = p.touches >= 4 ? 'fortress' : p.touches === 3 ? 'strong' : 'valid';
+        const dec = p.dec || (liveP > 50 ? 2 : 4);
+        const pipsAway = Math.round(getPipsAway(liveP, p.level, dec));
+        pivotNote = ` Price is within ${pipsAway} pips of a ${pType} ${p.type} zone at ${p.level.toFixed(dec)} (tested ${p.touches}x).`;
+        break;
+      }
     }
-  }
+  } catch(e){ console.log('Pivot note error:', e); }
 
   // Pair-specific risks
   const risks = {
