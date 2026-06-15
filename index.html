@@ -1705,12 +1705,11 @@ function renderWatchlist(){
       const livePrice = getPrice(p.pair) || 0;
       if(!livePrice) return;
 
+      // Strict distance check - must be within threshold (same as ALERTS logic)
       const threshold = getThreshold(livePrice);
       const dist = Math.abs(livePrice - p.level);
+      if(dist > threshold) return; // outside threshold entirely
       const pct = dist / threshold;
-
-      // Only show if IN ZONE (within 60% of threshold = ~45 pips)
-      if(pct > 0.6) return;
 
       // Only keep closest level per pair
       const key = p.pair;
