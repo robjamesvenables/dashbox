@@ -529,6 +529,14 @@ async function fetchCryptoPrices(){
   }
 }
 
+// Extra instruments for watchlist
+const EXTRA_INSTRUMENTS = {
+  XAUUSD: {name:'Gold',    dec:2, slPips:1500, pip:0.1,  market:'metals'},
+  NDX100: {name:'Nasdaq',  dec:1, slPips:120,  pip:1,    market:'indices'},
+  US30:   {name:'Dow',     dec:1, slPips:200,  pip:1,    market:'indices'},
+  BTCUSD: {name:'Bitcoin', dec:0, slPips:2000, pip:1,    market:'crypto'},
+};
+
 const DEMO_PRICES = {
   EURUSD:1.1578,GBPUSD:1.3430,AUDUSD:0.7015,NZDUSD:0.5831,
   USDCAD:1.3986,USDCHF:0.8850,USDJPY:157.40,EURJPY:182.30,
@@ -543,8 +551,9 @@ const DEMO_PRICES = {
 const JSONBIN_ID  = '6a2f6bf4f5f4af5e29f2bdc9';
 const JSONBIN_KEY = '$2a$10$d0.NsjXsDQakZVLZnl4Lcuv1yl9POT37dx2yf4GzHZOWZxYk/JAya';
 
-let LIVE_PRICES = {};
-let LIVE_TS     = null;
+let LIVE_PRICES    = {};
+let LIVE_TS        = null;
+let LIVE_MOMENTUM  = {}; // momentum scores for non-forex instruments
 
 async function fetchFromJsonbin(){
   try {
@@ -557,8 +566,16 @@ async function fetchFromJsonbin(){
     if(record.prices) LIVE_PRICES = record.prices;
     if(record.ts)     LIVE_TS     = record.ts * 1000;
 
-    // Load auto pivot levels from EA
+    // Load auto pivot levels from EA (forex + extra instruments)
     if(record.pivots) loadLivePivots(record.pivots);
+
+    // Store momentum scores for extra instruments
+    if(record) {
+      Object.keys(EXTRA_INSTRUMENTS).forEach(sym=>{
+        const key = 'mom_' + sym;
+        if(record[key] !== undefined) LIVE_MOMENTUM[sym] = parseFloat(record[key]);
+      });
+    }
 
     // Use H4 scores for index display
     const scoreData = record.scores_H4 || record.scores;
@@ -867,6 +884,57 @@ function renderSignals(){
         diff, bScore, qScore });
     });
 
+    // Also scan extra instruments (Gold, Nasdaq, Dow, BTC)
+    Object.entries(EXTRA_INSTRUMENTS).forEach(([sym, cfg])=>{
+      const livePrice = getPrice(sym) || 0;
+      if(!livePrice) return;
+      const momentum = LIVE_MOMENTUM[sym] || 0;
+      if(Math.abs(momentum) < 0.3) return; // not trending enough
+
+      // Find nearby pivot levels for this instrument
+      const threshold = getThreshold(livePrice);
+      const nearZone = threshold * 0.6;
+
+      PIVOT_LEVELS.filter(p=>p.pair===sym && p.touches>=2).forEach(p=>{
+        const dist = Math.abs(livePrice - p.level);
+        if(dist > nearZone) return;
+
+        const bounceDir = p.type === 'resistance' ? 'SELL' : 'BUY';
+        const pairKey = sym + bounceDir;
+        if(processed.has(pairKey)) return;
+        processed.add(pairKey);
+
+        // Momentum must confirm bounce direction
+        const confirms = (bounceDir==='BUY' && momentum > 0) || (bounceDir==='SELL' && momentum < 0);
+        if(!confirms) return;
+
+        const touchBoost = p.touches>=4?2.5:p.touches===3?1.5:0.5;
+        const momBoost = Math.min(Math.abs(momentum)*0.8, 3.0);
+        const finalConf = Math.min(5 + touchBoost + momBoost, 10);
+
+        const dec = cfg.dec;
+        const pipVal = cfg.pip;
+        const slPips = cfg.slPips;
+        let sl, tp;
+        if(bounceDir==='BUY'){
+          sl = parseFloat((livePrice - slPips*pipVal).toFixed(dec));
+          tp = parseFloat((livePrice + slPips*2*pipVal).toFixed(dec));
+        } else {
+          sl = parseFloat((livePrice + slPips*pipVal).toFixed(dec));
+          tp = parseFloat((livePrice - slPips*2*pipVal).toFixed(dec));
+        }
+
+        const pivotRank = p.touches>=4?'Fortress':p.touches===3?'Strong':'Valid';
+        watchlist.push({
+          pair:sym, base:cfg.name, quote:'', direction:bounceDir,
+          price:livePrice, dec, sl, tp, finalConf,
+          pivotLevel:p.level, pivotType:p.type, touches:p.touches, pivotRank,
+          diff:Math.abs(momentum), bScore:momentum, qScore:0,
+          market: cfg.market
+        });
+      });
+    });
+
     watchlist.sort((a,b)=>b.finalConf-a.finalConf);
     const top = watchlist.slice(0,8);
 
@@ -881,14 +949,16 @@ function renderSignals(){
     top.forEach(o=>{
       const grade = o.finalConf >= 8.5 ? 'a' : o.finalConf >= 7 ? 'b' : 'c';
       const gradeLabel = o.finalConf >= 8.5 ? 'A' : o.finalConf >= 7 ? 'B' : 'C';
-      const reason = `<strong>${o.base}</strong> ${o.bScore>0?'+':''}${o.bScore.toFixed(1)} vs <strong>${o.quote}</strong> ${o.qScore>0?'+':''}${o.qScore.toFixed(1)} — indexes confirm ${o.direction} from ${o.pivotRank} ${o.pivotType} at ${o.pivotLevel.toFixed(o.dec)} (tested ${o.touches}x).`;
+      const reason = o.quote
+        ? `<strong>${o.base}</strong> ${o.bScore>0?'+':''}${o.bScore.toFixed(1)} vs <strong>${o.quote}</strong> ${o.qScore>0?'+':''}${o.qScore.toFixed(1)} — indexes confirm ${o.direction} from ${o.pivotRank} ${o.pivotType} at ${o.pivotLevel.toFixed(o.dec)} (tested ${o.touches}x).`
+        : `<strong>${o.base}</strong> momentum ${o.bScore>0?'+':''}${o.bScore.toFixed(2)} — ${o.direction} confirmed from ${o.pivotRank} ${o.pivotType} at ${o.pivotLevel.toFixed(o.dec)} (tested ${o.touches}x).`;
 
       container.innerHTML += `
         <div class="signal-card grade-${grade}" onclick="openReport('${o.pair}','${o.direction}',${Math.round(o.finalConf)},'forex')">
           <div class="sc-header">
             <div class="sc-grade ${grade}">${gradeLabel}</div>
             <div class="sc-pair">${o.pair}</div>
-            <span class="sc-mkt forex">FOREX</span>
+            <span class="sc-mkt ${o.market||'forex'}">${(o.market||'forex').toUpperCase()}</span>
             <div class="sc-dir ${o.direction.toLowerCase()}">${o.direction}</div>
             <div class="sc-conf">${o.finalConf.toFixed(1)}/10 <span>conf</span></div>
           </div>

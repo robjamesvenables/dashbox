@@ -42,8 +42,13 @@ string ALL_PAIRS[]={
    "EURJPY","GBPJPY","AUDJPY","NZDJPY","CADJPY","CHFJPY",
    "EURGBP","EURAUD","EURNZD","EURCAD","EURCHF",
    "GBPAUD","GBPNZD","GBPCAD","GBPCHF",
-   "AUDNZD","AUDCAD","AUDCHF","NZDCAD","NZDCHF","CADCHF"
+   "AUDNZD","AUDCAD","AUDCHF","NZDCAD","NZDCHF","CADCHF",
+   "XAUUSD","NDX100","US30","BTCUSD"
 };
+
+// Extra instruments for pivot + momentum scanning
+string EXTRA_INSTRUMENTS[]  = {"XAUUSD","NDX100","US30","BTCUSD"};
+string EXTRA_NAMES[]        = {"Gold","Nasdaq","Dow Jones","Bitcoin"};
 
 datetime LastPostTime=0;
 
@@ -229,6 +234,21 @@ void PostAll()
       json+="\""+ALL_PAIRS[i]+"\":"+pivJson;
       firstPiv=false;
    }
+   // Extra instrument pivots + momentum
+   int extTotal=ArraySize(EXTRA_INSTRUMENTS);
+   for(int i=0;i<extTotal;i++){
+      string sym=EXTRA_INSTRUMENTS[i];
+      string pivJson=DetectPivots(sym);
+      double mom=CalcMomentum(sym);
+      if(pivJson!="[]"){
+         if(!firstPiv) json+=",";
+         json+="""+sym+"":"+pivJson;
+         firstPiv=false;
+      }
+      // Add momentum score
+      json+=","mom_"+sym+"":"+DoubleToStr(mom,4);
+   }
+
    json+="}}";
 
    if(EnableLogging) Print("JSON length: ",StringLen(json));
