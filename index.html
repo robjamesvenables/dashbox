@@ -1615,20 +1615,16 @@ async function testTelegram(){
 
 // ═══════════ TWELVE DATA LIVE PRICES ═══════════
 async function fetchLiveStrength(){
-  const PAIRS = [
-    'EUR/USD','GBP/USD','AUD/USD','NZD/USD','USD/CAD','USD/CHF','USD/JPY',
-    'EUR/JPY','GBP/JPY','AUD/JPY','NZD/JPY','CAD/JPY','CHF/JPY',
-    'EUR/GBP','EUR/AUD','EUR/NZD','EUR/CAD','EUR/CHF',
-    'GBP/AUD','GBP/NZD','GBP/CAD','GBP/CHF',
-    'AUD/NZD','AUD/CAD','AUD/CHF','NZD/CAD','NZD/CHF','CAD/CHF'
-  ].join(',');
   try {
+    // 8 pairs = 8 credits per call, within free plan limits
+    const url = 'https://api.twelvedata.com/quote?symbol=EUR/USD,GBP/USD,AUD/USD,NZD/USD,USD/CAD,USD/CHF,USD/JPY,EUR/JPY&apikey=' + TWELVE_KEY;
     const controller = new AbortController();
-    const timer = setTimeout(()=>controller.abort(), 10000);
-    const res = await fetch(`https://api.twelvedata.com/quote?symbol=${PAIRS}&apikey=${TWELVE_KEY}`, {signal:controller.signal});
+    const timer = setTimeout(()=>controller.abort(), 8000);
+    const res = await fetch(url, {signal: controller.signal});
     clearTimeout(timer);
     const data = await res.json();
-    if(data && !data.code && !data.message) return data;
+    if(data && !data.code && !data.status) return data;
+    console.log('API response:', JSON.stringify(data).slice(0,200));
     return null;
   } catch(e) {
     console.log('Fetch failed:', e.message);
@@ -1664,17 +1660,28 @@ function calculateStrengthFromQuotes(data){
   const chg={USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
   const cnt={USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
 
+  const pairMap = {
+    'EUR/USD':{base:'EUR',quote:'USD'},
+    'GBP/USD':{base:'GBP',quote:'USD'},
+    'AUD/USD':{base:'AUD',quote:'USD'},
+    'NZD/USD':{base:'NZD',quote:'USD'},
+    'USD/CAD':{base:'USD',quote:'CAD'},
+    'USD/CHF':{base:'USD',quote:'CHF'},
+    'USD/JPY':{base:'USD',quote:'JPY'},
+    'EUR/JPY':{base:'EUR',quote:'JPY'}
+  };
+
   Object.entries(data).forEach(([sym,q])=>{
     if(!q||q.code) return;
-    const price=parseFloat(q.close||q.price);
-    const open=parseFloat(q.open);
+    const pair = pairMap[sym];
+    if(!pair) return;
+    // Use % change from today's open — accurate regardless of price level
+    const price = parseFloat(q.close||q.price);
+    const open  = parseFloat(q.open);
     if(!price||!open||isNaN(price)||isNaN(open)||open===0) return;
-    const pct=((price-open)/open)*100;
-    const parts=sym.split('/');
-    if(parts.length!==2) return;
-    const base=parts[0].trim(), quote=parts[1].trim();
-    if(chg[base]!==undefined){chg[base]+=pct;cnt[base]++;}
-    if(chg[quote]!==undefined){chg[quote]-=pct;cnt[quote]++;}
+    const pct = ((price-open)/open)*100;
+    if(chg[pair.base]!==undefined){chg[pair.base]+=pct;cnt[pair.base]++;}
+    if(chg[pair.quote]!==undefined){chg[pair.quote]-=pct;cnt[pair.quote]++;}
   });
 
   const scores=Object.keys(chg).map(code=>({
@@ -1750,10 +1757,10 @@ async function reloadData(){
   const data = await fetchLiveStrength();
   if(data){
     const scores = calculateStrengthFromQuotes(data);
-    if(scores) currentScores = scores;
+    if(scores && scores.length > 0) currentScores = scores;
     if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
   } else {
-    // API failed - keep existing scores, don't change to market closed
+    // API failed — keep existing scores, stay live
     if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
   }
   renderIndex();
