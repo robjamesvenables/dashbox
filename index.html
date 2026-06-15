@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashbox</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1616,13 +1615,21 @@ async function testTelegram(){
 // ═══════════ TWELVE DATA LIVE PRICES ═══════════
 async function fetchLiveStrength(){
   try {
-    const url = 'https://api.twelvedata.com/price?symbol=EUR/USD,GBP/USD,AUD/USD,NZD/USD,USD/CAD,USD/CHF,USD/JPY,EUR/JPY&apikey=' + TWELVE_KEY;
+    const pairs = [
+      'EUR/USD','GBP/USD','AUD/USD','NZD/USD',
+      'USD/CAD','USD/CHF','USD/JPY',
+      'EUR/JPY','GBP/JPY','AUD/JPY','NZD/JPY','CAD/JPY','CHF/JPY',
+      'EUR/GBP','EUR/AUD','EUR/NZD','EUR/CAD','EUR/CHF',
+      'GBP/AUD','GBP/NZD','GBP/CAD','GBP/CHF',
+      'AUD/NZD','AUD/CAD','AUD/CHF',
+      'NZD/CAD','NZD/CHF','CAD/CHF'
+    ].join(',');
+    const url = `https://api.twelvedata.com/quote?symbol=${pairs}&apikey=${TWELVE_KEY}`;
     const controller = new AbortController();
-    const timeout = setTimeout(()=>controller.abort(), 4000); // 4 second max
+    const timeout = setTimeout(()=>controller.abort(), 10000);
     const res = await fetch(url, {signal: controller.signal});
     clearTimeout(timeout);
     const data = await res.json();
-    console.log('API:', JSON.stringify(data).slice(0,300));
     if(data && !data.code && !data.message) return data;
     return null;
   } catch(e) {
@@ -1659,36 +1666,28 @@ function calculateStrengthFromQuotes(data){
   const changes = {USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
   const counts  = {USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
 
-  const pairMap = {
-    'EUR/USD':{base:'EUR',quote:'USD',ref:1.0},
-    'GBP/USD':{base:'GBP',quote:'USD',ref:1.0},
-    'AUD/USD':{base:'AUD',quote:'USD',ref:0.65},
-    'NZD/USD':{base:'NZD',quote:'USD',ref:0.60},
-    'USD/CAD':{base:'USD',quote:'CAD',ref:1.35},
-    'USD/CHF':{base:'USD',quote:'CHF',ref:0.90},
-    'USD/JPY':{base:'USD',quote:'JPY',ref:150},
-    'EUR/JPY':{base:'EUR',quote:'JPY',ref:160}
-  };
-
   Object.entries(data).forEach(([sym, q])=>{
-    if(!q||!q.price) return;
-    const price = parseFloat(q.price);
-    const pair = pairMap[sym];
-    if(!pair) return;
-    const pct = ((price - pair.ref) / pair.ref) * 100;
-    if(changes[pair.base]!==undefined){ changes[pair.base]+=pct; counts[pair.base]++; }
-    if(changes[pair.quote]!==undefined){ changes[pair.quote]-=pct; counts[pair.quote]++; }
+    if(!q || q.code) return;
+    const price = parseFloat(q.close || q.price);
+    const open  = parseFloat(q.open);
+    if(!price || !open || isNaN(price) || isNaN(open) || open === 0) return;
+    const pct = ((price - open) / open) * 100;
+    const parts = sym.split('/');
+    if(parts.length !== 2) return;
+    const base  = parts[0].trim();
+    const quote = parts[1].trim();
+    if(changes[base]  !== undefined){ changes[base]  += pct; counts[base]++;  }
+    if(changes[quote] !== undefined){ changes[quote] -= pct; counts[quote]++; }
   });
 
-  const scores = Object.keys(changes).map(code=>({
+  const scores = Object.keys(changes).map(code => ({
     code,
-    score: counts[code]>0 ? parseFloat((changes[code]/counts[code]).toFixed(1)) : 0,
-    change: counts[code]>0 ? parseFloat((changes[code]/counts[code]*0.1).toFixed(2)) : 0
-  })).sort((a,b)=>b.score-a.score);
-  
-  // Normalise to -3 to +3 range
-  const maxAbs = Math.max(...scores.map(s=>Math.abs(s.score)), 0.1);
-  return scores.map(s=>({...s, score: parseFloat((s.score/maxAbs*3).toFixed(1))}));
+    score: counts[code] > 0 ? parseFloat((changes[code] / counts[code]).toFixed(2)) : 0,
+    change: counts[code] > 0 ? parseFloat((changes[code] / counts[code] * 0.1).toFixed(3)) : 0
+  })).sort((a,b) => b.score - a.score);
+
+  const maxAbs = Math.max(...scores.map(s => Math.abs(s.score)), 0.01);
+  return scores.map(s => ({...s, score: parseFloat((s.score / maxAbs * 3).toFixed(1))}));
 }
 
 function toggleLive(){
@@ -1726,20 +1725,11 @@ setInterval(updateClock,1000);
 updateClock();
 
 async function loadLiveData(){
-  // Try live data with strict 3 second timeout
   let scores = null;
-  try {
-    const url = 'https://api.twelvedata.com/price?symbol=EUR/USD,GBP/USD,AUD/USD,NZD/USD,USD/CAD,USD/CHF,USD/JPY,EUR/JPY&apikey=' + TWELVE_KEY;
-    const p = fetch(url).then(r=>r.json());
-    const timeout = new Promise((_,reject)=>setTimeout(()=>reject('timeout'),3000));
-    const data = await Promise.race([p, timeout]);
-    if(data && !data.code && !data.message && Object.keys(data).length>0){
-      scores = calculateStrengthFromQuotes(data);
-    }
-  } catch(e) {
-    console.log('API unavailable:', e);
+  const data = await fetchLiveStrength();
+  if(data && Object.keys(data).length >= 10){
+    scores = calculateStrengthFromQuotes(data);
   }
-
   currentScores = scores || getDemoScores();
 
   document.getElementById('tab-index').innerHTML = `
@@ -1758,17 +1748,12 @@ async function loadLiveData(){
 async function reloadData(){
   const badge = document.getElementById('apiBadge');
   if(badge){ badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
+  const data = await fetchLiveStrength();
   let scores = null;
-  try {
-    const url = 'https://api.twelvedata.com/price?symbol=EUR/USD,GBP/USD,AUD/USD,NZD/USD,USD/CAD,USD/CHF,USD/JPY,EUR/JPY&apikey=' + TWELVE_KEY;
-    const p = fetch(url).then(r=>r.json());
-    const timeout = new Promise((_,reject)=>setTimeout(()=>reject('timeout'),3000));
-    const data = await Promise.race([p, timeout]);
-    if(data && !data.code && !data.message && Object.keys(data).length>0){
-      scores = calculateStrengthFromQuotes(data);
-    }
-  } catch(e) { console.log('API:', e); }
-  currentScores = scores || getDemoScores();
+  if(data && Object.keys(data).length >= 10){
+    scores = calculateStrengthFromQuotes(data);
+  }
+  if(scores) currentScores = scores;
   if(badge){ badge.textContent=scores?'● LIVE':'● MARKET CLOSED'; badge.className=scores?'api-badge live':'api-badge demo'; }
   renderIndex();
 }
