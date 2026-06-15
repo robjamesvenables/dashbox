@@ -525,6 +525,34 @@ const DEMO_PRICES = {
   AUDCHF:0.6220,NZDCAD:0.8160,NZDCHF:0.5170,CADCHF:0.6330
 };
 
+// Live prices from MT4 via Telegram — overrides demo when available
+let LIVE_PRICES = {};
+
+async function fetchPricesFromTelegram(){
+  try {
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=50&allowed_updates=["message"]`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!data.ok) return;
+    const updates = [...(data.result||[])].reverse();
+    for(const upd of updates){
+      const text = upd && upd.message && upd.message.text ? upd.message.text : '';
+      if(!text.startsWith('DASHBOX_PRICES')) continue;
+      const parts = text.split('|');
+      const prices = {};
+      parts.forEach(p => {
+        if(p === 'DASHBOX_PRICES' || p.startsWith('ts:')) return;
+        const idx = p.indexOf(':');
+        if(idx > 0){ prices[p.substring(0,idx)] = parseFloat(p.substring(idx+1)); }
+      });
+      if(Object.keys(prices).length > 0) LIVE_PRICES = prices;
+      break;
+    }
+  } catch(e){ console.log('Price fetch error:', e.message); }
+}
+
+function getPrice(sym){ return LIVE_PRICES[sym] || DEMO_PRICES[sym] || 0; }
+
 const RANK_COLORS=['#00a86b','#00d4aa','#4ade80','#facc15','#f97316','#f87171','#dc2626','#7f1d1d'];
 
 function getDemoScores(){
@@ -724,7 +752,7 @@ function renderSignals(){
   all.forEach(o=>{
     const grade=o.conf>=9?'a':o.conf>=8?'b':'c';
     const gradeLabel=o.conf>=9?'A':o.conf>=8?'B':'C';
-    const price=o.price||(DEMO_PRICES[o.pair]||1);
+    const price=o.price||(getPrice(o.pair)||1);
     const dec=o.dec!==undefined?o.dec:(price>10?2:price>1?4:5);
     const isJpy=o.pair&&o.pair.includes('JPY');
     const pipVal=isJpy?0.01:0.0001;
@@ -775,7 +803,7 @@ function renderForex(filter){
   const container=document.getElementById('forexList');
   container.innerHTML='';
   opps.forEach((o,i)=>{
-    const price=DEMO_PRICES[o.pair]||1;
+    const price=getPrice(o.pair)||1;
     const dec=price>10?3:price>1?4:5;
     container.innerHTML+=marketCardHTML(o.pair,o.direction,o.badge,o.badgeLabel,
       `${o.base}: <span>${o.baseScore.toFixed(1)}</span> &nbsp; ${o.quote}: <span>${o.quoteScore.toFixed(1)}</span> &nbsp; DIFF: <span>${o.diff.toFixed(1)}</span>`,
@@ -852,7 +880,7 @@ function closeModal(){document.getElementById('modalOverlay').classList.remove('
 
 function generateReport(sym,direction,conf,market){
   // Get price
-  let price=DEMO_PRICES[sym]||0;
+  let price=getPrice(sym);
   if(!price){
     const m=[...METALS,...INDICES,...CRYPTO].find(i=>i.sym===sym);
     if(m) price=m.price;
@@ -1709,7 +1737,8 @@ async function loadLiveData(){
   const badge = document.getElementById('apiBadge');
   const ageEl = document.getElementById('scoreAge');
 
-  const result = await fetchStrengthFromTelegram();
+  // Fetch scores and prices in parallel
+  const [result] = await Promise.all([fetchStrengthFromTelegram(), fetchPricesFromTelegram()]);
 
   if(result && result.scores.length > 0){
     currentScores = result.scores;
@@ -1738,7 +1767,7 @@ async function reloadData(){
   const badge = document.getElementById('apiBadge');
   const ageEl = document.getElementById('scoreAge');
   if(badge){ badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
-  const result = await fetchStrengthFromTelegram();
+  const [result] = await Promise.all([fetchStrengthFromTelegram(), fetchPricesFromTelegram()]);
   if(result && result.scores.length > 0){
     currentScores = result.scores;
     if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
