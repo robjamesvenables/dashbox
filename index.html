@@ -1022,6 +1022,9 @@ function getThreshold(price){
 }
 
 function renderPivots(){
+  // Inject live prices before any calculation
+  PIVOT_LEVELS.forEach(p=>{ p.price = getPrice(p.pair) || p.price; });
+
   // Only count levels within 75 pip equivalent
   const withinThreshold = PIVOT_LEVELS.filter(p=>{
     const threshold = getThreshold(p.price);
