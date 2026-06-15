@@ -8,7 +8,7 @@
 #property strict
 
 //--- Inputs
-extern string JsonbinApiKey     = "$2a$10$Ac9QwenauyC33dSBuR863OVTtKBL3NTZYR5DCg.SjFoRnzkKbWQG.";
+extern string JsonbinApiKey     = "$2a$10$d0.NsjXsDQakZVLZnl4Lcuv1yl9POT37dx2yf4GzHZOWZxYk/JAya";
 extern string JsonbinBinId      = "6a2f6bf4f5f4af5e29f2bdc9";
 extern string TelegramBotToken  = "8500092691:AAHX_wIqo2p9qXOTe0RL-etw_41R1Q2bZXQ";
 extern string TelegramChatID    = "8361135939";
