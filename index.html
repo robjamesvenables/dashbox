@@ -1616,7 +1616,6 @@ async function testTelegram(){
 // ═══════════ TWELVE DATA LIVE PRICES ═══════════
 async function fetchLiveStrength(){
   try {
-    // 8 pairs = 8 credits per call, within free plan limits
     const url = 'https://api.twelvedata.com/quote?symbol=EUR/USD,GBP/USD,AUD/USD,NZD/USD,USD/CAD,USD/CHF,USD/JPY,EUR/JPY&apikey=' + TWELVE_KEY;
     const controller = new AbortController();
     const timer = setTimeout(()=>controller.abort(), 8000);
@@ -1624,7 +1623,6 @@ async function fetchLiveStrength(){
     clearTimeout(timer);
     const data = await res.json();
     if(data && !data.code && !data.status) return data;
-    console.log('API response:', JSON.stringify(data).slice(0,200));
     return null;
   } catch(e) {
     console.log('Fetch failed:', e.message);
@@ -1635,64 +1633,43 @@ async function fetchLiveStrength(){
 // ═══════════ REFRESH / LIVE ═══════════
 async function refreshAll(){
   const badge=document.getElementById('apiBadge');
-  if(badge) { badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
-
+  if(badge){ badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
   const data = await fetchLiveStrength();
   if(data && Object.keys(data).length>0){
-    currentScores = calculateStrengthFromQuotes(data);
+    const scores = calculateStrengthFromQuotes(data);
+    if(scores && scores.length>0) currentScores = scores;
     if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
   } else {
-    // Markets may be closed - use demo scores
-    currentScores = getDemoScores();
-    if(badge){ badge.textContent='● MARKET CLOSED'; badge.className='api-badge demo'; }
+    // API failed — keep existing scores, never overwrite with demo
+    if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
   }
-
   const active=document.querySelector('.page.active');
-  if(active){
-    const id=active.id.replace('tab-','');
-    showTab(id);
-  } else {
-    renderIndex();
-  }
+  if(active){ showTab(active.id.replace('tab-','')); } else { renderIndex(); }
 }
 
 function calculateStrengthFromQuotes(data){
   const chg={USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
   const cnt={USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
-
-  const pairMap = {
-    'EUR/USD':{base:'EUR',quote:'USD'},
-    'GBP/USD':{base:'GBP',quote:'USD'},
-    'AUD/USD':{base:'AUD',quote:'USD'},
-    'NZD/USD':{base:'NZD',quote:'USD'},
-    'USD/CAD':{base:'USD',quote:'CAD'},
-    'USD/CHF':{base:'USD',quote:'CHF'},
-    'USD/JPY':{base:'USD',quote:'JPY'},
-    'EUR/JPY':{base:'EUR',quote:'JPY'}
-  };
-
+  const pairMap={'EUR/USD':{base:'EUR',quote:'USD'},'GBP/USD':{base:'GBP',quote:'USD'},
+    'AUD/USD':{base:'AUD',quote:'USD'},'NZD/USD':{base:'NZD',quote:'USD'},
+    'USD/CAD':{base:'USD',quote:'CAD'},'USD/CHF':{base:'USD',quote:'CHF'},
+    'USD/JPY':{base:'USD',quote:'JPY'},'EUR/JPY':{base:'EUR',quote:'JPY'}};
   Object.entries(data).forEach(([sym,q])=>{
     if(!q||q.code) return;
-    const pair = pairMap[sym];
-    if(!pair) return;
-    // Use % change from today's open — accurate regardless of price level
-    const price = parseFloat(q.close||q.price);
-    const open  = parseFloat(q.open);
+    const pair=pairMap[sym]; if(!pair) return;
+    const price=parseFloat(q.close||q.price);
+    const open=parseFloat(q.open);
     if(!price||!open||isNaN(price)||isNaN(open)||open===0) return;
-    const pct = ((price-open)/open)*100;
+    const pct=((price-open)/open)*100;
     if(chg[pair.base]!==undefined){chg[pair.base]+=pct;cnt[pair.base]++;}
     if(chg[pair.quote]!==undefined){chg[pair.quote]-=pct;cnt[pair.quote]++;}
   });
-
   const scores=Object.keys(chg).map(code=>({
-    code,
-    score: cnt[code]>0 ? chg[code]/cnt[code] : 0,
-    change: cnt[code]>0 ? chg[code]/cnt[code]*0.1 : 0
+    code, score:cnt[code]>0?chg[code]/cnt[code]:0,
+    change:cnt[code]>0?chg[code]/cnt[code]*0.1:0
   })).sort((a,b)=>b.score-a.score);
-
   const maxAbs=Math.max(...scores.map(s=>Math.abs(s.score)),0.01);
-  return scores.map(s=>({
-    ...s,
+  return scores.map(s=>({...s,
     score:parseFloat((s.score/maxAbs*3).toFixed(1)),
     change:parseFloat((s.change/maxAbs*0.3).toFixed(3))
   }));
@@ -1737,7 +1714,6 @@ async function loadLiveData(){
   const data = await fetchLiveStrength();
   if(data) scores = calculateStrengthFromQuotes(data);
   currentScores = scores || getDemoScores();
-
   document.getElementById('tab-index').innerHTML = `
     <div class="controls">
       <button class="btn primary" onclick="reloadData()">↻ Refresh</button>
@@ -1747,20 +1723,18 @@ async function loadLiveData(){
     <div class="sl">Currency Strength Index</div>
     <div class="chart-wrap"><canvas id="barChart" width="340" height="300"></canvas></div>
     <div class="index-legend" id="indexLegend"></div>`;
-
   renderIndex();
 }
 
 async function reloadData(){
-  const badge = document.getElementById('apiBadge');
+  const badge=document.getElementById('apiBadge');
   if(badge){ badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
-  const data = await fetchLiveStrength();
+  const data=await fetchLiveStrength();
   if(data){
-    const scores = calculateStrengthFromQuotes(data);
-    if(scores && scores.length > 0) currentScores = scores;
+    const scores=calculateStrengthFromQuotes(data);
+    if(scores&&scores.length>0) currentScores=scores;
     if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
   } else {
-    // API failed — keep existing scores, stay live
     if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
   }
   renderIndex();
