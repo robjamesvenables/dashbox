@@ -287,10 +287,12 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 <!-- INDEX -->
 <div class="page active" id="tab-index">
   <div class="controls">
-    <button class="btn primary" onclick="refreshAll()">↻ Refresh</button>
-    <span class="api-badge live" id="apiBadge">● LIVE</span>
+    <button class="btn primary" onclick="reloadData()">↻ Refresh</button>
+    <span class="api-badge demo" id="apiBadge">● FETCHING...</span>
+    <span id="scoreAge" style="font-size:10px;color:var(--muted);margin-left:8px"></span>
+    <button class="btn" onclick="testTelegram()" style="margin-left:auto">📲 Test Alert</button>
   </div>
-  <div class="sl">Currency Strength Index</div>
+  <div class="sl">Currency Strength Index — MT4 Live</div>
   <div class="chart-wrap"><canvas id="barChart" width="340" height="300"></canvas></div>
   <div class="index-legend" id="indexLegend"></div>
 </div>
@@ -1699,36 +1701,15 @@ function updateClock(){
 
 // ═══════════ INIT ═══════════
 currentScores = getDemoScores();
-
-document.getElementById('tab-index').innerHTML = `
-  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:20px">
-    <div style="font-size:48px;margin-bottom:20px">📊</div>
-    <div style="font-size:20px;font-weight:600;color:#e8ecf4;margin-bottom:8px">Dashbox</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:32px">Currency Intelligence</div>
-    <button onclick="loadLiveData()" style="background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:12px;padding:18px 48px;font-size:16px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);letter-spacing:0.05em">
-      ⚡ Load Live Data
-    </button>
-    <div style="font-size:11px;color:var(--muted);margin-top:16px">Reads live scores from MT4 via Telegram</div>
-  </div>`;
-
 setInterval(updateClock,1000);
 updateClock();
+loadLiveData();
 
 async function loadLiveData(){
-  document.getElementById('tab-index').innerHTML = `
-    <div class="controls">
-      <button class="btn primary" onclick="reloadData()">↻ Refresh</button>
-      <span class="api-badge demo" id="apiBadge">● FETCHING...</span>
-      <span id="scoreAge" style="font-size:10px;color:var(--muted);margin-left:8px"></span>
-      <button class="btn" onclick="testTelegram()" style="margin-left:auto">📲 Test Alert</button>
-    </div>
-    <div class="sl">Currency Strength Index — MT4 Live</div>
-    <div class="chart-wrap"><canvas id="barChart" width="340" height="300"></canvas></div>
-    <div class="index-legend" id="indexLegend"></div>`;
-
-  const result = await fetchStrengthFromTelegram();
   const badge = document.getElementById('apiBadge');
   const ageEl = document.getElementById('scoreAge');
+
+  const result = await fetchStrengthFromTelegram();
 
   if(result && result.scores.length > 0){
     currentScores = result.scores;
