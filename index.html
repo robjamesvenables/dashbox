@@ -798,20 +798,18 @@ function checkPivotClear(pair, direction, entryPrice, tpPrice){
   const livePrice = getPrice(pair) || entryPrice;
   for(const p of PIVOT_LEVELS){
     if(p.pair !== pair) continue;
-    if(p.touches < 2) continue;
+    if(p.touches < 3) continue; // only fortress/strong levels block
     const level = p.level;
     const threshold = getThreshold(livePrice);
     // Block if price is AT a resistance zone and direction is BUY
+    const nearZone = threshold * 0.4; // within 40% of threshold = at level
     if(direction === 'BUY' && p.type === 'resistance'){
-      const dist = livePrice - level;
-      if(Math.abs(dist) <= threshold) return {clear:false, blocker:p}; // at resistance — don't buy
-      if(level > entryPrice && level < tpPrice) return {clear:false, blocker:p}; // resistance blocking path
+      if(Math.abs(livePrice - level) <= nearZone) return {clear:false, blocker:p}; // at resistance
+      if(level > entryPrice && level < tpPrice) return {clear:false, blocker:p}; // blocking path
     }
-    // Block if price is AT a support zone and direction is SELL
     if(direction === 'SELL' && p.type === 'support'){
-      const dist = level - livePrice;
-      if(Math.abs(dist) <= threshold) return {clear:false, blocker:p}; // at support — don't sell
-      if(level < entryPrice && level > tpPrice) return {clear:false, blocker:p}; // support blocking path
+      if(Math.abs(livePrice - level) <= nearZone) return {clear:false, blocker:p}; // at support
+      if(level < entryPrice && level > tpPrice) return {clear:false, blocker:p}; // blocking path
     }
   }
   return {clear:true, blocker:null};
