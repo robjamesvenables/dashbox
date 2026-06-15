@@ -554,6 +554,8 @@ const JSONBIN_KEY = '$2a$10$d0.NsjXsDQakZVLZnl4Lcuv1yl9POT37dx2yf4GzHZOWZxYk/JAy
 let LIVE_PRICES    = {};
 let LIVE_TS        = null;
 let LIVE_MOMENTUM  = {}; // momentum scores for non-forex instruments
+let LAST_WATCHLIST = {}; // tracks active setups to detect new ones
+let ALERT_INTERVAL = null; // auto-check interval
 
 async function fetchFromJsonbin(){
   try {
@@ -803,6 +805,96 @@ function buildMarketOpps(items, market){
       :parseFloat((item.price-item.slPips*item.pip).toFixed(item.dec));
     return {pair:item.sym,name:item.name,direction,conf,badge,badgeLabel,price:item.price,dec:item.dec,sl,tp,partial,reason,market,diff:conf/2};
   }).sort((a,b)=>b.conf-a.conf);
+}
+
+// ═══════════ WATCHLIST ALERTS ═══════════
+function buildWatchlistSetups(){
+  // Returns array of current setups (same logic as renderSignals but no DOM)
+  PIVOT_LEVELS.forEach(p=>{ p.price = getPrice(p.pair) || p.price; });
+  const setups = [];
+  const processed = new Set();
+
+  PIVOT_LEVELS.forEach(p=>{
+    if(p.touches < 2) return;
+    const livePrice = getPrice(p.pair) || 0;
+    if(!livePrice) return;
+    const threshold = getThreshold(livePrice);
+    const nearZone = threshold * 0.6;
+    if(Math.abs(livePrice - p.level) > nearZone) return;
+
+    const bounceDir = p.type === 'resistance' ? 'SELL' : 'BUY';
+    const pairKey = p.pair + bounceDir;
+    if(processed.has(pairKey)) return;
+    processed.add(pairKey);
+
+    // Check strength/momentum confirms
+    let confirms = false;
+    let diff = 0;
+
+    const isExtra = ['XAUUSD','NDX100','US30','BTCUSD'].includes(p.pair);
+    if(isExtra){
+      const mom = LIVE_MOMENTUM[p.pair] || 0;
+      diff = Math.abs(mom);
+      confirms = (bounceDir==='BUY' && mom > 0) || (bounceDir==='SELL' && mom < 0);
+    } else {
+      const base = p.pair.slice(0,3), quote = p.pair.slice(3,6);
+      const baseS = currentScores.find(s=>s.code===base);
+      const quoteS = currentScores.find(s=>s.code===quote);
+      if(!baseS || !quoteS) return;
+      if(bounceDir==='SELL') diff = quoteS.score - baseS.score;
+      else diff = baseS.score - quoteS.score;
+      confirms = diff > 0;
+    }
+
+    if(!confirms) return;
+
+    const touchBoost = p.touches>=4?2.5:p.touches===3?1.5:0.5;
+    const strengthBoost = Math.min(diff*0.8, 3.0);
+    const finalConf = Math.min(5 + touchBoost + strengthBoost, 10);
+    const pivotRank = p.touches>=4?'Fortress':p.touches===3?'Strong':'Valid';
+
+    setups.push({ pair:p.pair, direction:bounceDir, finalConf, pivotRank,
+      pivotType:p.type, pivotLevel:p.level, touches:p.touches });
+  });
+
+  return setups;
+}
+
+async function checkWatchlistAlerts(){
+  await fetchFromJsonbin();
+  const current = buildWatchlistSetups();
+  const currentKeys = {};
+  current.forEach(s=>{ currentKeys[s.pair+s.direction] = s; });
+
+  // Find NEW setups not in last check
+  const newSetups = [];
+  Object.entries(currentKeys).forEach(([key, setup])=>{
+    if(!LAST_WATCHLIST[key]) newSetups.push(setup);
+  });
+
+  // Send Telegram alert for each new setup
+  for(const s of newSetups){
+    const price = getPrice(s.pair) || 0;
+    const dec = price > 50 ? 2 : price > 1 ? 4 : 5;
+    const msg = `🎯 <b>DASHBOX WATCHLIST ALERT</b>\n\n` +
+      `<b>${s.pair}</b> ${s.direction}\n` +
+      `${s.pivotRank} ${s.pivotType} at ${s.pivotLevel.toFixed(dec)} (tested ${s.touches}x)\n` +
+      `Strength confirms ${s.direction} ✅\n` +
+      `Conviction: ${s.finalConf.toFixed(1)}/10\n\n` +
+      `Current price: ${price.toFixed(dec)}\n` +
+      `⚠️ Wait for entry candle confirmation before entering.`;
+    await sendTelegramAlert(msg);
+  }
+
+  LAST_WATCHLIST = currentKeys;
+}
+
+function startWatchlistAlerts(){
+  if(ALERT_INTERVAL) clearInterval(ALERT_INTERVAL);
+  // Check immediately then every 60s
+  checkWatchlistAlerts();
+  ALERT_INTERVAL = setInterval(checkWatchlistAlerts, 60000);
+  console.log('Watchlist alerts started — checking every 60s');
 }
 
 // ═══════════ WATCHLIST TAB — PIVOT FIRST, STRENGTH CONFIRMS ═══════════
@@ -2047,6 +2139,7 @@ async function splashRefresh(){
     setTimeout(()=>{
       document.getElementById('splashOverlay').classList.add('hidden');
       renderIndex();
+      startWatchlistAlerts(); // start background alert checking
     }, 400);
   } else {
     // Try old scores format as fallback
