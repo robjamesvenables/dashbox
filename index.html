@@ -1046,8 +1046,10 @@ function renderSignals(){
         ? `<strong>${o.base}</strong> ${o.bScore>0?'+':''}${o.bScore.toFixed(1)} vs <strong>${o.quote}</strong> ${o.qScore>0?'+':''}${o.qScore.toFixed(1)} — indexes confirm ${o.direction} from ${o.pivotRank} ${o.pivotType} at ${o.pivotLevel.toFixed(o.dec)} (tested ${o.touches}x).`
         : `<strong>${o.base}</strong> momentum ${o.bScore>0?'+':''}${o.bScore.toFixed(2)} — ${o.direction} confirmed from ${o.pivotRank} ${o.pivotType} at ${o.pivotLevel.toFixed(o.dec)} (tested ${o.touches}x).`;
 
+      const cardBg = o.direction==='BUY' ? 'rgba(0,212,170,0.06)' : 'rgba(224,92,92,0.06)';
+      const cardBorder = o.direction==='BUY' ? 'rgba(0,212,170,0.35)' : 'rgba(224,92,92,0.35)';
       container.innerHTML += `
-        <div class="signal-card grade-${grade}" onclick="openReport('${o.pair}','${o.direction}',${Math.round(o.finalConf)},'forex')">
+        <div class="signal-card grade-${grade}" style="background:${cardBg};border-color:${cardBorder}" onclick="openReport('${o.pair}','${o.direction}',${Math.round(o.finalConf)},'forex')">
           <div class="sc-header">
             <div class="sc-grade ${grade}">${gradeLabel}</div>
             <div class="sc-pair">${o.pair}</div>
