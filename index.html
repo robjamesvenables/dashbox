@@ -1711,11 +1711,6 @@ function renderWatchlist(){
       if(dist > threshold) return; // outside threshold entirely
       const pct = dist / threshold;
 
-      // Only keep closest level per pair
-      const key = p.pair;
-      if(processed.has(key)) return;
-      processed.add(key);
-
       const dec = p.dec || (livePrice > 50 ? 2 : 4);
       const pips = Math.round(getPipsAway(livePrice, p.level, dec));
       const unit = getUnit(livePrice);
@@ -1739,8 +1734,13 @@ function renderWatchlist(){
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct });
     });
 
-    // Sort by closest to price, show top 15 only
+    // Sort by closest to price
     items.sort((a,b)=>a.pct-b.pct);
+    // Deduplicate — keep only closest level per pair
+    const seen = new Set();
+    const unique = items.filter(item=>{ if(seen.has(item.p.pair)) return false; seen.add(item.p.pair); return true; });
+    items.length = 0;
+    unique.forEach(i=>items.push(i));
     items.splice(15);
 
     if(items.length === 0){
