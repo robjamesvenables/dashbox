@@ -117,8 +117,12 @@ string DetectPivots(string sym)
    double bid=MarketInfo(sym,MODE_BID);
    if(bid==0) return "[]";
 
-   // Tolerance for touch counting: 0.15% of price or 15 pips
-   double tolerance=MathMax(bid*0.0015, 15*point*10);
+   // Tolerance for touch counting — scaled by instrument type
+   double tolerance;
+   if(bid > 1000)      tolerance = bid * 0.005;  // Gold/BTC: 0.5% = ~$16 for gold
+   else if(bid > 100)  tolerance = bid * 0.003;  // Indices: 0.3%
+   else if(digits<=2)  tolerance = bid * 0.004;  // JPY pairs
+   else                tolerance = bid * 0.002;  // Standard forex
 
    // Store found levels: [level, type(1=res,-1=sup), touches]
    double levels[];
@@ -185,8 +189,11 @@ string DetectPivots(string sym)
    string arr="[";
    bool first=true;
    double maxDist=200*point*10;
-   // For JPY pairs, 200 pips = 2.0
-   if(digits==3||digits==2) maxDist=2.0;
+   // Scale maxDist by instrument type
+   if(bid > 1000)     maxDist = bid * 0.05;   // Gold: 5% = ~$160
+   else if(bid > 100) maxDist = bid * 0.03;   // Indices: 3%
+   else if(digits<=2) maxDist = 3.0;          // JPY: 300 pips
+   else               maxDist = 0.02;         // Forex: 200 pips
 
    for(int i=0;i<found;i++){
       if(MathAbs(bid-levels[i])>maxDist) continue;
