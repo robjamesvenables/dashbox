@@ -275,31 +275,35 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 <div class="market-bar">
   <button class="mkt-btn active" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
-  <button class="mkt-btn" id="tb-signals" onclick="showTab('signals')">⚡ SIGNALS</button>
+  <button class="mkt-btn" id="tb-signals" onclick="showTab('signals')">🎯 WATCHLIST</button>
   <button class="mkt-btn" id="tb-forex" onclick="showTab('forex')">💱 FOREX</button>
   <button class="mkt-btn" id="tb-metals" onclick="showTab('metals')">🥇 METALS</button>
   <button class="mkt-btn" id="tb-indices" onclick="showTab('indices')">📈 INDICES</button>
   <button class="mkt-btn" id="tb-crypto" onclick="showTab('crypto')">₿ CRYPTO</button>
-  <button class="mkt-btn" id="tb-pivots" onclick="showTab('pivots')">🎯 PIVOTS</button>
   <button class="mkt-btn" id="tb-check" onclick="showTab('check')">🔍 CHECK</button>
 </div>
 
 <!-- INDEX -->
 <div class="page active" id="tab-index">
-  <div class="controls">
-    <button class="btn primary" onclick="reloadData()">↻ Refresh</button>
+  <button onclick="reloadData()" style="width:100%;padding:16px;background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:10px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;">
+    ↻ Refresh Live Data
+  </button>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
     <span class="api-badge demo" id="apiBadge">● FETCHING...</span>
-    <span id="scoreAge" style="font-size:10px;color:var(--muted);margin-left:8px"></span>
-    <button class="btn" onclick="testTelegram()" style="margin-left:auto">📲 Test Alert</button>
+    <span id="scoreAge" style="font-size:10px;color:var(--muted)"></span>
+    <button class="btn" onclick="testTelegram()" style="font-size:10px;padding:5px 10px;">📲 Test</button>
   </div>
   <div class="sl">Currency Strength Index — MT4 Live</div>
   <div class="chart-wrap"><canvas id="barChart" width="340" height="300"></canvas></div>
   <div class="index-legend" id="indexLegend"></div>
 </div>
 
-<!-- SIGNALS -->
+<!-- WATCHLIST -->
 <div class="page" id="tab-signals">
-  <div class="sl">Best Setups — All Markets</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div class="sl" style="margin-bottom:0;border:none">Watchlist — Best Setups</div>
+    <button class="btn primary" onclick="renderSignals()" style="font-size:10px;padding:5px 12px;">↻ Refresh</button>
+  </div>
   <div id="signalList"></div>
 </div>
 
@@ -362,40 +366,22 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 <!-- CHECK -->
 <div class="page" id="tab-check">
-  <div class="check-upload-area" id="checkUploadArea" 
-    onclick="document.getElementById('checkFileInput').click()"
-    ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
-    ondragleave="this.style.borderColor=''"
-    ondrop="event.preventDefault();handleChartUpload({target:{files:event.dataTransfer.files}});this.style.borderColor=''">
-    <div class="check-upload-icon">📊</div>
-    <div class="check-upload-title">Upload Chart Screenshot</div>
-    <div class="check-upload-sub">Tap to upload or drag & drop any chart from MT4, TradingView or your broker.<br>Works for open trades or new setups.</div>
+  <div class="sl">Chart Analysis — Upload up to 5 charts</div>
+  
+  <!-- 5 upload slots -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;" id="uploadGrid">
   </div>
-  <input type="file" id="checkFileInput" accept="image/*" style="display:none" onchange="handleChartUpload(event)">
-  <img id="checkPreview" class="check-preview">
-  <div class="check-options" id="checkOptions" style="display:none">
-    <div class="check-option selected" id="opt-trade" onclick="selectCheckOption('trade')">
-      <div class="check-option-icon">📋</div>
-      <div class="check-option-label">Open Trade</div>
-      <div class="check-option-sub">Hold, close or watch?</div>
-    </div>
-    <div class="check-option" id="opt-setup" onclick="selectCheckOption('setup')">
-      <div class="check-option-icon">🎯</div>
-      <div class="check-option-label">New Setup</div>
-      <div class="check-option-sub">Should I take this trade?</div>
-    </div>
-    <div class="check-option" id="opt-level" onclick="selectCheckOption('level')">
-      <div class="check-option-icon">📍</div>
-      <div class="check-option-label">Key Level</div>
-      <div class="check-option-sub">Is this a strong level?</div>
-    </div>
-    <div class="check-option" id="opt-general" onclick="selectCheckOption('general')">
-      <div class="check-option-icon">💬</div>
-      <div class="check-option-label">General</div>
-      <div class="check-option-sub">What do you see?</div>
-    </div>
-  </div>
-  <button class="check-analyse-btn" id="checkAnalyseBtn" disabled onclick="runAnalysis()">⚡ Analyse Chart</button>
+
+  <!-- Hidden file inputs -->
+  <input type="file" id="checkFile0" accept="image/*" style="display:none" onchange="handleSlotUpload(0,event)">
+  <input type="file" id="checkFile1" accept="image/*" style="display:none" onchange="handleSlotUpload(1,event)">
+  <input type="file" id="checkFile2" accept="image/*" style="display:none" onchange="handleSlotUpload(2,event)">
+  <input type="file" id="checkFile3" accept="image/*" style="display:none" onchange="handleSlotUpload(3,event)">
+  <input type="file" id="checkFile4" accept="image/*" style="display:none" onchange="handleSlotUpload(4,event)">
+
+  <button class="check-analyse-btn" id="checkAnalyseBtn" disabled onclick="runAnalysis()" style="margin-bottom:16px">
+    ⚡ Analyse Charts
+  </button>
   <div class="check-result" id="checkResult"></div>
 </div>
 
@@ -596,75 +582,80 @@ function renderBarChart(sorted){
   const canvas=document.getElementById('barChart');
   if(!canvas) return;
   const dpr=window.devicePixelRatio||1;
-  const W=Math.min(canvas.parentElement.offsetWidth-28,380)||340;
-  const H=300;
+  const W=Math.min(canvas.parentElement.offsetWidth-28,420)||340;
+  const H=260;
   canvas.width=W*dpr; canvas.height=H*dpr;
   canvas.style.width=W+'px'; canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
 
   const n=sorted.length;
-  const padL=46,padR=50,padT=12,padB=12;
+  const padL=8,padR=8,padT=30,padB=28;
   const chartW=W-padL-padR,chartH=H-padT-padB;
-  const slotH=chartH/n,barH=Math.floor(slotH*0.62);
+  const slotW=chartW/n;
+  const barW=Math.floor(slotW*0.6);
   const maxAbs=Math.max(...sorted.map(s=>Math.abs(s.score)),1);
-  const zeroX=padL+chartW/2;
+  const zeroY=padT+chartH/2;
 
-  // Animation
   const duration=700;
   const start=performance.now();
 
   function drawFrame(now){
     const elapsed=now-start;
-    const progress=Math.min(elapsed/duration,1);
-    // Ease out cubic
-    const ease=1-Math.pow(1-progress,3);
-
+    const ease=1-Math.pow(1-Math.min(elapsed/duration,1),3);
     ctx.clearRect(0,0,W,H);
 
-    // Grid lines
-    [-1,-0.5,0,0.5,1].forEach(t=>{
-      const x=zeroX+(t/maxAbs)*(chartW/2);
-      ctx.strokeStyle=t===0?'#2a2f3a':'#1e2129';
-      ctx.lineWidth=t===0?1.5:1;
-      ctx.beginPath(); ctx.moveTo(x,padT); ctx.lineTo(x,padT+chartH); ctx.stroke();
-    });
+    // Zero line
+    ctx.strokeStyle='#2a2f3a';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(padL,zeroY);
+    ctx.lineTo(W-padR,zeroY);
+    ctx.stroke();
 
     sorted.forEach((s,i)=>{
       const color=RANK_COLORS[i];
-      const y=padT+i*slotH+(slotH-barH)/2;
-      const fullBarW=Math.max((Math.abs(s.score)/maxAbs)*(chartW/2),3);
-      const animBarW=fullBarW*ease; // grows from 0 to full
-      const x=s.score>=0?zeroX:zeroX-animBarW;
+      const cx=padL+i*slotW+slotW/2;
+      const x=cx-barW/2;
+      const fullH=Math.max((Math.abs(s.score)/maxAbs)*(chartH/2),3);
+      const animH=fullH*ease;
 
-      // Bar grows from centre outward
+      // Bar — grows up for positive, down for negative
       ctx.fillStyle=color;
-      ctx.beginPath();
-      ctx.roundRect(x,y,animBarW,barH,3);
-      ctx.fill();
+      if(s.score>=0){
+        ctx.beginPath();
+        ctx.roundRect(x,zeroY-animH,barW,animH,4);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.roundRect(x,zeroY,barW,animH,4);
+        ctx.fill();
+      }
 
-      // Currency label (always visible)
+      // Currency label below
       ctx.fillStyle='#e8ecf4';
-      ctx.font='600 11px Poppins,sans-serif';
-      ctx.textAlign='right';
-      ctx.textBaseline='middle';
-      ctx.fillText(s.code,padL-6,y+barH/2);
+      ctx.font='600 10px Poppins,sans-serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='top';
+      ctx.fillText(s.code,cx,H-padB+4);
 
-      // Score label — fades in with bar
-      if(ease>0.5){
-        ctx.globalAlpha=(ease-0.5)*2;
-        ctx.font='10px Poppins,sans-serif';
+      // Score label
+      if(ease>0.6){
+        ctx.globalAlpha=(ease-0.6)/0.4;
+        ctx.font='9px Poppins,sans-serif';
         ctx.fillStyle=color;
-        ctx.textAlign=s.score>=0?'left':'right';
-        const scoreX=s.score>=0?zeroX+animBarW+5:zeroX-animBarW-5;
-        ctx.fillText((s.score>0?'+':'')+s.score.toFixed(1),scoreX,y+barH/2);
+        ctx.textBaseline='middle';
+        if(s.score>=0){
+          ctx.fillText((s.score>0?'+':'')+s.score.toFixed(1),cx,zeroY-animH-8);
+        } else {
+          ctx.fillText(s.score.toFixed(1),cx,zeroY+animH+8);
+        }
         ctx.globalAlpha=1;
       }
     });
 
-    if(progress<1) requestAnimationFrame(drawFrame);
+    if(ease<1) requestAnimationFrame(drawFrame);
   }
-
   requestAnimationFrame(drawFrame);
 }
 
@@ -742,58 +733,118 @@ function buildMarketOpps(items, market){
   }).sort((a,b)=>b.conf-a.conf);
 }
 
-// ═══════════ SIGNALS TAB ═══════════
-function renderSignals(){
-  const forexOpps=buildForexOpps(currentScores);
-  const metalsOpps=buildMarketOpps(METALS,'metals');
-  const indicesOpps=buildMarketOpps(INDICES,'indices');
-  const cryptoOpps=buildMarketOpps(CRYPTO,'crypto');
-  const all=[...forexOpps,...metalsOpps,...indicesOpps,...cryptoOpps]
-    .filter(o=>o.conf>=8).sort((a,b)=>b.conf-a.conf).slice(0,10);
+// ═══════════ WATCHLIST TAB ═══════════
+function checkPivotClear(pair, direction, entryPrice, tpPrice){
+  // Returns {clear: bool, blockingLevel: obj|null}
+  // Check if there's a fortress/strong pivot between entry and TP
+  for(const p of PIVOT_LEVELS){
+    if(p.pair !== pair) continue;
+    const level = p.level;
+    if(p.touches < 2) continue; // only valid+ levels block
+    // Check if level is between entry and TP
+    if(direction === 'BUY' && level > entryPrice && level < tpPrice) return {clear:false, blocker:p};
+    if(direction === 'SELL' && level < entryPrice && level > tpPrice) return {clear:false, blocker:p};
+  }
+  return {clear:true, blocker:null};
+}
 
-  const container=document.getElementById('signalList');
-  if(all.length===0){container.innerHTML='<div class="no-signals">No high-conviction signals right now.</div>';return;}
-  container.innerHTML='';
-  all.forEach(o=>{
-    const grade=o.conf>=9?'a':o.conf>=8?'b':'c';
-    const gradeLabel=o.conf>=9?'A':o.conf>=8?'B':'C';
-    const price=o.price||(getPrice(o.pair)||1);
-    const dec=o.dec!==undefined?o.dec:(price>10?2:price>1?4:5);
-    const isJpy=o.pair&&o.pair.includes('JPY');
-    const pipVal=isJpy?0.01:0.0001;
-    const baseSLPips=isJpy?70:(o.diff>4?40:55);
-    let sl=o.sl,tp=o.tp,partial=o.partial;
-    if(!sl){
-      if(o.direction==='BUY'){sl=parseFloat((price-baseSLPips*pipVal).toFixed(dec));tp=parseFloat((price+baseSLPips*2*pipVal).toFixed(dec));partial=parseFloat((price+baseSLPips*pipVal).toFixed(dec));}
-      else{sl=parseFloat((price+baseSLPips*pipVal).toFixed(dec));tp=parseFloat((price-baseSLPips*2*pipVal).toFixed(dec));partial=parseFloat((price-baseSLPips*pipVal).toFixed(dec));}
+function getPivotBoost(pair, direction, entryPrice){
+  // Returns boost score if price is near a pivot that CONFIRMS direction
+  for(const p of PIVOT_LEVELS){
+    if(p.pair !== pair) continue;
+    const livePrice = getPrice(pair) || entryPrice;
+    const threshold = getThreshold(livePrice);
+    const dist = Math.abs(livePrice - p.level);
+    if(dist > threshold) continue; // not near level
+    // Check if pivot confirms direction
+    if(direction === 'SELL' && p.type === 'resistance') return p.touches >= 4 ? 2.5 : p.touches === 3 ? 1.5 : 0.5;
+    if(direction === 'BUY' && p.type === 'support') return p.touches >= 4 ? 2.5 : p.touches === 3 ? 1.5 : 0.5;
+  }
+  return 0;
+}
+
+function renderSignals(){
+  const container = document.getElementById('signalList');
+  container.innerHTML = '<div class="loading">Building watchlist...</div>';
+
+  // Fetch fresh prices first
+  fetchFromJsonbin().then(()=>{
+    // Update pivot prices
+    PIVOT_LEVELS.forEach(p=>{ p.price = getPrice(p.pair) || p.price; });
+
+    const forexOpps = buildForexOpps(currentScores);
+    const watchlist = [];
+
+    forexOpps.forEach(o=>{
+      const price = getPrice(o.pair) || 1;
+      const dec = price > 50 ? 2 : price > 1 ? 4 : 5;
+      const isJpy = o.pair.includes('JPY');
+      const pipVal = isJpy ? 0.01 : 0.0001;
+      const baseSLPips = isJpy ? 70 : 50;
+
+      let sl, tp;
+      if(o.direction === 'BUY'){
+        sl = parseFloat((price - baseSLPips*pipVal).toFixed(dec));
+        tp = parseFloat((price + baseSLPips*2*pipVal).toFixed(dec));
+      } else {
+        sl = parseFloat((price + baseSLPips*pipVal).toFixed(dec));
+        tp = parseFloat((price - baseSLPips*2*pipVal).toFixed(dec));
+      }
+
+      // Check pivot clear path
+      const pivotCheck = checkPivotClear(o.pair, o.direction, price, tp);
+      if(!pivotCheck.clear) return; // blocked — skip
+
+      // Pivot boost if at a confirming level
+      const pivotBoost = getPivotBoost(o.pair, o.direction, price);
+      const finalConf = Math.min(o.conf + pivotBoost, 10);
+
+      watchlist.push({...o, price, dec, sl, tp, finalConf, pivotBoost});
+    });
+
+    // Sort by final confidence, show top 8
+    watchlist.sort((a,b)=>b.finalConf-a.finalConf);
+    const top = watchlist.slice(0,8);
+
+    if(top.length === 0){
+      container.innerHTML = '<div class="no-signals">No clear setups right now — all pairs have pivot levels blocking the path.</div>';
+      return;
     }
-    const mktLabel=o.market||'forex';
-    const reason=o.reason||`<strong>${o.base||o.pair}</strong> vs <strong>${o.quote||'USD'}</strong> — ${(o.diff||0).toFixed(1)}pt differential. ${o.conf>=8?'Highest conviction signal.':'Solid setup — wait for clean candle.'}`;
-    container.innerHTML+=`
-      <div class="signal-card grade-${grade}" onclick="openReport('${o.pair}','${o.direction}',${o.conf},'${mktLabel}')">
-        <div class="sc-header">
-          <div class="sc-grade ${grade}">${gradeLabel}</div>
-          <div class="sc-pair">${o.pair}</div>
-          <span class="sc-mkt ${mktLabel}">${mktLabel.toUpperCase()}</span>
-          <div class="sc-dir ${o.direction.toLowerCase()}">${o.direction}</div>
-          <div class="sc-conf">${o.conf}/10 <span>conf</span></div>
-        </div>
-        <div class="sc-body">
-          <div class="sc-reason">${reason}</div>
-          <div class="sc-levels">
-            <div class="sc-level"><div class="sc-level-label">Entry</div><div class="sc-level-val entry">${price.toFixed(dec)}</div></div>
-            <div class="sc-level"><div class="sc-level-label">Stop</div><div class="sc-level-val sl">${sl.toFixed(dec)}</div></div>
-            <div class="sc-level"><div class="sc-level-label">50% TP</div><div class="sc-level-val partial">${partial.toFixed(dec)}</div></div>
-            <div class="sc-level"><div class="sc-level-label">Full TP</div><div class="sc-level-val tp">${tp.toFixed(dec)}</div></div>
+
+    container.innerHTML = '';
+    top.forEach(o=>{
+      const grade = o.finalConf >= 9 ? 'a' : o.finalConf >= 7 ? 'b' : 'c';
+      const gradeLabel = o.finalConf >= 9 ? 'A' : o.finalConf >= 7 ? 'B' : 'C';
+      const pivotTag = o.pivotBoost > 0
+        ? `<div class="sc-tag hot">🎯 AT KEY LEVEL +${o.pivotBoost.toFixed(1)}</div>`
+        : '';
+      const reason = `<strong>${o.base}</strong> vs <strong>${o.quote}</strong> — ${o.diff.toFixed(1)}pt differential. ${o.pivotBoost>0?'Price at confirming pivot level — high conviction.':'Clear path to TP — no major levels blocking.'}`;
+
+      container.innerHTML += `
+        <div class="signal-card grade-${grade}" onclick="openReport('${o.pair}','${o.direction}',${Math.round(o.finalConf)},'forex')">
+          <div class="sc-header">
+            <div class="sc-grade ${grade}">${gradeLabel}</div>
+            <div class="sc-pair">${o.pair}</div>
+            <span class="sc-mkt forex">FOREX</span>
+            <div class="sc-dir ${o.direction.toLowerCase()}">${o.direction}</div>
+            <div class="sc-conf">${o.finalConf.toFixed(1)}/10 <span>conf</span></div>
           </div>
-          <div class="sc-tags">
-            <div class="sc-tag">1:2 R:R</div>
-            <div class="sc-tag">0.02 lots</div>
-            ${o.conf>=8?'<div class="sc-tag hot">HIGH CONVICTION</div>':''}
-            ${o.pair&&o.pair.includes('JPY')?'<div class="sc-tag warn">BOJ Risk</div>':''}
+          <div class="sc-body">
+            <div class="sc-reason">${reason}</div>
+            <div class="sc-levels">
+              <div class="sc-level"><div class="sc-level-label">Entry</div><div class="sc-level-val entry">${o.price.toFixed(o.dec)}</div></div>
+              <div class="sc-level"><div class="sc-level-label">Stop</div><div class="sc-level-val sl">${o.sl.toFixed(o.dec)}</div></div>
+              <div class="sc-level"><div class="sc-level-label">TP</div><div class="sc-level-val tp">${o.tp.toFixed(o.dec)}</div></div>
+              <div class="sc-level"><div class="sc-level-label">R:R</div><div class="sc-level-val partial">1:2</div></div>
+            </div>
+            <div class="sc-tags">
+              <div class="sc-tag">0.5% risk</div>
+              ${o.pair.includes('JPY')?'<div class="sc-tag warn">BOJ Risk</div>':''}
+              ${pivotTag}
+            </div>
           </div>
-        </div>
-      </div>`;
+        </div>`;
+    });
   });
 }
 
@@ -1345,10 +1396,51 @@ function drawPivotChart(pair, level, currentPrice, type, touches, color){
 }
 
 // ═══════════ CHECK TAB ═══════════
-let checkImageBase64 = null;
-let checkOptionSelected = 'trade';
+let checkImages = [null,null,null,null,null];
 
-function renderCheck(){ /* static HTML — nothing to render */ }
+function renderCheck(){
+  const grid = document.getElementById('uploadGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  for(let i=0;i<5;i++){
+    const img = checkImages[i];
+    grid.innerHTML += `
+      <div onclick="document.getElementById('checkFile${i}').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+        ondragleave="this.style.borderColor=''"
+        ondrop="event.preventDefault();handleSlotDrop(${i},event);this.style.borderColor=''"
+        style="aspect-ratio:1;border:2px dashed ${img?'var(--accent)':'var(--border2)'};border-radius:10px;
+        background:${img?'rgba(0,212,170,0.05)':'var(--surface)'};cursor:pointer;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        position:relative;overflow:hidden;transition:all 0.15s;">
+        ${img
+          ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
+          : `<div style="font-size:22px;margin-bottom:4px">+</div>
+             <div style="font-size:9px;color:var(--muted);text-align:center;padding:0 4px">Chart ${i+1}</div>`
+        }
+      </div>`;
+  }
+  const hasAny = checkImages.some(x=>x!==null);
+  document.getElementById('checkAnalyseBtn').disabled = !hasAny;
+}
+
+function handleSlotUpload(idx, event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { checkImages[idx] = e.target.result; renderCheck(); };
+  reader.readAsDataURL(file);
+}
+
+function handleSlotDrop(idx, event){
+  const file = event.dataTransfer.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { checkImages[idx] = e.target.result; renderCheck(); };
+  reader.readAsDataURL(file);
+}
+
+function selectCheckOption(opt){ /* kept for compatibility */ }
 
 // ═══════════ SAVED ANALYSES ═══════════
 const SAVED_ANALYSES = {
@@ -1517,77 +1609,102 @@ async function runAnalysis(){
   result.style.display = 'block';
   result.innerHTML = `
     <div class="check-result-header">
-      <div class="check-result-title">🔍 Dashbox AI Analysis</div>
+      <div class="check-result-title">🔍 Dashbox Quant Analysis</div>
     </div>
     <div class="check-typing">
       <div class="check-typing-dots">
-        <div class="check-typing-dot"></div>
-        <div class="check-typing-dot"></div>
-        <div class="check-typing-dot"></div>
+        <div class="check-typing-dot"></div><div class="check-typing-dot"></div><div class="check-typing-dot"></div>
       </div>
-      Reading your chart...
+      Running full quant analysis...
     </div>`;
 
-  const prompts = {
-    trade: `You are Dashbox, a professional forex trading AI. Analyse this chart screenshot of an open trade. Give a clear verdict: HOLD, WATCH, or CLOSE. Then give 3-4 bullet points explaining why. Be direct and concise. Format: start with verdict on first line, then bullet points. Focus on: trend direction, distance to SL/TP, momentum, key levels nearby.`,
-    setup: `You are Dashbox, a professional forex trading AI. Analyse this chart screenshot as a potential new trade setup. Give a clear verdict: TAKE TRADE, WAIT, or AVOID. Then give 3-4 bullet points explaining why. Be direct and concise. Focus on: trend alignment, entry timing, nearest S/R levels, risk/reward potential.`,
-    level: `You are Dashbox, a professional forex trading AI. Analyse this chart screenshot and identify the key support/resistance level shown. Rate its strength: FORTRESS, STRONG, VALID, or WEAK. Give 3-4 bullet points explaining the level significance, how many times tested, and what to expect at this zone.`,
-    general: `You are Dashbox, a professional forex trading AI. Analyse this chart screenshot and give your overall read. What do you see? What is price doing? What are the key levels? What would you do? Be direct, concise, and speak like a professional trader.`
-  };
+  const QUANT_PROMPT = `You are a professional Quant trading assistant for Dashbox. Analyse the uploaded chart(s) and produce a full trade plan.
+
+USER CONTEXT: Based in Singapore. Trades forex pairs, gold and indices. Uses W/D/4H timeframes and currency index charts (DXY, EUR, GBP, AUD, NZD, CAD, CHF, JPY) to identify strongest vs weakest currencies. Risk: 0.5% per trade, 0.01 lots on a small account.
+
+STRUCTURE YOUR RESPONSE EXACTLY AS FOLLOWS:
+
+1. TRADE CALL
+Verdict: [STRONG BUY / BUY / NEUTRAL / SELL / STRONG SELL]
+One sentence summary of main reason.
+
+2. BREAKDOWN (Teach Me)
+• Trend direction and why
+• Key support/resistance levels visible
+• W/D/4H alignment assessment
+• Risk factors to watch
+
+3. MY ACTION PLAN
+• Entry: [exact price]
+• Stop Loss: [exact price] ([X] pips)
+• Take Profit: [exact price] ([X] pips, 1:2 R:R)
+• Lot size: 0.01 lots (0.5% risk)
+
+4. CONFIDENCE SCORE
+[X]/10 — [one sentence reason]
+
+Be precise, data-driven, and direct. Use current price visible on chart for all levels.`;
 
   try {
-    // Extract base64 without the data URL prefix
-    const base64Data = checkImageBase64.split(',')[1];
-    const mediaType = checkImageBase64.split(';')[0].split(':')[1];
+    // Build content array with all uploaded images
+    const uploadedImages = checkImages.filter(x=>x!==null);
+    const content = uploadedImages.map(img => ({
+      type: 'image',
+      source: { type: 'base64', media_type: img.split(';')[0].split(':')[1], data: img.split(',')[1] }
+    }));
+    content.push({ type: 'text', text: QUANT_PROMPT });
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            {type: 'image', source: {type: 'base64', media_type: mediaType, data: base64Data}},
-            {type: 'text', text: prompts[checkOptionSelected]}
-          ]
-        }]
-      })
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content }] })
     });
 
     const data = await response.json();
     const text = data.content[0].text;
-
-    // Parse verdict from first line
     const lines = text.trim().split('\n').filter(l=>l.trim());
-    const firstLine = lines[0].toUpperCase();
-    let verdictClass = 'watch', verdictIcon = '⚠️', verdictLabel = 'WATCH';
-    if(firstLine.includes('HOLD')||firstLine.includes('TAKE TRADE')) { verdictClass='hold'; verdictIcon='✅'; verdictLabel=firstLine.includes('TAKE')?'TAKE TRADE':'HOLD'; }
-    if(firstLine.includes('CLOSE')||firstLine.includes('AVOID')) { verdictClass='close'; verdictIcon='❌'; verdictLabel=firstLine.includes('AVOID')?'AVOID':'CLOSE'; }
-    if(firstLine.includes('FORTRESS')||firstLine.includes('STRONG')) { verdictClass='hold'; verdictIcon='🔴'; verdictLabel=firstLine.includes('FORTRESS')?'FORTRESS LEVEL':'STRONG LEVEL'; }
 
-    // Format body points
-    const bodyLines = lines.slice(1).filter(l=>l.trim());
-    const pointsHTML = bodyLines.map(l=>{
-      const clean = l.replace(/^[-•*]\s*/,'').replace(/^\d+\.\s*/,'');
-      const icon = clean.toLowerCase().includes('caution')||clean.toLowerCase().includes('risk')||clean.toLowerCase().includes('watch')?'⚠️'
-        : clean.toLowerCase().includes('support')||clean.toLowerCase().includes('hold')||clean.toLowerCase().includes('strong')?'✅'
-        : '📌';
-      return `<div class="check-point"><span class="check-point-icon">${icon}</span><span>${clean}</span></div>`;
-    }).join('');
+    // Parse verdict
+    const verdictLine = lines.find(l=>l.startsWith('Verdict:'))||'';
+    const vText = verdictLine.replace('Verdict:','').trim().toUpperCase();
+    let verdictClass='watch', verdictIcon='⚠️', verdictLabel=vText||'ANALYSED';
+    if(vText.includes('STRONG BUY')){ verdictClass='hold'; verdictIcon='🟢'; verdictLabel='STRONG BUY'; }
+    else if(vText.includes('BUY')){ verdictClass='hold'; verdictIcon='✅'; verdictLabel='BUY'; }
+    else if(vText.includes('STRONG SELL')){ verdictClass='close'; verdictIcon='🔴'; verdictLabel='STRONG SELL'; }
+    else if(vText.includes('SELL')){ verdictClass='close'; verdictIcon='❌'; verdictLabel='SELL'; }
+    else { verdictClass='watch'; verdictIcon='⚠️'; verdictLabel='NEUTRAL'; }
+
+    // Parse confidence score
+    const confLine = lines.find(l=>l.match(/\d+\/10/))||'';
+    const confMatch = confLine.match(/(\d+)\/10/);
+    const confScore = confMatch ? parseInt(confMatch[1]) : null;
+
+    // Format body
+    const bodyHTML = text
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^(\d+\.|•|-) /gm,'')
+      .split('\n').filter(l=>l.trim())
+      .map(l=>{
+        if(l.match(/^[1-4]\./)||l.toUpperCase()===l.trim()) return `<div style="font-size:11px;font-weight:600;color:var(--accent);margin-top:12px;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em">${l}</div>`;
+        return `<div style="font-size:12px;color:var(--text);line-height:1.6;padding:2px 0">${l}</div>`;
+      }).join('');
 
     result.innerHTML = `
       <div class="check-result-header">
-        <div class="check-result-title">🔍 Dashbox AI Analysis</div>
+        <div class="check-result-title">🔍 Dashbox Quant Analysis · ${uploadedImages.length} chart${uploadedImages.length>1?'s':''}</div>
       </div>
       <div class="check-result-body">
-        <div class="check-verdict-bar ${verdictClass}">
+        <div class="check-verdict-bar ${verdictClass}" style="margin-bottom:16px">
           <span class="check-verdict-icon">${verdictIcon}</span>
-          <span class="check-verdict-text">${verdictLabel}</span>
+          <div>
+            <div class="check-verdict-text">${verdictLabel}</div>
+            ${confScore?`<div style="font-size:10px;color:var(--muted);margin-top:2px">Confidence: ${confScore}/10</div>`:''}
+          </div>
         </div>
-        <div class="check-points">${pointsHTML}</div>
-        <div style="font-size:9px;color:var(--muted);text-align:right;margin-top:8px">Dashbox AI · ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} SGT</div>
+        <div>${bodyHTML}</div>
+        <div style="font-size:9px;color:var(--muted);text-align:right;margin-top:12px;padding-top:8px;border-top:1px solid var(--border)">
+          Dashbox AI · ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} SGT
+        </div>
       </div>`;
 
   } catch(err) {
