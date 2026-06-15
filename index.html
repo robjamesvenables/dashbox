@@ -1242,8 +1242,9 @@ function getUnit(price){
 }
 
 function getThreshold(price){
-  if(price > 50000) return 750;   // BTC — $750
-  if(price > 3000)  return 20;    // Gold — $20
+  if(price > 50000) return 2000;  // BTC — $2000
+  if(price > 30000) return 1500;  // US30/NDX — $1500
+  if(price > 3000)  return 80;    // Gold — $80
   if(price > 1000)  return 150;   // ETH/Indices
   if(price > 100)   return 75;    // NAS/SPX
   if(price > 50)    return 0.75;  // JPY — 75 pips
