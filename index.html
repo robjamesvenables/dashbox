@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashbox</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1614,24 +1615,22 @@ async function testTelegram(){
 
 // ═══════════ TWELVE DATA LIVE PRICES ═══════════
 async function fetchLiveStrength(){
+  const PAIRS = [
+    'EUR/USD','GBP/USD','AUD/USD','NZD/USD','USD/CAD','USD/CHF','USD/JPY',
+    'EUR/JPY','GBP/JPY','AUD/JPY','NZD/JPY','CAD/JPY','CHF/JPY',
+    'EUR/GBP','EUR/AUD','EUR/NZD','EUR/CAD','EUR/CHF',
+    'GBP/AUD','GBP/NZD','GBP/CAD','GBP/CHF',
+    'AUD/NZD','AUD/CAD','AUD/CHF','NZD/CAD','NZD/CHF','CAD/CHF'
+  ].join(',');
   try {
-    const pairs = [
-      'EUR/USD','GBP/USD','AUD/USD','NZD/USD',
-      'USD/CAD','USD/CHF','USD/JPY',
-      'EUR/JPY','GBP/JPY','AUD/JPY','NZD/JPY','CAD/JPY','CHF/JPY',
-      'EUR/GBP','EUR/AUD','EUR/NZD','EUR/CAD','EUR/CHF',
-      'GBP/AUD','GBP/NZD','GBP/CAD','GBP/CHF',
-      'AUD/NZD','AUD/CAD','AUD/CHF',
-      'NZD/CAD','NZD/CHF','CAD/CHF'
-    ].join(',');
-    const url = `https://api.twelvedata.com/quote?symbol=${pairs}&apikey=${TWELVE_KEY}`;
-    const controller = new AbortController();
-    const timeout = setTimeout(()=>controller.abort(), 10000);
-    const res = await fetch(url, {signal: controller.signal});
-    clearTimeout(timeout);
-    const data = await res.json();
-    if(data && !data.code && !data.message) return data;
-    return null;
+    const [dailyRes, weeklyRes] = await Promise.all([
+      fetch(`https://api.twelvedata.com/quote?symbol=${PAIRS}&apikey=${TWELVE_KEY}`),
+      fetch(`https://api.twelvedata.com/time_series?symbol=${PAIRS}&interval=1week&outputsize=2&apikey=${TWELVE_KEY}`)
+    ]);
+    const daily  = await dailyRes.json();
+    const weekly = await weeklyRes.json();
+    if(!daily || daily.code) return null;
+    return { daily, weekly };
   } catch(e) {
     console.log('Fetch failed:', e.message);
     return null;
@@ -1663,31 +1662,64 @@ async function refreshAll(){
 }
 
 function calculateStrengthFromQuotes(data){
-  const changes = {USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
-  const counts  = {USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
+  const PAIRS = ['EUR/USD','GBP/USD','AUD/USD','NZD/USD','USD/CAD','USD/CHF','USD/JPY',
+    'EUR/JPY','GBP/JPY','AUD/JPY','NZD/JPY','CAD/JPY','CHF/JPY',
+    'EUR/GBP','EUR/AUD','EUR/NZD','EUR/CAD','EUR/CHF',
+    'GBP/AUD','GBP/NZD','GBP/CAD','GBP/CHF',
+    'AUD/NZD','AUD/CAD','AUD/CHF','NZD/CAD','NZD/CHF','CAD/CHF'];
 
-  Object.entries(data).forEach(([sym, q])=>{
+  const dChg={USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
+  const wChg={USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
+  const dCnt={USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
+  const wCnt={USD:0,EUR:0,GBP:0,AUD:0,NZD:0,CAD:0,CHF:0,JPY:0};
+
+  const daily  = data.daily  || data;
+  const weekly = data.weekly || {};
+
+  // Daily % change from today's open
+  PAIRS.forEach(sym => {
+    const q = daily[sym];
     if(!q || q.code) return;
     const price = parseFloat(q.close || q.price);
     const open  = parseFloat(q.open);
-    if(!price || !open || isNaN(price) || isNaN(open) || open === 0) return;
+    if(!price || !open || isNaN(price) || isNaN(open) || open===0) return;
     const pct = ((price - open) / open) * 100;
-    const parts = sym.split('/');
-    if(parts.length !== 2) return;
-    const base  = parts[0].trim();
-    const quote = parts[1].trim();
-    if(changes[base]  !== undefined){ changes[base]  += pct; counts[base]++;  }
-    if(changes[quote] !== undefined){ changes[quote] -= pct; counts[quote]++; }
+    const [base,quote] = sym.split('/');
+    if(dChg[base]!==undefined){ dChg[base]+=pct; dCnt[base]++; }
+    if(dChg[quote]!==undefined){ dChg[quote]-=pct; dCnt[quote]++; }
   });
 
-  const scores = Object.keys(changes).map(code => ({
-    code,
-    score: counts[code] > 0 ? parseFloat((changes[code] / counts[code]).toFixed(2)) : 0,
-    change: counts[code] > 0 ? parseFloat((changes[code] / counts[code] * 0.1).toFixed(3)) : 0
-  })).sort((a,b) => b.score - a.score);
+  // Weekly % change (this week vs last week close)
+  PAIRS.forEach(sym => {
+    const w = weekly[sym];
+    if(!w || !w.values || w.values.length < 2) return;
+    const curr = parseFloat(w.values[0].close);
+    const prev = parseFloat(w.values[1].close);
+    if(!curr || !prev || isNaN(curr) || isNaN(prev) || prev===0) return;
+    const pct = ((curr - prev) / prev) * 100;
+    const [base,quote] = sym.split('/');
+    if(wChg[base]!==undefined){ wChg[base]+=pct; wCnt[base]++; }
+    if(wChg[quote]!==undefined){ wChg[quote]-=pct; wCnt[quote]++; }
+  });
 
-  const maxAbs = Math.max(...scores.map(s => Math.abs(s.score)), 0.01);
-  return scores.map(s => ({...s, score: parseFloat((s.score / maxAbs * 3).toFixed(1))}));
+  // Combine: 40% daily + 60% weekly (weekly dominates for trend accuracy)
+  const codes = ['USD','EUR','GBP','AUD','NZD','CAD','CHF','JPY'];
+  const scores = codes.map(code => {
+    const d = dCnt[code] > 0 ? dChg[code]/dCnt[code] : 0;
+    const w = wCnt[code] > 0 ? wChg[code]/wCnt[code] : 0;
+    const combined = wCnt[code] > 0 ? (d*0.4 + w*0.6) : d;
+    return { code, score: combined, dailyScore: d, weeklyScore: w, change: combined*0.1 };
+  }).sort((a,b) => b.score - a.score);
+
+  // Normalise to -3 to +3
+  const maxAbs = Math.max(...scores.map(s=>Math.abs(s.score)), 0.01);
+  return scores.map(s => ({
+    ...s,
+    score:       parseFloat((s.score/maxAbs*3).toFixed(1)),
+    dailyScore:  parseFloat((s.dailyScore/maxAbs*3).toFixed(1)),
+    weeklyScore: parseFloat((s.weeklyScore/maxAbs*3).toFixed(1)),
+    change:      parseFloat((s.change/maxAbs*0.3).toFixed(3))
+  }));
 }
 
 function toggleLive(){
@@ -1727,9 +1759,7 @@ updateClock();
 async function loadLiveData(){
   let scores = null;
   const data = await fetchLiveStrength();
-  if(data && Object.keys(data).length >= 10){
-    scores = calculateStrengthFromQuotes(data);
-  }
+  if(data) scores = calculateStrengthFromQuotes(data);
   currentScores = scores || getDemoScores();
 
   document.getElementById('tab-index').innerHTML = `
@@ -1750,11 +1780,14 @@ async function reloadData(){
   if(badge){ badge.textContent='● FETCHING...'; badge.className='api-badge demo'; }
   const data = await fetchLiveStrength();
   let scores = null;
-  if(data && Object.keys(data).length >= 10){
-    scores = calculateStrengthFromQuotes(data);
+  if(data) scores = calculateStrengthFromQuotes(data);
+  // Never overwrite good data with failed response
+  if(scores){
+    currentScores = scores;
+    if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
+  } else {
+    if(badge){ badge.textContent='● LIVE'; badge.className='api-badge live'; }
   }
-  if(scores) currentScores = scores;
-  if(badge){ badge.textContent=scores?'● LIVE':'● MARKET CLOSED'; badge.className=scores?'api-badge live':'api-badge demo'; }
   renderIndex();
 }
 </script>
