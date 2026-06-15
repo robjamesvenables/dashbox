@@ -860,11 +860,21 @@ function buildWatchlistSetups(){
   return setups;
 }
 
+let isFirstAlertCheck = true;
+
 async function checkWatchlistAlerts(){
   await fetchFromJsonbin();
   const current = buildWatchlistSetups();
   const currentKeys = {};
   current.forEach(s=>{ currentKeys[s.pair+s.direction] = s; });
+
+  if(isFirstAlertCheck){
+    // First run — just snapshot current state, don't alert
+    LAST_WATCHLIST = currentKeys;
+    isFirstAlertCheck = false;
+    console.log('Watchlist baseline set —', Object.keys(currentKeys).length, 'setups tracked');
+    return;
+  }
 
   // Find NEW setups not in last check
   const newSetups = [];
