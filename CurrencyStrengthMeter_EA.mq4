@@ -72,7 +72,6 @@ void OnTick()
    if(TimeCurrent() - LastPostTime >= PostIntervalSecs)
    {
       PostAll();
-      CheckHACrossAlerts();
       LastPostTime = TimeCurrent();
    }
 }
