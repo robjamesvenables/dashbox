@@ -757,11 +757,9 @@ async function loadNews(){
   const container=document.getElementById('newsList');
   container.innerHTML='<div class="loading">Loading...</div>';
   try{
-    // Use ForexFactory JSON feed via proxy
-    const res=await fetch('https://corsproxy.io/?https://nfs.faireconomy.media/ff_calendar_thisweek.json',{cache:'no-cache'});
+    const res=await fetch('/api/news',{cache:'no-cache'});
     if(!res.ok) throw new Error('Failed');
-    const data=await res.json();
-    const high=data.filter(e=>e.impact==='High');
+    const high=await res.json();
     if(!high.length){container.innerHTML='<div class="empty">No high impact news today. Good day to trade!</div>';return;}
     const now=new Date();
     let html='';
