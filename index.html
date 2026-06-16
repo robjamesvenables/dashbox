@@ -1720,8 +1720,9 @@ function renderWatchlist(){
           if(pipsAway < breathingRoom) breathingRoom = pipsAway;
         }
       });
-      const roomNote = breathingRoom < 999
+      const roomNote = breathingRoom > 50 && breathingRoom < 999
         ? `${breathingRoom} pips clear to next level`
+        : breathingRoom <= 50 ? 'Tight — check for nearby levels'
         : 'Clear path — no blocking levels detected';
       const strengthNote = `<span style="font-size:10px;color:var(--muted)">Price is at a key level. Wait for confirmation before entering. · ${roomNote}</span>`;
 
