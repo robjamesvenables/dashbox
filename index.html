@@ -1703,23 +1703,23 @@ function renderWatchlist(){
       const pivotRank = p.touches>=4?'Fortress':p.touches===3?'Strong':'Valid';
       const rankColor = p.touches>=4?'#e05c5c':p.touches===3?'#f97316':'#c9a84c';
 
-      // Calculate breathing room - distance to next pivot on the other side
+      // Calculate breathing room
       const bounceDir = p.type === 'resistance' ? 'SELL' : 'BUY';
-      let breathingRoom = 999; // pips to next blocking level
-      PIVOT_LEVELS.forEach(other=>{
-        if(other.pair !== p.pair || other.level === p.level) return;
-        if(other.touches < 2) return;
-        // For SELL: look for support levels below current price
-        // For BUY: look for resistance levels above current price
-        if(bounceDir === 'SELL' && other.type === 'support' && other.level < livePrice){
-          const pipsAway = Math.round(getPipsAway(p.level, other.level, p.dec || 4));
-          if(pipsAway < breathingRoom) breathingRoom = pipsAway;
-        }
-        if(bounceDir === 'BUY' && other.type === 'resistance' && other.level > livePrice){
-          const pipsAway = Math.round(getPipsAway(p.level, other.level, p.dec || 4));
-          if(pipsAway < breathingRoom) breathingRoom = pipsAway;
-        }
-      });
+      let breathingRoom = 999;
+      try {
+        PIVOT_LEVELS.forEach(other=>{
+          if(other.pair !== p.pair || other.level === p.level) return;
+          if(other.touches < 2) return;
+          if(bounceDir === 'SELL' && other.type === 'support' && other.level < livePrice){
+            const pipsAway = Math.round(getPipsAway(p.level, other.level, p.dec || 4));
+            if(pipsAway < breathingRoom) breathingRoom = pipsAway;
+          }
+          if(bounceDir === 'BUY' && other.type === 'resistance' && other.level > livePrice){
+            const pipsAway = Math.round(getPipsAway(p.level, other.level, p.dec || 4));
+            if(pipsAway < breathingRoom) breathingRoom = pipsAway;
+          }
+        });
+      } catch(e){ breathingRoom = 999; }
       const roomNote = breathingRoom > 50 && breathingRoom < 999
         ? `${breathingRoom} pips clear to next level`
         : breathingRoom <= 50 ? 'Tight — check for nearby levels'
