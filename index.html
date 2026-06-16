@@ -1704,10 +1704,16 @@ function renderWatchlist(){
       const livePrice = getPrice(p.pair) || 0;
       if(!livePrice) return;
 
-      // Only show if genuinely in zone — within 40% of threshold (~30 pips)
-      const threshold = getThreshold(livePrice);
+      // Hard pip limits - genuinely near the level
       const dist = Math.abs(livePrice - p.level);
-      if(dist > threshold * 0.4) return;
+      let maxDist;
+      if(livePrice > 50000) maxDist = livePrice * 0.015;  // BTC 1.5%
+      else if(livePrice > 30000) maxDist = livePrice * 0.01; // US30/NDX 1%
+      else if(livePrice > 3000) maxDist = 30;               // Gold $30
+      else if(livePrice > 50) maxDist = 0.30;               // JPY 30 pips
+      else maxDist = 0.0030;                                 // Forex 30 pips
+      if(dist > maxDist) return;
+      const threshold = getThreshold(livePrice);
       const pct = dist / threshold;
 
       const dec = p.dec || (livePrice > 50 ? 2 : 4);
