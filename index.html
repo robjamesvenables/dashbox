@@ -898,7 +898,7 @@ async function checkWatchlistAlerts(){
       `${s.pivotRank} ${s.pivotType} at ${s.pivotLevel.toFixed(dec)} (tested ${s.touches}x)\n` +
       `Conviction: ${s.finalConf.toFixed(1)}/10\n\n` +
       `Current price: ${price.toFixed(dec)}\n` +
-      `⚠️ Wait for H4 Heiken Ashi confirmation before entering.`;
+      `⚠️ Price is at a key level. Wait for confirmation before entering.`;
     await sendTelegramAlert(msg);
   }
 
@@ -1723,7 +1723,7 @@ function renderWatchlist(){
       const roomNote = breathingRoom < 999
         ? `${breathingRoom} pips clear to next level`
         : 'Clear path — no blocking levels detected';
-      const strengthNote = `<span style="font-size:10px;color:var(--muted)">⚡ Wait for H4 Heiken Ashi confirmation · ${roomNote}</span>`;
+      const strengthNote = `<span style="font-size:10px;color:var(--muted)">Price is at a key level. Wait for confirmation before entering. · ${roomNote}</span>`;
 
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct, breathingRoom });
     });
