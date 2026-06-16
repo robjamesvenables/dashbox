@@ -896,10 +896,9 @@ async function checkWatchlistAlerts(){
     const msg = `🎯 <b>DASHBOX WATCHLIST ALERT</b>\n\n` +
       `<b>${s.pair}</b> ${s.direction}\n` +
       `${s.pivotRank} ${s.pivotType} at ${s.pivotLevel.toFixed(dec)} (tested ${s.touches}x)\n` +
-      `Strength confirms ${s.direction} ✅\n` +
       `Conviction: ${s.finalConf.toFixed(1)}/10\n\n` +
       `Current price: ${price.toFixed(dec)}\n` +
-      `⚠️ Wait for entry candle confirmation before entering.`;
+      `⚠️ Wait for H4 Heiken Ashi confirmation before entering.`;
     await sendTelegramAlert(msg);
   }
 
@@ -944,28 +943,9 @@ function renderSignals(){
       if(processed.has(pairKey)) return;
       processed.add(pairKey);
 
-      // STEP 2: Check strength indexes confirm the bounce
-      const base = p.pair.slice(0,3);
-      const quote = p.pair.slice(3,6);
-      const baseS = currentScores.find(s=>s.code===base);
-      const quoteS = currentScores.find(s=>s.code===quote);
-      if(!baseS || !quoteS) return;
-
-      const bScore = baseS.score;
-      const qScore = quoteS.score;
-
-      // SELL from resistance: quote must be stronger than base (base weak, quote strong)
-      // BUY from support: base must be stronger than quote (base strong, quote weak)
-      let diff = 0;
-      if(bounceDir === 'SELL') diff = qScore - bScore; // positive = confirms SELL
-      else diff = bScore - qScore;                       // positive = confirms BUY
-
-      if(diff <= 1.5) return; // need 1.5pt differential minimum
-
-      // Calculate conviction
-      const touchBoost = p.touches >= 4 ? 2.5 : p.touches === 3 ? 1.5 : 0.5;
-      const strengthBoost = Math.min(diff * 0.8, 3.0);
-      const finalConf = Math.min(5 + touchBoost + strengthBoost, 10);
+      // Conviction based on touches only — no strength filter
+      const touchBoost = p.touches >= 4 ? 3.0 : p.touches === 3 ? 2.0 : 1.0;
+      const finalConf = Math.min(5 + touchBoost, 9);
 
       // Levels
       const dec = livePrice > 50 ? 2 : livePrice > 1 ? 4 : 5;
@@ -1055,9 +1035,7 @@ function renderSignals(){
     top.forEach(o=>{
       const grade = o.finalConf >= 8.5 ? 'a' : o.finalConf >= 7 ? 'b' : 'c';
       const gradeLabel = o.finalConf >= 8.5 ? 'A' : o.finalConf >= 7 ? 'B' : 'C';
-      const reason = o.quote
-        ? `<strong>${o.base}</strong> ${o.bScore>0?'+':''}${o.bScore.toFixed(1)} vs <strong>${o.quote}</strong> ${o.qScore>0?'+':''}${o.qScore.toFixed(1)} — indexes confirm ${o.direction} from ${o.pivotRank} ${o.pivotType} at ${o.pivotLevel.toFixed(o.dec)} (tested ${o.touches}x).`
-        : `<strong>${o.base}</strong> momentum ${o.bScore>0?'+':''}${o.bScore.toFixed(2)} — ${o.direction} confirmed from ${o.pivotRank} ${o.pivotType} at ${o.pivotLevel.toFixed(o.dec)} (tested ${o.touches}x).`;
+      const reason = `<strong>${o.pair}</strong> ${o.direction} — ${o.pivotRank} ${o.pivotType} at ${o.pivotLevel.toFixed(o.dec)} tested ${o.touches}x. Wait for H4 Heiken Ashi confirmation.`;
 
       container.innerHTML += `
         <div class="signal-card grade-${grade}" onclick="openReport('${o.pair}','${o.direction}',${Math.round(o.finalConf)},'forex')">
