@@ -1739,8 +1739,14 @@ function renderWatchlist(){
     // Deduplicate — keep only closest level per pair
     const seen = new Set();
     const unique = items.filter(item=>{ if(seen.has(item.p.pair)) return false; seen.add(item.p.pair); return true; });
+    // Max 3 JPY pairs to avoid JPY domination
+    let jpyCount = 0;
+    const balanced = unique.filter(item=>{
+      if(item.p.pair.includes('JPY')){ jpyCount++; return jpyCount <= 3; }
+      return true;
+    });
     items.length = 0;
-    unique.forEach(i=>items.push(i));
+    balanced.forEach(i=>items.push(i));
     items.splice(15);
 
     if(items.length === 0){
