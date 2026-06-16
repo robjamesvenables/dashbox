@@ -1734,8 +1734,12 @@ function renderWatchlist(){
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct });
     });
 
-    // Sort by closest to price
-    items.sort((a,b)=>a.pct-b.pct);
+    // Sort by quality score: touches weighted heavily + proximity
+    items.sort((a,b)=>{
+      const scoreA = (a.p.touches * 2) + (1 - a.pct);
+      const scoreB = (b.p.touches * 2) + (1 - b.pct);
+      return scoreB - scoreA;
+    });
     // Deduplicate — keep only closest level per pair
     const seen = new Set();
     const unique = items.filter(item=>{ if(seen.has(item.p.pair)) return false; seen.add(item.p.pair); return true; });
