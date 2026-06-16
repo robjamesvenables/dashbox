@@ -254,7 +254,10 @@ nav{display:flex;background:var(--bg);border-bottom:1px solid var(--border)}
 <div class="page" id="page-alerts">
   <div class="page-header">
     <div class="page-title">My 4H Index Alerts</div>
-    <button class="refresh-btn" onclick="saveAlerts()">💾 Save</button>
+    <div style="display:flex;gap:8px">
+      <button class="refresh-btn" onclick="testTelegramAlert()">📲 Test</button>
+      <button class="refresh-btn" onclick="saveAlerts()">💾 Save</button>
+    </div>
   </div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">
     Set up to 15 alerts. When the 4H index flips to your selected direction, you'll receive a Telegram notification.
@@ -729,7 +732,13 @@ function startMyAlerts(){
   });
 }
 
-async function checkMyAlerts(){
+async function testTelegramAlert(){
+  const btn=event.target;
+  btn.textContent='Sending...';
+  await sendTelegram(`✅ <b>DASHBOX TEST ALERT</b>\n\nYour Telegram alerts are working correctly.\nYou will receive notifications here when your 4H index alerts fire.\n\n🕐 ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`);
+  btn.textContent='✅ Sent!';
+  setTimeout(()=>btn.textContent='📲 Test',2000);
+}
   myAlerts.forEach(async(a,i)=>{
     const h4Base=SCORES_H4[a.cur1]||0,h4Quote=SCORES_H4[a.cur2]||0;
     const diff=h4Base-h4Quote;
@@ -853,6 +862,9 @@ CRITICAL RULES:
 4. Check if the 4H shows a confirmation candle at the level
 5. NEVER use the words "buy" or "sell" — instead say "trading with the level" or describe the setup direction as "upward setup" or "downward setup"
 6. If you cannot clearly identify a pivot level, say so honestly
+7. At the end, ALWAYS tell the user what to do next:
+   - If 4H is NOT confirmed: "The setup is valid but the 4H index has not yet flipped. Go to the Alerts tab and set: [base currency] stronger/weaker than [quote currency]. When you receive the Telegram notification, return here and check your 4H chart for the entry confirmation candle."
+   - If ALL confirmed: "All timeframes are aligned. Look for your entry confirmation candle on the 4H chart now."
 
 RESPOND IN THIS EXACT FORMAT:
 
