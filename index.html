@@ -1199,12 +1199,12 @@ function generateReport(sym,direction,conf,market){
   let sl,tp,partial;
   if(direction==='BUY'){
     sl=parseFloat((price-baseSLPips*pipVal).toFixed(dec));
-    tp=parseFloat((price+baseSLPips*2*pipVal).toFixed(dec));
-    partial=parseFloat((price+baseSLPips*pipVal).toFixed(dec));
+    tp=parseFloat((price+baseSLPips*pipVal).toFixed(dec));   // 1:1 R:R
+    partial=parseFloat((price+baseSLPips*0.5*pipVal).toFixed(dec));
   } else {
     sl=parseFloat((price+baseSLPips*pipVal).toFixed(dec));
-    tp=parseFloat((price-baseSLPips*2*pipVal).toFixed(dec));
-    partial=parseFloat((price-baseSLPips*pipVal).toFixed(dec));
+    tp=parseFloat((price-baseSLPips*pipVal).toFixed(dec));   // 1:1 R:R
+    partial=parseFloat((price-baseSLPips*0.5*pipVal).toFixed(dec));
   }
 
   const slD=Math.abs(price-sl),tpD=Math.abs(tp-price);
@@ -1287,7 +1287,7 @@ function generateReport(sym,direction,conf,market){
     <div class="levels-grid">
       <div class="level-box"><div class="level-label entry">▶ ENTRY</div><div class="level-val entry">${price.toFixed(dec)}</div><div class="level-note">market now</div></div>
       <div class="level-box"><div class="level-label sl">● STOP LOSS</div><div class="level-val sl">${sl.toFixed(dec)}</div><div class="level-note">structure / pivot</div></div>
-      <div class="level-box"><div class="level-label tp">🎯 TAKE PROFIT</div><div class="level-val tp">${tp.toFixed(dec)}</div><div class="level-note">1:${rr} R:R</div></div>
+      <div class="level-box"><div class="level-label tp">🎯 TAKE PROFIT</div><div class="level-val tp">${tp.toFixed(dec)}</div><div class="level-note">1:1 R:R</div></div>
     </div>
     <div class="partial-box">
       <div><div class="partial-label">⚡ PARTIAL CLOSE @ 50%</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Close 50% → move SL to breakeven</div></div>
