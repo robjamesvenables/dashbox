@@ -771,7 +771,8 @@ async function loadNews(){
     });
     html+=high.map(e=>{
       const t=e.date?new Date(e.date).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'TBA';
-      return `<div class="news-card"><div class="news-time">${t}</div><div class="news-event">${e.title}</div><div style="margin-top:5px"><span class="news-cur">${e.currency}</span></div></div>`;
+      const cur=e.currency||e.country||e.symbol||'';
+      return `<div class="news-card"><div class="news-time">${t}</div><div class="news-event">${e.title}</div><div style="margin-top:5px"><span class="news-cur">${cur}</span></div></div>`;
     }).join('');
     container.innerHTML=html||'<div class="empty">No high impact news found.</div>';
   }catch(e){
@@ -783,7 +784,8 @@ async function loadNews(){
       if(!high2.length){container.innerHTML='<div class="empty">No high impact news today.</div>';return;}
       let html2=high2.map(e=>{
         const t=e.date?new Date(e.date).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'TBA';
-        return `<div class="news-card"><div class="news-time">${t}</div><div class="news-event">${e.title}</div><div style="margin-top:5px"><span class="news-cur">${e.currency}</span></div></div>`;
+        const cur=e.currency||e.country||e.symbol||'';
+      return `<div class="news-card"><div class="news-time">${t}</div><div class="news-event">${e.title}</div><div style="margin-top:5px"><span class="news-cur">${cur}</span></div></div>`;
       }).join('');
       container.innerHTML=html2;
     }catch(e2){
