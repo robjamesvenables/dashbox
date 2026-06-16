@@ -19,7 +19,7 @@
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
 
 /* SPLASH */
-#splash{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px}
+#splash{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;min-height:100vh}
 #splash.hidden{display:none}
 .splash-logo{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .splash-icon{width:52px;height:52px;background:linear-gradient(135deg,#00d4aa,#00a86b);border-radius:14px;display:flex;align-items:flex-end;justify-content:center;gap:4px;padding:8px 8px 10px}
@@ -151,10 +151,10 @@ canvas{display:block;margin:0 auto}
 <!-- SPLASH -->
 <div id="splash">
   <div class="splash-logo">
-    <div class="splash-icon">
-      <div class="splash-bar sb1"></div>
-      <div class="splash-bar sb2"></div>
-      <div class="splash-bar sb3"></div>
+    <div class="splash-icon" style="width:56px;height:56px;background:linear-gradient(135deg,#00d4aa,#00a86b);border-radius:14px;display:flex;align-items:flex-end;justify-content:center;gap:5px;padding:10px 10px 12px">
+      <div style="width:10px;background:rgba(255,255,255,0.4);border-radius:2px;height:12px"></div>
+      <div style="width:10px;background:rgba(255,255,255,0.7);border-radius:2px;height:18px"></div>
+      <div style="width:10px;background:white;border-radius:2px;height:24px"></div>
     </div>
     <div class="splash-title"><span class="d">Dash</span><span class="b">box</span></div>
   </div>
@@ -430,7 +430,7 @@ function renderIndex(){
 function renderBarChart(sorted){
   const canvas = document.getElementById('barChart');
   const dpr = window.devicePixelRatio||1;
-  const W = Math.max(Math.min(canvas.parentElement.offsetWidth-32, 560), 300);
+  const W = Math.max(canvas.parentElement.offsetWidth - 16, 280);
   const H = 220;
   canvas.width = W*dpr; canvas.height = H*dpr;
   canvas.style.width = W+'px'; canvas.style.height = H+'px';
