@@ -1670,10 +1670,16 @@ function drawPivotChart(pair, level, currentPrice, type, touches, color){
 // ═══════════ WATCHLIST TAB — KEY PIVOT LEVELS ═══════════
 function renderWatchlist(){
   const container = document.getElementById('watchlistList');
-  container.innerHTML = '<div class="loading">Loading pivot levels...</div>';
+  if(!container) return;
+  
+  // Use existing PIVOT_LEVELS - no need to refetch
+  PIVOT_LEVELS.forEach(p=>{ p.price = getPrice(p.pair) || p.price; });
 
-  fetchFromJsonbin().then(()=>{
-    PIVOT_LEVELS.forEach(p=>{ p.price = getPrice(p.pair) || p.price; });
+  if(PIVOT_LEVELS.length === 0){
+    container.innerHTML = '<div class="loading">Loading... refresh in a moment.</div>';
+    fetchFromJsonbin().then(()=>renderWatchlist());
+    return;
+  }
 
     // Group all meaningful pivot levels by distance from price
     const items = [];
@@ -1796,7 +1802,6 @@ function renderWatchlist(){
           ${strengthNote?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${strengthNote}</div>`:''}
         </div>`;
     });
-  });
 }
 
 // ═══════════ CHECK TAB ═══════════
