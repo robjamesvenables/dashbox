@@ -633,45 +633,40 @@ function openModal(pair,dir,type,price,level,touches,rank,sl,tp){
     <div class="vs" style="color:var(--muted)">Price is at a key level. Wait for confirmation before entering.</div>`;
 
   document.getElementById('mLevels').innerHTML=`
-    <div class="level-box"><div class="level-lbl">Entry</div><div class="level-val val-entry">${price.toFixed(dec)}</div></div>
-    <div class="level-box"><div class="level-lbl">Stop Loss</div><div class="level-val val-sl">${sl}</div></div>
-    <div class="level-box"><div class="level-lbl">Take Profit</div><div class="level-val val-tp">${tp}</div></div>`;
+    <div class="level-box"><div class="level-lbl">Key Level</div><div class="level-val val-entry">${level}</div></div>
+    <div class="level-box"><div class="level-lbl">Current Price</div><div class="level-val">${price.toFixed(dec)}</div></div>
+    <div class="level-box"><div class="level-lbl">Tested</div><div class="level-val val-tp">${touches}x</div></div>`;
 
-  // W/D/H4 alignment
+  // Build WHY paragraph
   const base=pair.slice(0,3),quote=pair.slice(3,6);
   const wBase=SCORES_W[base]||0,wQuote=SCORES_W[quote]||0;
   const dBase=SCORES_D[base]||0,dQuote=SCORES_D[quote]||0;
   const hBase=SCORES_H4[base]||0,hQuote=SCORES_H4[quote]||0;
-
   const wAgree=dir==='BUY'?(wBase>wQuote):(wBase<wQuote);
   const dAgree=dir==='BUY'?(dBase>dQuote):(dBase<dQuote);
   const hAgree=dir==='BUY'?(hBase>hQuote):(hBase<hQuote);
-  const allAgree=[wAgree,dAgree,hAgree].filter(Boolean).length;
+  const tfCount=[wAgree,dAgree,hAgree].filter(Boolean).length;
 
-  const tfRow=(label,agree,bS,qS)=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)">
-    <span style="color:var(--muted)">${label}</span>
-    <span>${base} ${bS>0?'+':''}${bS.toFixed(1)} vs ${quote} ${qS>0?'+':''}${qS.toFixed(1)}</span>
-    <span style="color:${agree?'var(--accent)':'var(--weak)'}">${agree?'✓':'✗'}</span>
-  </div>`;
+  const dirWord=dir==='BUY'?'support':'resistance';
+  const bounceWord=dir==='BUY'?'bounced higher':'rejected lower';
+  const rankDesc=rank==='Fortress'?'an extremely strong fortress':rank==='Strong'?'a strong':'a valid';
+  const tfDesc=tfCount===3?'Weekly, Daily and 4H all agree on direction — maximum alignment.':tfCount===2?'2 out of 3 timeframes agree on direction.':'Timeframes are mixed — extra caution needed.';
+
+  const why=`${pair} is currently at ${rankDesc} ${dirWord} level at ${level}, which has been tested and respected ${touches} times on the Daily chart. Each time price has reached this zone, it has ${bounceWord} — showing clear institutional interest at this price. ${tfDesc} This makes it a potential ${dir} opportunity if price shows a confirmation signal at this level.`;
 
   document.getElementById('mAnalysis').innerHTML=`
-    <h4>Timeframe Alignment</h4>
-    ${tfRow('Weekly',wAgree,wBase,wQuote)}
-    ${tfRow('Daily',dAgree,dBase,dQuote)}
-    ${tfRow('4 Hour',hAgree,hBase,hQuote)}
-    <div style="margin-top:10px;font-size:12px;color:var(--muted)">
-      ${allAgree===3?'✅ All 3 timeframes agree — strong setup.':allAgree===2?'⚠️ 2 of 3 timeframes agree — use caution.':'❌ Less than 2 timeframes agree — avoid this trade.'}
-    </div>
-    <div style="margin-top:8px;font-size:11px;color:var(--muted)">
-      At 50% of TP (${partial}) — close half and move SL to breakeven.
+    <h4>Why This Setup</h4>
+    <p style="font-size:12px;line-height:1.7;color:var(--text);margin-bottom:14px">${why}</p>
+    <div style="background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.15);border-radius:8px;padding:12px">
+      <div style="font-size:12px;font-weight:600;color:var(--accent);margin-bottom:6px">📊 Ready to enter?</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6">Upload your Weekly, Daily and 4H charts to the <b style="color:var(--text)">Check tab</b> — Claude will confirm the entry, calculate your exact Stop Loss and Take Profit, and guide you on closing 50% at halfway and moving your stop to breakeven.</div>
     </div>`;
 
-  // Warnings
   const warnEl=document.getElementById('mWarn');
   const warnings=[];
   if(pair.includes('JPY')) warnings.push('BOJ intervention risk on JPY pairs.');
   if(pair.includes('CAD')) warnings.push('CAD sensitive to oil prices — check crude.');
-  if(allAgree<2) warnings.push('Timeframes not aligned — higher risk trade.');
+  if(tfCount<2) warnings.push('Timeframes not aligned — wait for better confluence.');
   if(warnings.length){warnEl.style.display='block';warnEl.innerHTML='⚠ '+warnings.join(' · ');}
   else warnEl.style.display='none';
 
