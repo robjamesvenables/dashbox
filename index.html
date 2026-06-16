@@ -1726,6 +1726,19 @@ function renderWatchlist(){
         : 'Clear path — no blocking levels detected';
       const strengthNote = `<span style="font-size:10px;color:var(--muted)">Price is at a key level. Wait for confirmation before entering. · ${roomNote}</span>`;
 
+      // Range detector — if pair has both support AND resistance within 150 pips, skip
+      const hasSupport = PIVOT_LEVELS.some(x=>x.pair===p.pair&&x.type==='support'&&x.touches>=4&&Math.abs(livePrice-x.level)<=getThreshold(livePrice)*5);
+      const hasResistance = PIVOT_LEVELS.some(x=>x.pair===p.pair&&x.type==='resistance'&&x.touches>=4&&Math.abs(livePrice-x.level)<=getThreshold(livePrice)*5);
+      if(hasSupport && hasResistance){
+        // Both sides — check if they're too close (ranging market)
+        const sup = PIVOT_LEVELS.filter(x=>x.pair===p.pair&&x.type==='support'&&x.touches>=4).map(x=>x.level);
+        const res = PIVOT_LEVELS.filter(x=>x.pair===p.pair&&x.type==='resistance'&&x.touches>=4).map(x=>x.level);
+        const minRes = res.length ? Math.min(...res) : 999;
+        const maxSup = sup.length ? Math.max(...sup) : 0;
+        const rangePips = Math.round(getPipsAway(minRes, maxSup, dec));
+        if(rangePips < 150) return; // ranging market — skip
+      }
+
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct, breathingRoom });
     });
 
