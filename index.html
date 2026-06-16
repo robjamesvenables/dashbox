@@ -1750,6 +1750,7 @@ function renderWatchlist(){
     balanced.forEach(i=>items.push(i));
     // no cap - show all valid pairs
 
+    console.log('items after dedup:', items.length, 'pairs:', items.map(i=>i.p.pair));
     if(items.length === 0){
       container.innerHTML = '<div class="no-signals">No pivot levels loaded yet — check EA is running.</div>';
       return;
