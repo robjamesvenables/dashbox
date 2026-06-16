@@ -1751,7 +1751,7 @@ function renderWatchlist(){
     });
     items.length = 0;
     balanced.forEach(i=>items.push(i));
-    items.splice(15);
+    // no cap - show all valid pairs
 
     if(items.length === 0){
       container.innerHTML = '<div class="no-signals">No pivot levels loaded yet — check EA is running.</div>';
