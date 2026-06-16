@@ -1742,10 +1742,10 @@ function renderWatchlist(){
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct, breathingRoom });
     });
 
-    // Sort by touches first, then breathing room (only real measured room counts)
+    // Sort: touches + breathing room. Tight (<50 pips) gets heavy penalty
     items.sort((a,b)=>{
-      const roomA = a.breathingRoom < 999 ? Math.min(a.breathingRoom, 300) : 0; // no room = 0 not bonus
-      const roomB = b.breathingRoom < 999 ? Math.min(b.breathingRoom, 300) : 0;
+      const roomA = a.breathingRoom > 50 && a.breathingRoom < 999 ? Math.min(a.breathingRoom, 300) : (a.breathingRoom <= 50 ? -200 : 0);
+      const roomB = b.breathingRoom > 50 && b.breathingRoom < 999 ? Math.min(b.breathingRoom, 300) : (b.breathingRoom <= 50 ? -200 : 0);
       const scoreA = (a.p.touches * 50) + roomA;
       const scoreB = (b.p.touches * 50) + roomB;
       return scoreB - scoreA;
