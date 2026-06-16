@@ -205,7 +205,6 @@ nav{display:flex;background:var(--bg);border-bottom:1px solid var(--border)}
   <button class="tab active" id="tab-index" onclick="showTab('index')">🌐 Index</button>
   <button class="tab" id="tab-watchlist" onclick="showTab('watchlist')">🎯 Watchlist</button>
   <button class="tab" id="tab-alerts" onclick="showTab('alerts')">⚡ Alerts</button>
-  <button class="tab" id="tab-news" onclick="showTab('news')">📰 News</button>
   <button class="tab" id="tab-check" onclick="showTab('check')">🔍 Check</button>
 </nav>
 
@@ -254,22 +253,13 @@ nav{display:flex;background:var(--bg);border-bottom:1px solid var(--border)}
 <div class="page" id="page-alerts">
   <div class="page-header">
     <div class="page-title">My 4H Index Alerts</div>
-    <button class="refresh-btn" onclick="saveAlerts()">💾 Save</button>
+    <div style="display:flex;gap:8px"><button class="refresh-btn" onclick="testTG(this)">📲 Test</button><button class="refresh-btn" onclick="saveAlerts()">💾 Save</button></div>
   </div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">
-    Set up to 10 alerts. When the 4H index flips to your selected direction, you'll receive a Telegram notification.
+    Set up to 15 alerts. When the 4H index flips to your selected direction, you'll receive a Telegram notification.
   </div>
   <div id="alertSlots"></div>
   <button class="add-alert-btn" onclick="addAlertSlot()" id="addAlertBtn">+ Add Alert</button>
-</div>
-
-<!-- NEWS -->
-<div class="page" id="page-news">
-  <div class="page-header">
-    <div class="page-title">High Impact News · Today</div>
-    <button class="refresh-btn" onclick="loadNews()">↻ Refresh</button>
-  </div>
-  <div id="newsList"><div class="loading">Loading...</div></div>
 </div>
 
 <!-- CHECK -->
@@ -306,7 +296,10 @@ nav{display:flex;background:var(--bg);border-bottom:1px solid var(--border)}
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <div class="modal-handle"></div>
+  <div style="display:flex;align-items:center;padding:14px 16px 0">
+    <button onclick="closeModal()" style="background:none;border:none;color:var(--text);font-size:28px;cursor:pointer;padding:0;margin-right:10px;line-height:1">←</button>
+    <div style="font-size:12px;color:var(--muted)">Back to Watchlist</div>
+  </div>
     <div class="modal-pair" id="mPair">--</div>
     <div class="modal-sub" id="mSub">--</div>
     <div class="modal-verdict" id="mVerdict"></div>
@@ -352,7 +345,6 @@ function showTab(name){
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='watchlist') renderWatchlist();
   if(name==='alerts') renderAlertSlots();
-  if(name==='news') loadNews();
   if(name==='check'){renderUploadGrid(1);renderUploadGrid(2);}
 }
 
@@ -409,7 +401,6 @@ async function splashLoad(){
     setTimeout(()=>{
       document.getElementById('splash').classList.add('hidden');
       renderIndex();
-      startWatchlistAlerts();
       startMyAlerts();
       setInterval(async()=>{await fetchData();renderIndex();checkMyAlerts();},60000);
     },400);
@@ -648,7 +639,7 @@ function closeModal(){document.getElementById('modalOverlay').classList.remove('
 function renderAlertSlots(){
   const container=document.getElementById('alertSlots');
   const addBtn=document.getElementById('addAlertBtn');
-  addBtn.style.display=myAlerts.length>=10?'none':'block';
+  addBtn.style.display=myAlerts.length>=15?'none':'block';
   if(!myAlerts.length){
     container.innerHTML='<div class="empty" style="padding:20px">No alerts set. Add one below.</div>';
     return;
@@ -658,8 +649,14 @@ function renderAlertSlots(){
     const h4Base=SCORES_H4[a.cur1]||0, h4Quote=SCORES_H4[a.cur2]||0;
     const diff=h4Base-h4Quote;
     const confirmed=(a.dir==='stronger'&&diff>0.1)||(a.dir==='weaker'&&diff<-0.1);
-    const statusText=confirmed?`✅ ${a.cur1} is ${a.dir} than ${a.cur2} on 4H`:`⏳ Watching — ${a.cur1} ${a.dir==='stronger'?'not yet stronger':'not yet weaker'} than ${a.cur2} on 4H`;
-    return `<div class="alert-slot">
+    const hasFired = a.firedAt;
+    const statusText=hasFired
+      ? `✅ Alert fired at ${a.firedAt} — check your charts`
+      : confirmed
+      ? `✅ ${a.cur1} is ${a.dir} than ${a.cur2} on 4H now`
+      : `⏳ Watching — ${a.cur1} ${a.dir==='stronger'?'not yet stronger':'not yet weaker'} than ${a.cur2} on 4H`;
+    const slotStyle=hasFired?'background:rgba(0,212,170,0.06);border-color:rgba(0,212,170,0.3)':'';
+    return `<div class="alert-slot" style="${slotStyle}">
       <div class="alert-slot-header">
         <span class="alert-slot-num">Alert ${i+1}</span>
         <button class="alert-delete" onclick="deleteAlert(${i})">×</button>
@@ -679,7 +676,7 @@ function renderAlertSlots(){
 }
 
 function addAlertSlot(){
-  if(myAlerts.length>=10) return;
+  if(myAlerts.length>=15) return;
   myAlerts.push({cur1:'EUR',cur2:'USD',dir:'stronger',lastFired:null});
   saveAlerts();
   renderAlertSlots();
@@ -721,6 +718,13 @@ function startMyAlerts(){
   });
 }
 
+async function testTG(btn){
+  btn.textContent='Sending...';
+  await sendTelegram('✅ <b>DASHBOX TEST</b>\n\nYour Telegram alerts are working correctly!');
+  btn.textContent='✅ Sent!';
+  setTimeout(()=>btn.textContent='📲 Test',2000);
+}
+
 async function checkMyAlerts(){
   myAlerts.forEach(async(a,i)=>{
     const h4Base=SCORES_H4[a.cur1]||0,h4Quote=SCORES_H4[a.cur2]||0;
@@ -730,45 +734,18 @@ async function checkMyAlerts(){
     if(confirmed&&!wasConfirmed){
       const msg=`⚡ <b>DASHBOX ALERT</b>\n\n<b>${a.cur1}</b> is now <b>${a.dir}</b> than <b>${a.cur2}</b> on the 4H index\n\nDiff: ${diff>0?'+':''}${diff.toFixed(2)}\n\nCheck your charts for a potential entry.`;
       await sendTelegram(msg);
+      // Store fired time
+      myAlerts[i].firedAt=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      saveAlerts();
+    }
+    if(!confirmed&&wasConfirmed){
+      // Reset fired state when condition no longer met
+      myAlerts[i].firedAt=null;
+      saveAlerts();
     }
     myAlertBaselines[i]=confirmed;
   });
   if(document.getElementById('page-alerts').classList.contains('active')) renderAlertSlots();
-}
-
-// ═══════════ WATCHLIST ALERTS ═══════════
-let wlAlertStarted=false;
-
-function startWatchlistAlerts(){
-  if(wlAlertStarted) return;
-  wlAlertStarted=true;
-  checkWatchlistAlerts();
-  setInterval(checkWatchlistAlerts,60000);
-}
-
-async function checkWatchlistAlerts(){
-  PIVOT_LEVELS.forEach(p=>{p.price=getPrice(p.pair)||p.price;});
-  const current={};
-  PIVOT_LEVELS.forEach(p=>{
-    if(p.touches<4) return;
-    const price=getPrice(p.pair)||0;
-    if(!price) return;
-    if(Math.abs(price-p.level)>getPipThreshold(price)) return;
-    const dir=p.type==='resistance'?'SELL':'BUY';
-    current[p.pair+'|'+dir]={p,price,dir};
-  });
-  if(wlAlertBaseline===null){wlAlertBaseline=current;return;}
-  for(const[key,{p,price,dir}] of Object.entries(current)){
-    if(!wlAlertBaseline[key]){
-      const dec=p.dec||(price>50?2:4);
-      const rank=p.touches>=6?'Fortress':p.touches>=4?'Strong':'Valid';
-      const signal=getSignalLevel(p.pair,dir);
-      const sigText=signal==='green'?'🟢 Strong Confluence':signal==='yellow'?'🟡 Moderate Risk':'🟠 Higher Risk';
-      const msg=`🎯 <b>DASHBOX WATCHLIST</b>\n\n<b>${p.pair}</b> — ${rank} ${p.type} at ${p.level.toFixed(dec)}\nTested ${p.touches}× · ${sigText}\n\nPrice: ${price.toFixed(dec)}\nPrice is at a key level. Wait for confirmation before entering.`;
-      await sendTelegram(msg);
-    }
-  }
-  wlAlertBaseline=current;
 }
 
 // ═══════════ NEWS ═══════════
@@ -790,7 +767,7 @@ async function loadNews(){
     });
     html+=high.map(e=>{
       const t=e.date?new Date(e.date).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'TBA';
-      return `<div class="news-card"><div class="news-time">${t}</div><div class="news-event">${e.title}</div><div style="margin-top:5px"><span class="news-cur">${e.currency}</span></div></div>`;
+      const cur=e.currency||e.country||e.symbol||'';return `<div class="news-card"><div class="news-time">${t}</div><div class="news-event">${e.title}</div><div style="margin-top:5px"><span class="news-cur">${cur}</span></div></div>`;
     }).join('');
     container.innerHTML=html||'<div class="empty">No high impact news found.</div>';
   }catch(e){
