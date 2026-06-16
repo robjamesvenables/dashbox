@@ -1729,6 +1729,8 @@ function renderWatchlist(){
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct, breathingRoom });
     });
 
+    console.log('items built:', items.length);
+
     // Sort by touches then breathing room
     items.sort((a,b)=>{
       const roomA = a.breathingRoom > 50 && a.breathingRoom < 999 ? Math.min(a.breathingRoom, 300) : 0;
