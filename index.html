@@ -757,7 +757,8 @@ async function loadNews(){
   const container=document.getElementById('newsList');
   container.innerHTML='<div class="loading">Loading...</div>';
   try{
-    const res=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json');
+    const res=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{cache:'no-cache'});
+    if(!res.ok) throw new Error('Failed');
     const data=await res.json();
     const high=data.filter(e=>e.impact==='High');
     if(!high.length){container.innerHTML='<div class="empty">No high impact news today.</div>';return;}
@@ -775,7 +776,7 @@ async function loadNews(){
     }).join('');
     container.innerHTML=html||'<div class="empty">No high impact news found.</div>';
   }catch(e){
-    container.innerHTML='<div class="empty">Could not load news. Try refreshing.</div>';
+    container.innerHTML='<div class="empty">Could not load news.<br>Try refreshing — ForexFactory may be temporarily unavailable.</div>';
   }
 }
 
