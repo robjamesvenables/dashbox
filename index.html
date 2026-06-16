@@ -818,6 +818,8 @@ const UPLOAD_LABELS={
 
 function renderUploadGrid(section){
   const grid=document.getElementById('uploadGrid'+section);
+  if(!grid) return;
+  const btn=document.getElementById('analyseBtn'+section);
   const imgs=checkImages[section];
   grid.innerHTML=imgs.map((img,i)=>`
     <div class="upload-slot ${img?'filled':''}" onclick="document.getElementById('f${section}_${i}').click()"
@@ -825,8 +827,7 @@ function renderUploadGrid(section){
       ${img?`<img src="${img}"><button class="upload-x" onclick="event.stopPropagation();removeImage(${section},${i})">×</button>`
            :`<div class="upload-plus">+</div><div class="upload-lbl">${UPLOAD_LABELS[section][i]}</div>`}
     </div>`).join('');
-  const btn=document.getElementById('analyseBtn'+section);
-  btn.classList.toggle('ready',imgs.some(x=>x));
+  if(btn) btn.classList.toggle('ready',imgs.some(x=>x));
 }
 
 function uploadSlot(section,idx,event){
