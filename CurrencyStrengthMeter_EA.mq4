@@ -109,9 +109,7 @@ int DetectHACross(string sym)
    double haClose2 = HA_Close(sym, PERIOD_H4, 2);
    double haOpen2  = HA_Open(sym,  PERIOD_H4, 2);
 
-   // EMA of HA Close
-   double ema1 = iMAOnArray(NULL, 0, HA_EMA_Period, 0, MODE_EMA, 0); // placeholder
-   // Use standard EMA on close as proxy
+   // EMA on H4 close as proxy for HA EMA
    double emaH4_1 = iMA(sym, PERIOD_H4, HA_EMA_Period, 0, MODE_EMA, PRICE_CLOSE, 1);
    double emaH4_2 = iMA(sym, PERIOD_H4, HA_EMA_Period, 0, MODE_EMA, PRICE_CLOSE, 2);
 
