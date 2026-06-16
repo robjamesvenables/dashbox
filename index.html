@@ -1240,7 +1240,7 @@ function generateReport(sym,direction,conf,market){
   const strongScore = direction === 'BUY' ? bScore : qScore;
   const weakScore = direction === 'BUY' ? qScore : bScore;
 
-  const specificAnalysis = `${base} is ${bScore >= 0 ? 'strong' : 'weak'} (${bScore > 0 ? '+' : ''}${bScore.toFixed(1)}) vs ${quote} ${qScore >= 0 ? 'strong' : 'weak'} (${qScore > 0 ? '+' : ''}${qScore.toFixed(1)}) — a ${diff}pt differential clearly favouring a ${direction}. ${strongCur} ranks among the ${direction==='BUY'?'strongest':'weakest'} currencies on the index while ${weakCur} is ${direction==='BUY'?'weakest':'strongest'} — maximum divergence setup.${pivotNote} Wait for a clean ${direction==='BUY'?'bullish':'bearish'} entry candle before committing.`;
+  const specificAnalysis = `${sym} is at a key Daily ${direction==='BUY'?'support':'resistance'} level.${pivotNote} Price is at a key level — wait for confirmation before entering.`;
 
   const mktAnalysis={
     forex: specificAnalysis,
