@@ -738,6 +738,8 @@ async function testTelegramAlert(btn){
   btn.textContent='✅ Sent!';
   setTimeout(()=>btn.textContent='📲 Test',2000);
 }
+
+async function checkMyAlerts(){
   myAlerts.forEach(async(a,i)=>{
     const h4Base=SCORES_H4[a.cur1]||0,h4Quote=SCORES_H4[a.cur2]||0;
     const diff=h4Base-h4Quote;
