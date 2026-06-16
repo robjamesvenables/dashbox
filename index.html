@@ -1190,10 +1190,10 @@ function generateReport(sym,direction,conf,market){
   const slD=Math.abs(price-sl),tpD=Math.abs(tp-price);
   const rr=(tpD/slD).toFixed(1);
 
-  const verdict=conf>=9?'STRONG SETUP — ENTER NOW':conf>=8?'GOOD SETUP — VALID ENTRY':conf>=7?'WATCH — BELOW IDEAL CONFIDENCE':'WEAK SIGNAL — DO NOT ENTER';
+  const verdict='POTENTIAL SETUP';
   const vClass=conf>=8?'valid':conf>=7?'caution':'invalid';
   const vIcon=conf>=8?'✅':conf>=7?'⚠️':'❌';
-  const vSub=conf>=9?'High conviction. All factors aligned.':conf>=8?'Good setup. Wait for entry candle.':conf>=7?'Below ideal — do not enter yet. Wait for stronger signal.':'Not a valid entry. Stand aside.';
+  const vSub=conf>=9?'Price is at a key level. Wait for confirmation before entering.':conf>=8?'Price is at a key level. Wait for confirmation before entering.':conf>=7?'Below ideal — do not enter yet. Wait for stronger signal.':'Price is at a key level. Wait for confirmation before entering.';
 
   // Build specific pair analysis
   const base = sym.slice(0,3), quote = sym.slice(3,6);
@@ -1889,15 +1889,11 @@ const SAVED_ANALYSES = {
         RBA maintaining dovish stance — no rate hike expected. US CPI came in hot (+4.2% YoY) supporting USD strength. Risk sentiment cautious globally — AUD typically weakens in risk-off environments. FOMC meeting Jun 16-17 — USD likely to remain supported.
       </div>
 
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Confidence & R:R</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center">
-          <div style="font-size:9px;color:var(--muted)">CONFIDENCE</div>
-          <div style="font-size:13px;font-weight:600;color:var(--strong)">8/10</div>
-        </div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">R:R</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:14px">
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center">
           <div style="font-size:9px;color:var(--muted)">R:R RATIO</div>
-          <div style="font-size:13px;font-weight:600;color:#e8ecf4">1:2</div>
+          <div style="font-size:13px;font-weight:600;color:#e8ecf4">1:1</div>
         </div>
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center">
           <div style="font-size:9px;color:var(--muted)">LOT SIZE</div>
