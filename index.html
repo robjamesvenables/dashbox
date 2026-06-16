@@ -906,9 +906,11 @@ async function checkWatchlistAlerts(){
   LAST_WATCHLIST = currentKeys;
 }
 
+let ALERTS_STARTED = false;
 function startWatchlistAlerts(){
+  if(ALERTS_STARTED) return; // prevent double start
+  ALERTS_STARTED = true;
   if(ALERT_INTERVAL) clearInterval(ALERT_INTERVAL);
-  // Check immediately then every 60s
   checkWatchlistAlerts();
   ALERT_INTERVAL = setInterval(checkWatchlistAlerts, 60000);
   console.log('Watchlist alerts started — checking every 60s');
