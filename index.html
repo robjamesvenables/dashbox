@@ -255,7 +255,7 @@ nav{display:flex;background:var(--bg);border-bottom:1px solid var(--border)}
   <div class="page-header">
     <div class="page-title">My 4H Index Alerts</div>
     <div style="display:flex;gap:8px">
-      <button class="refresh-btn" onclick="testTelegramAlert()">📲 Test</button>
+      <button class="refresh-btn" onclick="testTelegramAlert(this)">📲 Test</button>
       <button class="refresh-btn" onclick="saveAlerts()">💾 Save</button>
     </div>
   </div>
@@ -732,8 +732,7 @@ function startMyAlerts(){
   });
 }
 
-async function testTelegramAlert(){
-  const btn=event.target;
+async function testTelegramAlert(btn){
   btn.textContent='Sending...';
   await sendTelegram(`✅ <b>DASHBOX TEST ALERT</b>\n\nYour Telegram alerts are working correctly.\nYou will receive notifications here when your 4H index alerts fire.\n\n🕐 ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`);
   btn.textContent='✅ Sent!';
