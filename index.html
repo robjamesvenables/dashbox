@@ -1680,7 +1680,7 @@ function renderWatchlist(){
     const processed = new Set();
 
     PIVOT_LEVELS.forEach(p=>{
-      if(p.touches < 3) return; // minimum 3 touches — strong level only
+      if(p.touches < 4) return; // minimum 4 touches — fortress/strong only
       const livePrice = getPrice(p.pair) || 0;
       if(!livePrice) return;
 
