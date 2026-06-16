@@ -1680,7 +1680,7 @@ function renderWatchlist(){
     const processed = new Set();
 
     PIVOT_LEVELS.forEach(p=>{
-      if(p.touches < 2) return;
+      if(p.touches < 3) return; // minimum 3 touches — strong level only
       const livePrice = getPrice(p.pair) || 0;
       if(!livePrice) return;
 
@@ -1729,11 +1729,13 @@ function renderWatchlist(){
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct, breathingRoom });
     });
 
-    // Sort by breathing room (most pips clear = best trade opportunity)
+    // Sort by touches first, then breathing room (only real measured room counts)
     items.sort((a,b)=>{
-      const roomA = a.breathingRoom < 999 ? a.breathingRoom : 9999;
-      const roomB = b.breathingRoom < 999 ? b.breathingRoom : 9999;
-      return roomB - roomA;
+      const roomA = a.breathingRoom < 999 ? Math.min(a.breathingRoom, 300) : 0; // no room = 0 not bonus
+      const roomB = b.breathingRoom < 999 ? Math.min(b.breathingRoom, 300) : 0;
+      const scoreA = (a.p.touches * 50) + roomA;
+      const scoreB = (b.p.touches * 50) + roomB;
+      return scoreB - scoreA;
     });
     // Deduplicate — keep only closest level per pair
     const seen = new Set();
