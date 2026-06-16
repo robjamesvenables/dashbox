@@ -168,14 +168,39 @@ bool IsNearPivot(string sym, int &outTouches, string &outType)
 
 int CountTouches(string sym, double level, double tolerance)
 {
-   int touches=0; bool inZone=false;
-   for(int i=1;i<=PivotLookback;i++){
-      double hi=iHigh(sym,PERIOD_D1,i);
-      double lo=iLow(sym,PERIOD_D1,i);
-      bool near=(MathAbs(hi-level)<=tolerance||MathAbs(lo-level)<=tolerance||
-                 (lo<=level+tolerance&&hi>=level-tolerance));
-      if(near&&!inZone){touches++;inZone=true;}
-      else if(!near) inZone=false;
+   // ATR rejection filter — price must move away by 1x ATR after touching level
+   double atr = iATR(sym, PERIOD_D1, 14, 1);
+   if(atr == 0) atr = tolerance; // fallback
+
+   int touches = 0;
+   bool inZone = false;
+   int lastTouchBar = -1;
+
+   for(int i=PivotLookback; i>=1; i--) // scan oldest to newest
+   {
+      double hi = iHigh(sym, PERIOD_D1, i);
+      double lo = iLow(sym,  PERIOD_D1, i);
+      bool near = (MathAbs(hi-level)<=tolerance || MathAbs(lo-level)<=tolerance ||
+                   (lo<=level+tolerance && hi>=level-tolerance));
+
+      if(near && !inZone)
+      {
+         // Check if price moved away by at least 1 ATR after this touch
+         // Look forward (lower bar index = more recent)
+         bool rejected = false;
+         for(int j = i-1; j >= MathMax(1, i-5); j--)
+         {
+            double futureHi = iHigh(sym, PERIOD_D1, j);
+            double futureLo = iLow(sym,  PERIOD_D1, j);
+            // For resistance: price should move down by 1 ATR
+            if(level > lo && futureLo < level - atr) { rejected = true; break; }
+            // For support: price should move up by 1 ATR
+            if(level < hi && futureHi > level + atr) { rejected = true; break; }
+         }
+         if(rejected) touches++;
+         inZone = true;
+      }
+      else if(!near) inZone = false;
    }
    return touches;
 }
