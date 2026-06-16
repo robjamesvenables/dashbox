@@ -1704,10 +1704,10 @@ function renderWatchlist(){
       const livePrice = getPrice(p.pair) || 0;
       if(!livePrice) return;
 
-      // Strict distance check - must be within threshold (same as ALERTS logic)
+      // Only show if genuinely in zone — within 40% of threshold (~30 pips)
       const threshold = getThreshold(livePrice);
       const dist = Math.abs(livePrice - p.level);
-      if(dist > threshold) return; // outside threshold entirely
+      if(dist > threshold * 0.4) return;
       const pct = dist / threshold;
 
       const dec = p.dec || (livePrice > 50 ? 2 : 4);
