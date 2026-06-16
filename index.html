@@ -1736,7 +1736,7 @@ function renderWatchlist(){
         const minRes = res.length ? Math.min(...res) : 999;
         const maxSup = sup.length ? Math.max(...sup) : 0;
         const rangePips = Math.round(getPipsAway(minRes, maxSup, dec));
-        if(rangePips < 150) return; // ranging market — skip
+        if(rangePips < 80) return; // ranging market — skip
       }
 
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct, breathingRoom });
