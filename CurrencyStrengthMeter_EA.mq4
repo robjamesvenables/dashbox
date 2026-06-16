@@ -1,20 +1,24 @@
 //+------------------------------------------------------------------+
 //|  CurrencyStrengthMeter_EA.mq4                                    |
-//|  Posts W/D/H4 scores + prices + auto pivot levels to JSONbin    |
+//|  v7.00 — W/D/H4 scores + pivots + HA cross alerts               |
 //|  Place in MQL4/Experts/ folder                                   |
 //+------------------------------------------------------------------+
 #property copyright "Dashbox Trade"
-#property version   "6.00"
+#property version   "7.00"
 #property strict
 
+extern string TelegramBotToken  = "8500092691:AAHX_wIqo2p9qXOTe0RL-etw_41R1Q2bZXQ";
+extern string TelegramChatID    = "8361135939";
 extern string JsonbinApiKey     = "$2a$10$d0.NsjXsDQakZVLZnl4Lcuv1yl9POT37dx2yf4GzHZOWZxYk/JAya";
 extern string JsonbinBinId      = "6a2f6bf4f5f4af5e29f2bdc9";
 extern int    PostIntervalSecs  = 60;
 extern int    MAPeriod          = 14;
 extern int    ATRPeriod         = 14;
-extern int    PivotLookback     = 60;    // Daily candles to scan for pivots
-extern int    PivotStrength     = 2;     // Candles each side for swing detection
-extern double PivotMergePct     = 0.003; // Merge levels within 0.3% of each other
+extern int    PivotLookback     = 60;
+extern int    PivotStrength     = 2;
+extern double PivotMergePct     = 0.003;
+extern double PivotThresholdPct = 0.005; // 0.5% of price = near level
+extern int    HA_EMA_Period     = 21;    // EMA period for HA cross
 extern bool   EnableLogging     = false;
 
 //--- Index pairs
@@ -46,16 +50,231 @@ string ALL_PAIRS[]={
    "XAUUSD","NDX100","US30","BTCUSD"
 };
 
-// Extra instruments for pivot + momentum scanning
-string EXTRA_INSTRUMENTS[]  = {"XAUUSD","NDX100","US30","BTCUSD"};
-string EXTRA_NAMES[]        = {"Gold","Nasdaq","Dow Jones","Bitcoin"};
+string EXTRA_INSTRUMENTS[] = {"XAUUSD","NDX100","US30","BTCUSD"};
+string EXTRA_NAMES[]       = {"Gold","Nasdaq","Dow Jones","Bitcoin"};
 
-datetime LastPostTime=0;
+datetime LastPostTime   = 0;
+datetime LastAlertTimes[]; // tracks last alert time per pair to avoid spam
 
 //+------------------------------------------------------------------+
-int OnInit(){ Print("EA v6.00 started — W/D/H4 + auto pivots."); PostAll(); return INIT_SUCCEEDED; }
-void OnTick(){ if(TimeCurrent()-LastPostTime>=PostIntervalSecs){ PostAll(); LastPostTime=TimeCurrent(); } }
-void OnTimer(){ OnTick(); }
+int OnInit()
+{
+   int total = ArraySize(ALL_PAIRS);
+   ArrayResize(LastAlertTimes, total);
+   ArrayInitialize(LastAlertTimes, 0);
+   Print("Dashbox EA v7.00 started.");
+   PostAll();
+   return INIT_SUCCEEDED;
+}
+
+void OnTick()
+{
+   if(TimeCurrent() - LastPostTime >= PostIntervalSecs)
+   {
+      PostAll();
+      CheckHACrossAlerts();
+      LastPostTime = TimeCurrent();
+   }
+}
+
+void OnTimer() { OnTick(); }
+
+//+------------------------------------------------------------------+
+// HEIKEN ASHI CALCULATION
+//+------------------------------------------------------------------+
+double HA_Close(string sym, int tf, int shift)
+{
+   return (iOpen(sym,tf,shift)+iHigh(sym,tf,shift)+iLow(sym,tf,shift)+iClose(sym,tf,shift))/4.0;
+}
+
+double HA_Open(string sym, int tf, int shift)
+{
+   // HA Open = (prev HA Open + prev HA Close) / 2
+   // For simplicity use 3-bar average of open/close
+   if(shift >= iBars(sym,tf)-2) return iOpen(sym,tf,shift);
+   double prevClose = HA_Close(sym,tf,shift+1);
+   double prevOpen  = (iOpen(sym,tf,shift+1) + iClose(sym,tf,shift+1)) / 2.0;
+   return (prevOpen + prevClose) / 2.0;
+}
+
+// Returns +1 if HA just crossed bullish over EMA, -1 if bearish, 0 if no cross
+int DetectHACross(string sym)
+{
+   // Need at least 3 closed H4 bars
+   if(iBars(sym, PERIOD_H4) < 5) return 0;
+
+   // Current closed bar = shift 1, previous = shift 2
+   double haClose1 = HA_Close(sym, PERIOD_H4, 1);
+   double haOpen1  = HA_Open(sym,  PERIOD_H4, 1);
+   double haClose2 = HA_Close(sym, PERIOD_H4, 2);
+   double haOpen2  = HA_Open(sym,  PERIOD_H4, 2);
+
+   // EMA of HA Close
+   double ema1 = iMAOnArray(NULL, 0, HA_EMA_Period, 0, MODE_EMA, 0); // placeholder
+   // Use standard EMA on close as proxy
+   double emaH4_1 = iMA(sym, PERIOD_H4, HA_EMA_Period, 0, MODE_EMA, PRICE_CLOSE, 1);
+   double emaH4_2 = iMA(sym, PERIOD_H4, HA_EMA_Period, 0, MODE_EMA, PRICE_CLOSE, 2);
+
+   bool bullNow  = (haClose1 > haOpen1); // current HA candle is bullish
+   bool bullPrev = (haClose2 > haOpen2); // previous HA candle was bearish
+   bool crossedAboveEMA = (haClose1 > emaH4_1) && (haClose2 <= emaH4_2);
+   bool crossedBelowEMA = (haClose1 < emaH4_1) && (haClose2 >= emaH4_2);
+
+   // Bullish cross: HA turned green AND closed above EMA
+   if(bullNow && !bullPrev && crossedAboveEMA) return +1;
+
+   // Bearish cross: HA turned red AND closed below EMA
+   if(!bullNow && bullPrev && crossedBelowEMA) return -1;
+
+   return 0;
+}
+
+//+------------------------------------------------------------------+
+// CHECK IF PAIR IS NEAR A PIVOT LEVEL
+//+------------------------------------------------------------------+
+bool IsNearPivot(string sym, int &outTouches, string &outType)
+{
+   double bid = MarketInfo(sym, MODE_BID);
+   if(bid == 0) return false;
+   double threshold = bid * PivotThresholdPct;
+
+   // Scan recent daily swing levels
+   int S = PivotStrength;
+   for(int i = S+1; i < PivotLookback-S; i++)
+   {
+      double hi  = iHigh(sym, PERIOD_D1, i);
+      double lo  = iLow(sym,  PERIOD_D1, i);
+
+      // Check swing high (resistance)
+      bool isSwingHigh = true;
+      for(int j=1;j<=S;j++){
+         if(iHigh(sym,PERIOD_D1,i-j)>=hi||iHigh(sym,PERIOD_D1,i+j)>=hi){isSwingHigh=false;break;}
+      }
+      if(isSwingHigh && MathAbs(bid-hi) <= threshold){
+         // Count touches
+         int touches = CountTouches(sym, hi, threshold);
+         if(touches >= 2){ outTouches=touches; outType="resistance"; return true; }
+      }
+
+      // Check swing low (support)
+      bool isSwingLow = true;
+      for(int j=1;j<=S;j++){
+         if(iLow(sym,PERIOD_D1,i-j)<=lo||iLow(sym,PERIOD_D1,i+j)<=lo){isSwingLow=false;break;}
+      }
+      if(isSwingLow && MathAbs(bid-lo) <= threshold){
+         int touches = CountTouches(sym, lo, threshold);
+         if(touches >= 2){ outTouches=touches; outType="support"; return true; }
+      }
+   }
+   return false;
+}
+
+int CountTouches(string sym, double level, double tolerance)
+{
+   int touches=0; bool inZone=false;
+   for(int i=1;i<=PivotLookback;i++){
+      double hi=iHigh(sym,PERIOD_D1,i);
+      double lo=iLow(sym,PERIOD_D1,i);
+      bool near=(MathAbs(hi-level)<=tolerance||MathAbs(lo-level)<=tolerance||
+                 (lo<=level+tolerance&&hi>=level-tolerance));
+      if(near&&!inZone){touches++;inZone=true;}
+      else if(!near) inZone=false;
+   }
+   return touches;
+}
+
+//+------------------------------------------------------------------+
+// CHECK W AND D STRENGTH AGREEMENT
+//+------------------------------------------------------------------+
+// Returns +1 if W and D both bullish for base vs quote, -1 bearish, 0 no agreement
+int StrengthAgreement(string sym)
+{
+   // Get W and D scores for base and quote currency
+   string base  = StringSubstr(sym,0,3);
+   string quote = StringSubstr(sym,3,3);
+
+   // Calculate simple W and D momentum for each currency
+   // Using EMA distance on EURUSD as proxy for EUR strength etc
+   // For now use direct pair W and D direction
+   double closeW = iClose(sym, PERIOD_W1, 1);
+   double openW  = iOpen(sym,  PERIOD_W1, 1);
+   double closeD = iClose(sym, PERIOD_D1, 1);
+   double openD  = iOpen(sym,  PERIOD_D1, 1);
+
+   bool wBull = (closeW > openW);
+   bool dBull = (closeD > openD);
+
+   if(wBull && dBull)  return +1; // Both Weekly and Daily bullish
+   if(!wBull && !dBull) return -1; // Both Weekly and Daily bearish
+   return 0; // Mixed — no clear agreement
+}
+
+//+------------------------------------------------------------------+
+// MAIN ALERT CHECK — runs every 60s
+//+------------------------------------------------------------------+
+void CheckHACrossAlerts()
+{
+   int total = ArraySize(ALL_PAIRS);
+   for(int i=0; i<total; i++)
+   {
+      string sym = ALL_PAIRS[i];
+      double bid = MarketInfo(sym, MODE_BID);
+      if(bid == 0) continue;
+
+      // Avoid spam — only alert once per 4 hours per pair
+      if(TimeCurrent() - LastAlertTimes[i] < 14400) continue;
+
+      // Step 1: Is pair near a key daily pivot level?
+      int    pivotTouches = 0;
+      string pivotType    = "";
+      if(!IsNearPivot(sym, pivotTouches, pivotType)) continue;
+
+      // Step 2: Does H4 Heiken Ashi cross confirm?
+      int haCross = DetectHACross(sym);
+      if(haCross == 0) continue;
+
+      // Step 3: Does W and D agree with the cross direction?
+      int wdAgree = StrengthAgreement(sym);
+
+      // Determine trade direction
+      string direction = "";
+      if(haCross == +1 && pivotType == "support")    direction = "BUY";
+      if(haCross == -1 && pivotType == "resistance") direction = "SELL";
+      if(direction == "") continue; // cross doesn't match pivot type
+
+      // W/D agreement bonus (not a blocker but affects conviction)
+      int wdConfirms = 0;
+      if(direction == "BUY"  && wdAgree == +1) wdConfirms = 1;
+      if(direction == "SELL" && wdAgree == -1) wdConfirms = 1;
+
+      // Calculate 1:1 levels
+      int    digits   = (int)MarketInfo(sym, MODE_DIGITS);
+      double atr      = iATR(sym, PERIOD_H4, ATRPeriod, 1);
+      double slDist   = atr * 1.5;
+      double entry    = bid;
+      double sl       = direction=="BUY" ? entry-slDist : entry+slDist;
+      double tp       = direction=="BUY" ? entry+slDist : entry-slDist; // 1:1
+
+      string pivotRank = pivotTouches>=4?"FORTRESS":pivotTouches==3?"STRONG":"VALID";
+      string wdNote   = wdConfirms==1?"✅ W+D agree":"⚠ W/D mixed — H4 only";
+
+      // Build Telegram message
+      string msg = "⚡ <b>DASHBOX ALERT</b>\n\n";
+      msg += "<b>" + sym + "</b> " + direction + "\n";
+      msg += "📍 " + pivotRank + " " + pivotType + " (" + IntegerToString(pivotTouches) + " touches)\n";
+      msg += "🕯 H4 Heiken Ashi cross confirmed\n";
+      msg += wdNote + "\n\n";
+      msg += "Entry: " + DoubleToStr(entry, digits) + "\n";
+      msg += "SL:    " + DoubleToStr(sl, digits) + "\n";
+      msg += "TP:    " + DoubleToStr(tp, digits) + " (1:1)\n\n";
+      msg += "⚠️ Confirm on chart before entering.";
+
+      SendTelegram(msg);
+      LastAlertTimes[i] = TimeCurrent();
+
+      if(EnableLogging) Print("Alert sent: ", sym, " ", direction);
+   }
+}
 
 //+------------------------------------------------------------------+
 double CalcScore(string &pairs[],int &dirs[],int count,int period)
@@ -92,121 +311,6 @@ string BuildScoreBlock(string label,int period)
    return block+"}";
 }
 
-//+------------------------------------------------------------------+
-// Count how many times price has touched a level within tolerance
-int CountTouches(string sym, double level, double tolerance, int lookback)
-{
-   int touches=0;
-   bool inZone=false;
-   for(int i=1;i<=lookback;i++){
-      double hi=iHigh(sym,PERIOD_D1,i);
-      double lo=iLow(sym,PERIOD_D1,i);
-      bool near=(MathAbs(hi-level)<=tolerance||MathAbs(lo-level)<=tolerance||
-                 (lo<=level+tolerance&&hi>=level-tolerance));
-      if(near&&!inZone){ touches++; inZone=true; }
-      else if(!near) inZone=false;
-   }
-   return touches;
-}
-
-// Detect pivot levels for one pair, returns JSON array string
-string DetectPivots(string sym)
-{
-   int digits=(int)MarketInfo(sym,MODE_DIGITS);
-   double point=MarketInfo(sym,MODE_POINT);
-   double bid=MarketInfo(sym,MODE_BID);
-   if(bid==0) return "[]";
-
-   // Tolerance for touch counting — scaled by instrument type
-   double tolerance;
-   if(bid > 1000)      tolerance = bid * 0.005;  // Gold/BTC: 0.5% = ~$16 for gold
-   else if(bid > 100)  tolerance = bid * 0.003;  // Indices: 0.3%
-   else if(digits<=2)  tolerance = bid * 0.004;  // JPY pairs
-   else                tolerance = bid * 0.002;  // Standard forex
-
-   // Store found levels: [level, type(1=res,-1=sup), touches]
-   double levels[];
-   int    types[];
-   int    touchCounts[];
-   int    found=0;
-
-   ArrayResize(levels,50);
-   ArrayResize(types,50);
-   ArrayResize(touchCounts,50);
-
-   int S=PivotStrength;
-
-   for(int i=S+1;i<PivotLookback-S&&found<15;i++)
-   {
-      double hi=iHigh(sym,PERIOD_D1,i);
-      double lo=iLow(sym,PERIOD_D1,i);
-
-      // Check swing high (resistance)
-      bool isSwingHigh=true;
-      for(int j=1;j<=S;j++){
-         if(iHigh(sym,PERIOD_D1,i-j)>=hi||iHigh(sym,PERIOD_D1,i+j)>=hi){ isSwingHigh=false; break; }
-      }
-
-      // Check swing low (support)
-      bool isSwingLow=true;
-      for(int j=1;j<=S;j++){
-         if(iLow(sym,PERIOD_D1,i-j)<=lo||iLow(sym,PERIOD_D1,i+j)<=lo){ isSwingLow=false; break; }
-      }
-
-      if(isSwingHigh){
-         // Check not too close to existing level
-         bool duplicate=false;
-         for(int k=0;k<found;k++){
-            if(MathAbs(levels[k]-hi)/hi<PivotMergePct){ duplicate=true; break; }
-         }
-         if(!duplicate){
-            int tc=CountTouches(sym,hi,tolerance,PivotLookback);
-            if(tc>=2){ // only keep confirmed levels
-               levels[found]=hi; types[found]=1; touchCounts[found]=tc;
-               found++;
-            }
-         }
-      }
-
-      if(isSwingLow){
-         bool duplicate=false;
-         for(int k=0;k<found;k++){
-            if(MathAbs(levels[k]-lo)/lo<PivotMergePct){ duplicate=true; break; }
-         }
-         if(!duplicate){
-            int tc=CountTouches(sym,lo,tolerance,PivotLookback);
-            if(tc>=2){
-               levels[found]=lo; types[found]=-1; touchCounts[found]=tc;
-               found++;
-            }
-         }
-      }
-   }
-
-   if(found==0) return "[]";
-
-   // Build JSON array — only levels within 200 pips of current price
-   string arr="[";
-   bool first=true;
-   double maxDist=200*point*10;
-   // Scale maxDist by instrument type
-   if(bid > 1000)     maxDist = bid * 0.05;   // Gold: 5% = ~$160
-   else if(bid > 100) maxDist = bid * 0.03;   // Indices: 3%
-   else if(digits<=2) maxDist = 3.0;          // JPY: 300 pips
-   else               maxDist = 0.02;         // Forex: 200 pips
-
-   for(int i=0;i<found;i++){
-      if(MathAbs(bid-levels[i])>maxDist) continue;
-      if(!first) arr+=",";
-      string t=types[i]==1?"resistance":"support";
-      arr+="{\"l\":"+DoubleToStr(levels[i],digits)+",\"t\":\""+t+"\",\"c\":"+IntegerToString(touchCounts[i])+"}";
-      first=false;
-   }
-   arr+="]";
-   return arr;
-}
-
-//+------------------------------------------------------------------+
 double CalcMomentum(string sym)
 {
    double total=0; int valid=0;
@@ -222,19 +326,94 @@ double CalcMomentum(string sym)
    return valid>0?total/valid:0;
 }
 
-//+------------------------------------------------------------------+
+int CountTouchesLocal(string sym, double level, double tolerance)
+{
+   return CountTouches(sym, level, tolerance);
+}
+
+string DetectPivots(string sym)
+{
+   int digits=(int)MarketInfo(sym,MODE_DIGITS);
+   double point=MarketInfo(sym,MODE_POINT);
+   double bid=MarketInfo(sym,MODE_BID);
+   if(bid==0) return "[]";
+
+   double tolerance;
+   if(bid>1000)     tolerance=bid*0.005;
+   else if(bid>100) tolerance=bid*0.003;
+   else if(digits<=2) tolerance=bid*0.004;
+   else             tolerance=bid*0.002;
+
+   double levels[]; int types[]; int touchCounts[];
+   int found=0;
+   ArrayResize(levels,20); ArrayResize(types,20); ArrayResize(touchCounts,20);
+
+   int S=PivotStrength;
+   for(int i=S+1;i<PivotLookback-S&&found<15;i++)
+   {
+      double hi=iHigh(sym,PERIOD_D1,i);
+      double lo=iLow(sym,PERIOD_D1,i);
+
+      bool isSwingHigh=true;
+      for(int j=1;j<=S;j++){
+         if(iHigh(sym,PERIOD_D1,i-j)>=hi||iHigh(sym,PERIOD_D1,i+j)>=hi){isSwingHigh=false;break;}
+      }
+      bool isSwingLow=true;
+      for(int j=1;j<=S;j++){
+         if(iLow(sym,PERIOD_D1,i-j)<=lo||iLow(sym,PERIOD_D1,i+j)<=lo){isSwingLow=false;break;}
+      }
+
+      if(isSwingHigh){
+         bool dup=false;
+         for(int k=0;k<found;k++) if(MathAbs(levels[k]-hi)/hi<PivotMergePct){dup=true;break;}
+         if(!dup){
+            int tc=CountTouches(sym,hi,tolerance);
+            if(tc>=2){levels[found]=hi;types[found]=1;touchCounts[found]=tc;found++;}
+         }
+      }
+      if(isSwingLow){
+         bool dup=false;
+         for(int k=0;k<found;k++) if(MathAbs(levels[k]-lo)/lo<PivotMergePct){dup=true;break;}
+         if(!dup){
+            int tc=CountTouches(sym,lo,tolerance);
+            if(tc>=2){levels[found]=lo;types[found]=-1;touchCounts[found]=tc;found++;}
+         }
+      }
+   }
+
+   if(found==0) return "[]";
+
+   string arr="[";
+   bool first=true;
+   double maxDist;
+   if(bid>50000)     maxDist=bid*0.05;
+   else if(bid>30000) maxDist=bid*0.04;
+   else if(bid>1000)  maxDist=bid*0.05;
+   else if(bid>100)   maxDist=bid*0.03;
+   else if(digits<=2) maxDist=3.0;
+   else               maxDist=0.02;
+
+   for(int i=0;i<found;i++){
+      if(MathAbs(bid-levels[i])>maxDist) continue;
+      if(!first) arr+=",";
+      string t=types[i]==1?"resistance":"support";
+      arr+="{\"l\":"+DoubleToStr(levels[i],digits)+",\"t\":\""+t+"\",\"c\":"+IntegerToString(touchCounts[i])+"}";
+      first=false;
+   }
+   arr+="]";
+   return arr;
+}
+
 void PostAll()
 {
    string json="{";
    json+="\"ts\":"+IntegerToString(TimeCurrent())+",";
-
-   // Strength scores — W, D, H4
    json+=BuildScoreBlock("scores_W",PERIOD_W1)+",";
    json+=BuildScoreBlock("scores_D",PERIOD_D1)+",";
    json+=BuildScoreBlock("scores_H4",PERIOD_H4)+",";
-   json+=BuildScoreBlock("scores",PERIOD_H4)+",";  // backward compat
+   json+=BuildScoreBlock("scores",PERIOD_H4)+",";
 
-   // Live prices
+   // Prices
    json+="\"prices\":{";
    int total=ArraySize(ALL_PAIRS); bool firstP=true;
    for(int i=0;i<total;i++){
@@ -247,25 +426,15 @@ void PostAll()
    }
    json+="},";
 
-   // Auto pivot levels for all pairs
+   // Pivots
    json+="\"pivots\":{";
    bool firstPiv=true;
    for(int i=0;i<total;i++){
-      string pivJson=DetectPivots(ALL_PAIRS[i]);
-      if(pivJson=="[]") continue;
-      if(!firstPiv) json+=",";
-      json+="\""+ALL_PAIRS[i]+"\":"+pivJson;
-      firstPiv=false;
-   }
-   // Extra instrument pivots + momentum — always included
-   int extTotal=ArraySize(EXTRA_INSTRUMENTS);
-   for(int i=0;i<extTotal;i++){
-      string sym=EXTRA_INSTRUMENTS[i];
-      double mom=CalcMomentum(sym);
+      string sym=ALL_PAIRS[i];
       string pivJson=DetectPivots(sym);
+      double mom=CalcMomentum(sym);
       if(!firstPiv) json+=",";
       firstPiv=false;
-      // Embed momentum score as special entry in array
       string momEntry="{\"l\":0,\"t\":\"mom\",\"c\":0,\"m\":"+DoubleToStr(mom,4)+"}";
       if(pivJson=="[]")
          json+="\""+sym+"\":["+momEntry+"]";
@@ -274,14 +443,19 @@ void PostAll()
          json+="\""+sym+"\":["+inner+","+momEntry+"]";
       }
    }
-
    json+="}}";
 
    if(EnableLogging) Print("JSON length: ",StringLen(json));
-   PostToJsonbin(json);
+
+   if(StringLen(json)>90000){
+      // Post without pivots first
+      string quickJson=StringSubstr(json,0,StringFind(json,",\"pivots\""))+"}}";
+      PostToJsonbin(quickJson);
+   } else {
+      PostToJsonbin(json);
+   }
 }
 
-//+------------------------------------------------------------------+
 void PostToJsonbin(string json)
 {
    string url="https://api.jsonbin.io/v3/b/"+JsonbinBinId;
@@ -290,5 +464,17 @@ void PostToJsonbin(string json)
    StringToCharArray(json,postData,0,StringLen(json));
    int res=WebRequest("PUT",url,headers,10000,postData,result,resultHeaders);
    if(res==-1) Print("Jsonbin error: ",GetLastError());
-   else if(EnableLogging) Print("Jsonbin OK. HTTP ",res, " JSON size: ",StringLen(json));
+   else if(EnableLogging) Print("Jsonbin OK. HTTP ",res);
+}
+
+void SendTelegram(string text)
+{
+   string url="https://api.telegram.org/bot"+TelegramBotToken+"/sendMessage";
+   string headers="Content-Type: application/x-www-form-urlencoded\r\n";
+   string body="chat_id="+TelegramChatID+"&text="+text+"&parse_mode=HTML";
+   char postData[]; char result[]; string resultHeaders;
+   StringToCharArray(body,postData,0,StringLen(body));
+   int res=WebRequest("POST",url,headers,5000,postData,result,resultHeaders);
+   if(res==-1) Print("Telegram error: ",GetLastError());
+   else if(EnableLogging) Print("Telegram OK");
 }

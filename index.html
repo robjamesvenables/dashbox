@@ -302,14 +302,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 </header>
 
 <div class="market-bar">
-  <button class="mkt-btn active" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
+  <button class="mkt-btn active" id="tb-watchlist" onclick="showTab('watchlist')">🎯 WATCHLIST</button>
   <button class="mkt-btn" id="tb-signals" onclick="showTab('signals')">⚡ ALERTS</button>
-  <button class="mkt-btn" id="tb-watchlist" onclick="showTab('watchlist')">🎯 WATCHLIST</button>
   <button class="mkt-btn" id="tb-check" onclick="showTab('check')">🔍 CHECK</button>
 </div>
 
 <!-- INDEX -->
-<div class="page active" id="tab-index">
+<div class="page" id="tab-index">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
     <span class="api-badge demo" id="apiBadge" style="font-size:12px;">● FETCHING...</span>
     <span id="scoreAge" style="font-size:11px;color:var(--muted)"></span>
@@ -391,7 +390,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 </div>
 
 <!-- WATCHLIST -->
-<div class="page" id="tab-watchlist">
+<div class="page active" id="tab-watchlist">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
     <div class="sl" style="margin-bottom:0;border:none">Key Pivot Levels — Monitor</div>
     <button class="btn primary" onclick="renderWatchlist()" style="font-size:10px;padding:5px 12px;">↻ Refresh</button>
@@ -2275,8 +2274,7 @@ async function splashRefresh(){
     status.textContent = '✓ Live data loaded';
     setTimeout(()=>{
       document.getElementById('splashOverlay').classList.add('hidden');
-      const b=document.getElementById('apiBadge');if(b){b.textContent='● Connected';b.className='api-badge live';}
-      renderIndex();
+      showTab('watchlist');
       startWatchlistAlerts();
     }, 400);
   } else {
@@ -2291,7 +2289,7 @@ async function splashRefresh(){
       })).filter(s=>s.code).sort((a,b)=>b.score-a.score);
       if(rec.prices) LIVE_PRICES = rec.prices;
       status.textContent = '✓ Live data loaded';
-      setTimeout(()=>{ document.getElementById('splashOverlay').classList.add('hidden'); renderIndex(); }, 400);
+      setTimeout(()=>{ document.getElementById('splashOverlay').classList.add('hidden'); showTab('watchlist'); startWatchlistAlerts(); }, 400);
     } else {
       status.textContent = '⚠ No MT4 signal — check EA is running on VPS';
       btn.textContent = '↻ Try Again';
