@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>Dashbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230a0c0f'/><rect x='4' y='20' width='6' height='8' rx='1.5' fill='white' opacity='0.4'/><rect x='13' y='14' width='6' height='14' rx='1.5' fill='white' opacity='0.7'/><rect x='22' y='8' width='6' height='20' rx='1.5' fill='%2300d4aa'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230a0c0f'/><rect x='4' y='20' width='6' height='8' rx='1.5' fill='white' opacity='0.4'/><rect x='13' y='14' width='6' height='14' rx='1.5' fill='white' opacity='0.7'/><rect x='22' y='8' width='6' height='20' rx='1.5' fill='%2300d4aa'/></svg>">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -14,38 +14,41 @@
   --border:#1e2430;--border2:#252d3a;
   --text:#e8ecf4;--muted:#5a6478;--accent:#00d4aa;
   --strong:#00d4aa;--weak:#e05c5c;--gold:#f5c518;
-  --font:'Inter',system-ui,sans-serif;
+  --font:'Poppins',system-ui,sans-serif;
 }
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+*{font-family:var(--font)}
+body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 
 /* SPLASH */
-#splash{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;min-height:100vh}
+#splash{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px}
 #splash.hidden{display:none}
 .splash-logo{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.splash-icon{width:52px;height:52px;background:linear-gradient(135deg,#00d4aa,#00a86b);border-radius:14px;display:flex;align-items:flex-end;justify-content:center;gap:4px;padding:8px 8px 10px}
-.splash-bar{background:white;border-radius:2px;width:9px}
-.sb1{height:10px;opacity:0.4}.sb2{height:16px;opacity:0.7}.sb3{height:22px}
+.splash-icon{width:56px;height:56px;background:linear-gradient(135deg,#00d4aa,#00a86b);border-radius:14px;display:flex;align-items:flex-end;justify-content:center;gap:5px;padding:10px 10px 12px}
+.splash-bar{border-radius:2px}
+.sb1{width:10px;height:12px;background:rgba(255,255,255,0.4)}
+.sb2{width:10px;height:18px;background:rgba(255,255,255,0.7)}
+.sb3{width:10px;height:24px;background:white}
 .splash-title{font-size:32px;font-weight:700;letter-spacing:-0.5px}
 .splash-title .d{color:#fff}.splash-title .b{color:var(--accent)}
 .splash-sub{font-size:13px;color:var(--muted);margin-bottom:52px;text-align:center}
-.splash-btn{width:100%;max-width:340px;padding:18px;background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:14px;font-size:17px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font)}
+.splash-btn{width:100%;max-width:340px;padding:18px;background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:14px;font-size:17px;font-weight:600;color:#fff;cursor:pointer}
 #splashStatus{margin-top:16px;font-size:12px;color:var(--muted);text-align:center;min-height:18px}
 
-/* NAV */
-header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:0 16px}
-.header-inner{display:flex;align-items:center;justify-content:space-between;height:52px}
-.logo{display:flex;align-items:center;gap:9px;cursor:pointer;text-decoration:none}
+/* HEADER */
+header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 16px}
+.logo{display:flex;align-items:center;gap:9px;cursor:pointer}
 .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#00d4aa,#00a86b);border-radius:8px;display:flex;align-items:flex-end;justify-content:center;gap:3px;padding:5px 5px 6px}
-.logo-bar{background:white;border-radius:1.5px;width:6px}
-.lb1{height:6px;opacity:0.4}.lb2{height:10px;opacity:0.7}.lb3{height:14px}
+.lb1{width:6px;height:6px;background:rgba(255,255,255,0.4);border-radius:1.5px}
+.lb2{width:6px;height:10px;background:rgba(255,255,255,0.7);border-radius:1.5px}
+.lb3{width:6px;height:14px;background:white;border-radius:1.5px}
 .logo-text{font-size:18px;font-weight:700;letter-spacing:-0.3px}
 .logo-text .d{color:#fff}.logo-text .b{color:var(--accent)}
-#clock{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+#clock{font-size:11px;color:var(--muted)}
 
-/* TABS */
-nav{display:flex;overflow-x:hidden;gap:0;background:var(--bg);border-bottom:1px solid var(--border)}
-nav::-webkit-scrollbar{display:none}
-.tab{flex:1;padding:12px 8px;font-size:11px;font-weight:500;color:#b0b8cc;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;letter-spacing:0.02em;white-space:nowrap;font-family:var(--font);text-align:center}
+/* NAV */
+nav{display:flex;background:var(--bg);border-bottom:1px solid var(--border)}
+.tab{flex:1;padding:11px 4px;font-size:10px;font-weight:500;color:#8a9ab5;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;white-space:nowrap;text-align:center}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 
 /* PAGES */
@@ -53,66 +56,95 @@ nav::-webkit-scrollbar{display:none}
 .page.active{display:block}
 
 /* INDEX */
-.index-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.connected-dot{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
-.dot{width:7px;height:7px;border-radius:50%;background:#3a3f4a}
+.index-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.connected{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.dot{width:7px;height:7px;border-radius:50%;background:#2a3040}
 .dot.live{background:var(--accent);box-shadow:0 0 6px var(--accent)}
-.refresh-btn{background:none;border:1px solid var(--border2);color:var(--muted);padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--font)}
-.tf-tabs{display:flex;gap:6px;margin-bottom:16px}
-.tf-btn{flex:1;padding:7px;background:var(--surface);border:1px solid var(--border);border-radius:7px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font);transition:all 0.15s}
-.tf-btn.active{background:rgba(0,212,170,0.1);border-color:var(--accent);color:var(--accent)}
-.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 8px;margin-bottom:16px}
-canvas{display:block;margin:0 auto}
-.legend{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.refresh-btn{background:none;border:1px solid var(--border2);color:var(--muted);padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer}
+.tf-tabs{display:flex;gap:6px;margin-bottom:14px}
+.tf-btn{flex:1;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);cursor:pointer;transition:all 0.15s}
+.tf-btn.active{background:rgba(0,212,170,0.1);border-color:var(--accent);color:var(--accent);font-weight:600}
+.tf-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;text-align:center}
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 8px;margin-bottom:14px}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .legend-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between}
-.legend-info{}
-.legend-name{font-size:12px;font-weight:600;color:var(--text)}
+.legend-name{font-size:12px;font-weight:600}
 .legend-rank{font-size:10px;color:var(--muted)}
 .legend-score{font-size:15px;font-weight:700}
 
 /* WATCHLIST */
-.wl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.wl-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
-.wl-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;cursor:pointer;transition:border-color 0.15s}
-.wl-card:hover{border-color:var(--border2)}
-.wl-card-top{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.page-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
+.wl-card{border-radius:10px;margin-bottom:10px;overflow:hidden;cursor:pointer;border:1px solid var(--border)}
+.wl-card.green{border-left:4px solid var(--accent);background:rgba(0,212,170,0.03)}
+.wl-card.yellow{border-left:4px solid var(--gold);background:rgba(245,197,24,0.03)}
+.wl-card.orange{border-left:4px solid #f59418;background:rgba(245,148,24,0.03)}
+.wl-top{padding:12px 14px;display:flex;align-items:center;gap:8px}
 .wl-rank{font-size:12px;font-weight:700;min-width:28px}
-.wl-pair{font-size:16px;font-weight:600;color:var(--text)}
+.wl-pair{font-size:16px;font-weight:600}
 .wl-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;text-transform:uppercase}
 .badge-sup{background:rgba(0,212,170,0.12);color:var(--accent)}
 .badge-res{background:rgba(224,92,92,0.12);color:var(--weak)}
-.wl-rank-label{font-size:10px;font-weight:600}
-.wl-dir{margin-left:auto;font-size:11px;font-weight:600;padding:3px 9px;border-radius:5px}
-.dir-buy{background:rgba(0,212,170,0.1);color:var(--accent)}
-.dir-sell{background:rgba(224,92,92,0.1);color:var(--weak)}
-.wl-card-mid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border)}
+.wl-prank{font-size:10px;font-weight:600}
+.wl-signal{margin-left:auto;font-size:10px;font-weight:600;padding:3px 8px;border-radius:5px}
+.sig-green{background:rgba(0,212,170,0.1);color:var(--accent)}
+.sig-yellow{background:rgba(245,197,24,0.1);color:var(--gold)}
+.sig-orange{background:rgba(245,148,24,0.1);color:#f59418}
+.wl-mid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border)}
 .wl-stat{background:var(--surface);padding:10px 14px}
-.wl-stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px}
+.wl-stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px}
 .wl-stat-val{font-size:15px;font-weight:600}
-.wl-card-bot{padding:10px 14px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.touch-dots{font-size:13px;letter-spacing:2px}
+.wl-bot{padding:10px 14px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.touch-dots{font-size:12px;letter-spacing:2px}
+
+/* ALERTS TAB */
+.alert-slot{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.alert-slot-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.alert-slot-num{font-size:11px;color:var(--muted);font-weight:600}
+.alert-delete{background:none;border:none;color:var(--weak);font-size:18px;cursor:pointer;padding:0 4px}
+.alert-row{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.alert-select{background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);padding:8px 10px;font-size:13px;font-family:var(--font);width:100%;cursor:pointer}
+.alert-vs{font-size:11px;color:var(--muted);text-align:center}
+.alert-dir{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.alert-dir-btn{padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:11px;cursor:pointer;font-family:var(--font);transition:all 0.15s;text-align:center}
+.alert-dir-btn.active-str{border-color:var(--accent);background:rgba(0,212,170,0.1);color:var(--accent);font-weight:600}
+.alert-dir-btn.active-wk{border-color:var(--weak);background:rgba(224,92,92,0.1);color:var(--weak);font-weight:600}
+.alert-status{font-size:10px;color:var(--muted);text-align:center;margin-top:6px}
+.alert-status.watching{color:var(--gold)}
+.alert-status.fired{color:var(--accent)}
+.add-alert-btn{width:100%;padding:14px;background:none;border:2px dashed var(--border2);border-radius:10px;color:var(--muted);font-size:13px;cursor:pointer;font-family:var(--font);transition:all 0.15s}
+.add-alert-btn:hover{border-color:var(--accent);color:var(--accent)}
 
 /* NEWS */
 .news-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--weak);border-radius:8px;padding:12px 14px;margin-bottom:8px}
 .news-time{font-size:10px;color:var(--muted);margin-bottom:4px}
-.news-event{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
-.news-currency{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(224,92,92,0.12);color:var(--weak)}
-.news-warning{background:rgba(224,92,92,0.08);border:1px solid rgba(224,92,92,0.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--weak)}
+.news-event{font-size:13px;font-weight:600;margin-bottom:4px}
+.news-cur{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(224,92,92,0.12);color:var(--weak)}
+.news-warn{background:rgba(224,92,92,0.08);border:1px solid rgba(224,92,92,0.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--weak)}
 
 /* CHECK */
-.upload-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.check-section{margin-bottom:24px}
+.check-section-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.check-section-sub{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.upload-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .upload-slot{aspect-ratio:1;border:2px dashed var(--border2);border-radius:10px;background:var(--surface);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;transition:all 0.15s}
 .upload-slot.filled{border-color:var(--accent);border-style:solid;background:rgba(0,212,170,0.04)}
 .upload-slot img{width:100%;height:100%;object-fit:cover}
-.upload-plus{font-size:24px;color:var(--muted);margin-bottom:4px}
-.upload-label{font-size:9px;color:var(--muted);text-align:center}
-.upload-x{position:absolute;top:4px;right:4px;width:20px;height:20px;background:rgba(224,92,92,0.9);border:none;border-radius:50%;color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:10}
-.analyse-btn{width:100%;padding:16px;background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:10px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:16px;opacity:0.4;pointer-events:none;transition:opacity 0.2s}
+.upload-plus{font-size:22px;color:var(--muted);margin-bottom:4px}
+.upload-lbl{font-size:9px;color:var(--muted);text-align:center;padding:0 4px}
+.upload-x{position:absolute;top:4px;right:4px;width:20px;height:20px;background:rgba(224,92,92,0.9);border:none;border-radius:50%;color:white;font-size:14px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center}
+.analyse-btn{width:100%;padding:14px;background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:10px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;margin-bottom:14px;opacity:0.4;pointer-events:none;transition:opacity 0.2s}
 .analyse-btn.ready{opacity:1;pointer-events:all}
-.check-result{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;display:none}
-.result-verdict{font-size:14px;font-weight:700;margin-bottom:12px;padding:10px 14px;border-radius:8px;text-align:center}
-.result-body{font-size:13px;line-height:1.7;color:var(--text)}
-.result-section{font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin:12px 0 4px}
+.check-divider{border:none;border-top:1px solid var(--border);margin:24px 0}
+.check-result{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;display:none;margin-bottom:16px}
+.result-verdict{font-size:14px;font-weight:700;padding:12px 14px;border-radius:8px;text-align:center;margin-bottom:14px}
+.result-block{margin-bottom:14px}
+.result-block-title{font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.result-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)}
+.result-row:last-child{border-bottom:none}
+.result-row-label{color:var(--muted)}
+.result-row-val{font-weight:500;color:var(--text)}
+.result-concern{font-size:12px;line-height:1.6;color:var(--muted)}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:none;align-items:flex-end}
@@ -120,29 +152,23 @@ canvas{display:block;margin:0 auto}
 .modal{background:var(--bg);border-radius:18px 18px 0 0;width:100%;max-width:600px;margin:0 auto;max-height:90vh;overflow-y:auto;padding-bottom:32px}
 .modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 16px}
 .modal-pair{font-size:20px;font-weight:700;padding:0 20px;margin-bottom:4px}
-.modal-sub{font-size:12px;color:var(--muted);padding:0 20px;margin-bottom:20px}
+.modal-sub{font-size:12px;color:var(--muted);padding:0 20px;margin-bottom:16px}
 .modal-verdict{margin:0 16px 16px;padding:14px;border-radius:10px;text-align:center}
-.modal-verdict .vt{font-size:13px;font-weight:700;margin-bottom:4px}
-.modal-verdict .vs{font-size:11px;opacity:0.8}
-.levels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;margin-bottom:16px}
-.level-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
-.level-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
-.level-val{font-size:14px;font-weight:600}
-.val-entry{color:var(--accent)}
-.val-sl{color:var(--weak)}
-.val-tp{color:var(--accent)}
-.modal-analysis{margin:0 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px}
-.modal-analysis h4{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
-.modal-analysis p{font-size:12px;line-height:1.6;color:var(--text)}
+.modal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;margin-bottom:16px}
+.modal-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+.modal-stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.modal-stat-val{font-size:14px;font-weight:600}
+.modal-why{margin:0 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px}
+.modal-why h4{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.modal-why p{font-size:12px;line-height:1.7;color:var(--text)}
+.modal-cta{margin:0 16px;background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.15);border-radius:8px;padding:14px}
+.modal-cta-title{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.modal-cta-text{font-size:11px;color:var(--muted);line-height:1.6}
 .modal-warn{margin:12px 16px 0;background:rgba(224,92,92,0.06);border:1px solid rgba(224,92,92,0.15);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--weak)}
 
-/* LOADING */
 .loading{padding:40px;text-align:center;color:var(--muted);font-size:13px}
 .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
-
-/* SCROLLBAR */
 ::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 </style>
 </head>
@@ -151,10 +177,10 @@ canvas{display:block;margin:0 auto}
 <!-- SPLASH -->
 <div id="splash">
   <div class="splash-logo">
-    <div class="splash-icon" style="width:56px;height:56px;background:linear-gradient(135deg,#00d4aa,#00a86b);border-radius:14px;display:flex;align-items:flex-end;justify-content:center;gap:5px;padding:10px 10px 12px">
-      <div style="width:10px;background:rgba(255,255,255,0.4);border-radius:2px;height:12px"></div>
-      <div style="width:10px;background:rgba(255,255,255,0.7);border-radius:2px;height:18px"></div>
-      <div style="width:10px;background:white;border-radius:2px;height:24px"></div>
+    <div class="splash-icon">
+      <div class="splash-bar sb1"></div>
+      <div class="splash-bar sb2"></div>
+      <div class="splash-bar sb3"></div>
     </div>
     <div class="splash-title"><span class="d">Dash</span><span class="b">box</span></div>
   </div>
@@ -167,9 +193,7 @@ canvas{display:block;margin:0 auto}
   <div class="header-inner">
     <div class="logo" onclick="showTab('index')">
       <div class="logo-icon">
-        <div class="logo-bar lb1"></div>
-        <div class="logo-bar lb2"></div>
-        <div class="logo-bar lb3"></div>
+        <div class="lb1"></div><div class="lb2"></div><div class="lb3"></div>
       </div>
       <div class="logo-text"><span class="d">Dash</span><span class="b">box</span></div>
     </div>
@@ -180,6 +204,7 @@ canvas{display:block;margin:0 auto}
 <nav>
   <button class="tab active" id="tab-index" onclick="showTab('index')">🌐 Index</button>
   <button class="tab" id="tab-watchlist" onclick="showTab('watchlist')">🎯 Watchlist</button>
+  <button class="tab" id="tab-alerts" onclick="showTab('alerts')">⚡ Alerts</button>
   <button class="tab" id="tab-news" onclick="showTab('news')">📰 News</button>
   <button class="tab" id="tab-check" onclick="showTab('check')">🔍 Check</button>
 </nav>
@@ -187,16 +212,28 @@ canvas{display:block;margin:0 auto}
 <!-- INDEX -->
 <div class="page active" id="page-index">
   <div class="index-header">
-    <div class="connected-dot">
+    <div class="connected">
       <div class="dot" id="connDot"></div>
       <span id="connLabel">Loading...</span>
     </div>
     <button class="refresh-btn" onclick="reloadData()">↻ Refresh</button>
   </div>
   <div class="tf-tabs">
-    <button class="tf-btn active" id="tf-W" onclick="switchTF('W')">Weekly</button>
-    <button class="tf-btn" id="tf-D" onclick="switchTF('D')">Daily</button>
-    <button class="tf-btn" id="tf-H4" onclick="switchTF('H4')">4 Hour</button>
+    <button class="tf-btn active" id="tf-W" onclick="switchTF('W')">
+      <div>Weekly</div>
+      <div class="tf-label">Overall Bias</div>
+    </button>
+    <button class="tf-btn" id="tf-D" onclick="switchTF('D')">
+      <div>Daily</div>
+      <div class="tf-label">Current Trend</div>
+    </button>
+    <button class="tf-btn" id="tf-H4" onclick="switchTF('H4')">
+      <div>4 Hour</div>
+      <div class="tf-label">Entry Trigger</div>
+    </button>
+  </div>
+  <div style="font-size:10px;color:var(--muted);text-align:center;margin-bottom:10px" id="tfHint">
+    Use Weekly for trade bias · Daily to confirm trend · 4H to time your entry
   </div>
   <div class="chart-wrap">
     <canvas id="barChart" height="220"></canvas>
@@ -206,277 +243,249 @@ canvas{display:block;margin:0 auto}
 
 <!-- WATCHLIST -->
 <div class="page" id="page-watchlist">
-  <div class="wl-header">
-    <div class="wl-title">Key Pivot Levels — Monitor</div>
+  <div class="page-header">
+    <div class="page-title">Key Pivot Levels</div>
     <button class="refresh-btn" onclick="renderWatchlist()">↻ Refresh</button>
   </div>
   <div id="wlList"></div>
 </div>
 
+<!-- ALERTS -->
+<div class="page" id="page-alerts">
+  <div class="page-header">
+    <div class="page-title">My 4H Index Alerts</div>
+    <button class="refresh-btn" onclick="saveAlerts()">💾 Save</button>
+  </div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+    Set up to 10 alerts. When the 4H index flips to your selected direction, you'll receive a Telegram notification.
+  </div>
+  <div id="alertSlots"></div>
+  <button class="add-alert-btn" onclick="addAlertSlot()" id="addAlertBtn">+ Add Alert</button>
+</div>
+
 <!-- NEWS -->
 <div class="page" id="page-news">
-  <div class="wl-header">
-    <div class="wl-title">High Impact News — Today</div>
+  <div class="page-header">
+    <div class="page-title">High Impact News · Today</div>
     <button class="refresh-btn" onclick="loadNews()">↻ Refresh</button>
   </div>
-  <div id="newsList"><div class="loading">Loading news...</div></div>
+  <div id="newsList"><div class="loading">Loading...</div></div>
 </div>
 
 <!-- CHECK -->
 <div class="page" id="page-check">
-  <div class="wl-title" style="margin-bottom:12px">Upload Charts for AI Analysis</div>
-  <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">
-    Upload your Daily chart (pivot level) + 4H chart (entry candle). Claude will validate the setup against the Dashbox strategy.
+
+  <!-- Section 1: Dashbox Setup -->
+  <div class="check-section">
+    <div class="check-section-title">📊 Dashbox Setup Validation</div>
+    <div class="check-section-sub">Upload your Daily + 4H charts (Weekly optional). Claude will validate the setup against the Dashbox strategy and give exact trade levels.</div>
+    <div class="upload-grid" id="uploadGrid1"></div>
+    <input type="file" id="f1_0" accept="image/*" style="display:none" onchange="uploadSlot(1,0,event)">
+    <input type="file" id="f1_1" accept="image/*" style="display:none" onchange="uploadSlot(1,1,event)">
+    <input type="file" id="f1_2" accept="image/*" style="display:none" onchange="uploadSlot(1,2,event)">
+    <button class="analyse-btn" id="analyseBtn1" onclick="runAnalysis(1)">⚡ Validate Setup</button>
+    <div class="check-result" id="checkResult1"></div>
   </div>
-  <div class="upload-grid" id="uploadGrid"></div>
-  <input type="file" id="f0" accept="image/*" style="display:none" onchange="uploadSlot(0,event)">
-  <input type="file" id="f1" accept="image/*" style="display:none" onchange="uploadSlot(1,event)">
-  <input type="file" id="f2" accept="image/*" style="display:none" onchange="uploadSlot(2,event)">
-  <button class="analyse-btn" id="analyseBtn" onclick="runAnalysis()">⚡ Analyse Charts</button>
-  <div class="check-result" id="checkResult"></div>
+
+  <hr class="check-divider">
+
+  <!-- Section 2: My Charts -->
+  <div class="check-section">
+    <div class="check-section-title">📈 My Charts</div>
+    <div class="check-section-sub">Upload any chart for a general technical analysis. Works for any strategy, any timeframe.</div>
+    <div class="upload-grid" id="uploadGrid2"></div>
+    <input type="file" id="f2_0" accept="image/*" style="display:none" onchange="uploadSlot(2,0,event)">
+    <input type="file" id="f2_1" accept="image/*" style="display:none" onchange="uploadSlot(2,1,event)">
+    <input type="file" id="f2_2" accept="image/*" style="display:none" onchange="uploadSlot(2,2,event)">
+    <button class="analyse-btn" id="analyseBtn2" onclick="runAnalysis(2)">⚡ Analyse Charts</button>
+    <div class="check-result" id="checkResult2"></div>
+  </div>
+
 </div>
 
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-  <div class="modal" id="modal">
+  <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-pair" id="mPair">--</div>
     <div class="modal-sub" id="mSub">--</div>
     <div class="modal-verdict" id="mVerdict"></div>
-    <div class="levels-grid" id="mLevels"></div>
-    <div class="modal-analysis" id="mAnalysis"></div>
+    <div class="modal-stats" id="mStats"></div>
+    <div class="modal-why" id="mWhy"></div>
+    <div class="modal-cta">
+      <div class="modal-cta-title">📊 Ready to enter?</div>
+      <div class="modal-cta-text">Upload your Weekly, Daily and 4H charts to the <b style="color:var(--text)">Check tab</b> — Claude will validate the setup and give you exact trade levels including Stop Loss and Take Profit.</div>
+    </div>
     <div class="modal-warn" id="mWarn" style="display:none"></div>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════════
+// ═══════════ CONFIG ═══════════
 const JSONBIN_ID  = '6a2f6bf4f5f4af5e29f2bdc9';
 const JSONBIN_KEY = '$2a$10$d0.NsjXsDQakZVLZnl4Lcuv1yl9POT37dx2yf4GzHZOWZxYk/JAya';
 const TG_TOKEN    = '8500092691:AAHX_wIqo2p9qXOTe0RL-etw_41R1Q2bZXQ';
 const TG_CHAT     = '8361135939';
+const CURRENCIES  = ['USD','EUR','GBP','AUD','NZD','CAD','CHF','JPY'];
+const CUR_NAMES   = {USD:'US Dollar',EUR:'Euro',GBP:'British Pound',AUD:'Australian Dollar',NZD:'New Zealand Dollar',CAD:'Canadian Dollar',CHF:'Swiss Franc',JPY:'Japanese Yen'};
+const SCORE_MAP   = {DXY:'USD',EXY:'EUR',BXY:'GBP',AXY:'AUD',NXY:'NZD',CAD:'CAD',CHF:'CHF',JXY:'JPY'};
 
-// ═══════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════
-let SCORES_W  = {};
-let SCORES_D  = {};
-let SCORES_H4 = {};
-let LIVE_PRICES = {};
-let PIVOT_LEVELS = [];
-let LIVE_MOMENTUM = {};
-let currentTF = 'W';
-let alertBaseline = null;
-let alertInterval = null;
-let checkImages = [null, null, null];
+// ═══════════ STATE ═══════════
+let SCORES_W={}, SCORES_D={}, SCORES_H4={};
+let LIVE_PRICES={}, PIVOT_LEVELS=[];
+let currentTF='W';
+let alertBaseline=null, alertInterval=null;
+let myAlerts=JSON.parse(localStorage.getItem('dashbox_alerts')||'[]');
+let checkImages={1:[null,null,null],2:[null,null,null]};
+let wlAlertBaseline=null;
 
-const CURRENCY_NAMES = {USD:'US Dollar',EUR:'Euro',GBP:'British Pound',AUD:'Australian Dollar',NZD:'New Zealand Dollar',CAD:'Canadian Dollar',CHF:'Swiss Franc',JPY:'Japanese Yen'};
-const SCORE_MAP = {DXY:'USD',EXY:'EUR',BXY:'GBP',AXY:'AUD',NXY:'NZD',CAD:'CAD',CHF:'CHF',JXY:'JPY'};
-
-// ═══════════════════════════════════════════════
-// CLOCK
-// ═══════════════════════════════════════════════
+// ═══════════ CLOCK ═══════════
 setInterval(()=>{
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 },1000);
 
-// ═══════════════════════════════════════════════
-// TAB ROUTING
-// ═══════════════════════════════════════════════
+// ═══════════ TABS ═══════════
 function showTab(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='watchlist') renderWatchlist();
+  if(name==='alerts') renderAlertSlots();
   if(name==='news') loadNews();
-  if(name==='check') renderUploadGrid();
+  if(name==='check'){renderUploadGrid(1);renderUploadGrid(2);}
 }
 
-// ═══════════════════════════════════════════════
-// JSONBIN FETCH
-// ═══════════════════════════════════════════════
+// ═══════════ DATA FETCH ═══════════
 async function fetchData(){
   try{
-    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,{
-      headers:{'X-Master-Key':JSONBIN_KEY}
-    });
-    const data = await res.json();
-    const r = data.record;
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,{headers:{'X-Master-Key':JSONBIN_KEY}});
+    const data=await res.json();
+    const r=data.record;
     if(!r) return false;
-
-    if(r.prices) LIVE_PRICES = r.prices;
-
-    // Parse W/D/H4 scores
-    const parseScores = (obj)=>{
-      const out = {};
+    if(r.prices) LIVE_PRICES=r.prices;
+    const parse=obj=>{
+      const out={};
       if(!obj) return out;
-      Object.entries(obj).forEach(([k,v])=>{ if(SCORE_MAP[k]) out[SCORE_MAP[k]] = parseFloat(v); });
+      Object.entries(obj).forEach(([k,v])=>{if(SCORE_MAP[k]) out[SCORE_MAP[k]]=parseFloat(v);});
       return out;
     };
-    SCORES_W  = parseScores(r.scores_W);
-    SCORES_D  = parseScores(r.scores_D);
-    SCORES_H4 = parseScores(r.scores_H4 || r.scores);
-
-    // Parse pivots
+    SCORES_W=parse(r.scores_W);
+    SCORES_D=parse(r.scores_D);
+    SCORES_H4=parse(r.scores_H4||r.scores);
     if(r.pivots) parsePivots(r.pivots);
-
     return true;
-  }catch(e){ console.error('Fetch error:',e); return false; }
+  }catch(e){return false;}
 }
 
-function parsePivots(pivotData){
-  PIVOT_LEVELS = [];
-  LIVE_MOMENTUM = {};
-  Object.entries(pivotData).forEach(([pair,levels])=>{
+function parsePivots(pd){
+  PIVOT_LEVELS=[];
+  Object.entries(pd).forEach(([pair,levels])=>{
     if(!Array.isArray(levels)) return;
-    const price = LIVE_PRICES[pair] || 1;
-    const dec = price>50000?1:price>3000?1:price>50?2:4;
+    const price=LIVE_PRICES[pair]||1;
+    const dec=price>50000?1:price>3000?1:price>50?2:4;
     levels.forEach(lv=>{
-      if(lv.t==='mom'){ if(lv.m!==undefined) LIVE_MOMENTUM[pair]=lv.m; return; }
+      if(lv.t==='mom') return;
       if(!lv.l) return;
       PIVOT_LEVELS.push({pair,level:lv.l,type:lv.t,touches:lv.c,price,dec});
     });
   });
 }
 
-function getPrice(sym){ return LIVE_PRICES[sym] || 0; }
+function getPrice(sym){return LIVE_PRICES[sym]||0;}
+function getScores(){return currentTF==='W'?SCORES_W:currentTF==='D'?SCORES_D:SCORES_H4;}
+function getSorted(){return Object.entries(getScores()).map(([code,score])=>({code,score})).sort((a,b)=>b.score-a.score);}
 
-function getScores(){
-  if(currentTF==='W') return SCORES_W;
-  if(currentTF==='D') return SCORES_D;
-  return SCORES_H4;
-}
-
-function getSorted(){
-  const s = getScores();
-  return Object.entries(s).map(([code,score])=>({code,score})).sort((a,b)=>b.score-a.score);
-}
-
-// ═══════════════════════════════════════════════
-// SPLASH
-// ═══════════════════════════════════════════════
+// ═══════════ SPLASH ═══════════
 async function splashLoad(){
-  const btn = document.querySelector('.splash-btn');
-  const status = document.getElementById('splashStatus');
-  btn.textContent = '⟳ Connecting...';
-  btn.style.opacity = '0.6';
-  status.textContent = 'Fetching live data from MT4...';
-
-  const ok = await fetchData();
-
-  if(ok && Object.keys(SCORES_H4).length > 0){
-    status.textContent = '✓ Connected';
+  const btn=document.querySelector('.splash-btn');
+  const status=document.getElementById('splashStatus');
+  btn.textContent='⟳ Connecting...';
+  btn.style.opacity='0.6';
+  status.textContent='Fetching live data...';
+  const ok=await fetchData();
+  if(ok&&Object.keys(SCORES_W).length>0){
+    status.textContent='✓ Connected';
     setTimeout(()=>{
       document.getElementById('splash').classList.add('hidden');
       renderIndex();
-      startAlerts();
-      setInterval(async()=>{ await fetchData(); renderIndex(); }, 60000);
-    }, 400);
+      startWatchlistAlerts();
+      startMyAlerts();
+      setInterval(async()=>{await fetchData();renderIndex();checkMyAlerts();},60000);
+    },400);
   } else {
-    status.textContent = '⚠ Could not connect — check MT4 EA is running';
-    btn.textContent = '↻ Try Again';
-    btn.style.opacity = '1';
+    status.textContent='⚠ Could not connect — check MT4 EA is running';
+    btn.textContent='↻ Try Again';
+    btn.style.opacity='1';
   }
 }
 
 async function reloadData(){
-  const dot = document.getElementById('connDot');
-  const lbl = document.getElementById('connLabel');
-  dot.className='dot';
-  lbl.textContent='Refreshing...';
-  const ok = await fetchData();
-  if(ok){
-    dot.className='dot live';
-    lbl.textContent='Connected';
-    renderIndex();
-  } else {
-    lbl.textContent='No signal';
-  }
+  const dot=document.getElementById('connDot');
+  const lbl=document.getElementById('connLabel');
+  dot.className='dot';lbl.textContent='Refreshing...';
+  const ok=await fetchData();
+  if(ok){dot.className='dot live';lbl.textContent='Connected';renderIndex();}
+  else lbl.textContent='No signal';
 }
 
-// ═══════════════════════════════════════════════
-// INDEX — BAR CHART
-// ═══════════════════════════════════════════════
-const TF_COLORS = {
-  W:  ['#00d4aa','#00c49a','#00b488','#7dcc99','#f5c518','#f59418','#e07060','#e05c5c'],
-  D:  ['#00d4aa','#00c49a','#00b488','#7dcc99','#f5c518','#f59418','#e07060','#e05c5c'],
-  H4: ['#00d4aa','#00c49a','#00b488','#7dcc99','#f5c518','#f59418','#e07060','#e05c5c'],
-};
+// ═══════════ INDEX ═══════════
+const COLORS=['#00d4aa','#00c49a','#00b488','#7dcc88','#f5c518','#f59418','#e07060','#e05c5c'];
 
 function switchTF(tf){
-  currentTF = tf;
-  ['W','D','H4'].forEach(t=>{
-    document.getElementById('tf-'+t).classList.toggle('active', t===tf);
-  });
+  currentTF=tf;
+  ['W','D','H4'].forEach(t=>document.getElementById('tf-'+t).classList.toggle('active',t===tf));
+  const hints={W:'Use Weekly for overall trade bias',D:'Daily confirms the current trend direction',H4:'4H shows when to time your entry — watch for the flip'};
+  document.getElementById('tfHint').textContent=hints[tf];
   renderIndex();
 }
 
 function renderIndex(){
-  const dot = document.getElementById('connDot');
-  const lbl = document.getElementById('connLabel');
-  dot.className = 'dot live';
-  lbl.textContent = 'Connected';
-
-  const sorted = getSorted();
+  const dot=document.getElementById('connDot');
+  const lbl=document.getElementById('connLabel');
+  dot.className='dot live';lbl.textContent='Connected';
+  const sorted=getSorted();
   if(!sorted.length) return;
-
   renderBarChart(sorted);
   renderLegend(sorted);
 }
 
 function renderBarChart(sorted){
-  const canvas = document.getElementById('barChart');
-  const dpr = window.devicePixelRatio||1;
-  const W = Math.max(canvas.parentElement.offsetWidth - 16, 280);
-  const H = 220;
-  canvas.width = W*dpr; canvas.height = H*dpr;
-  canvas.style.width = W+'px'; canvas.style.height = H+'px';
-  const ctx = canvas.getContext('2d');
+  const canvas=document.getElementById('barChart');
+  const dpr=window.devicePixelRatio||1;
+  const W=Math.max(canvas.parentElement.offsetWidth-16,280);
+  const H=220;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
-
-  const n = sorted.length;
+  const n=sorted.length;
   const padL=6,padR=6,padT=28,padB=22;
-  const chartW=W-padL-padR, chartH=H-padT-padB;
-  const slotW=chartW/n, barW=Math.floor(slotW*0.6);
+  const chartW=W-padL-padR,chartH=H-padT-padB;
+  const slotW=chartW/n,barW=Math.floor(slotW*0.6);
   const maxAbs=Math.max(...sorted.map(s=>Math.abs(s.score)),0.5);
   const zeroY=padT+chartH/2;
-  const colors=TF_COLORS[currentTF];
-
   const start=performance.now();
   function frame(now){
     const ease=1-Math.pow(1-Math.min((now-start)/600,1),3);
     ctx.clearRect(0,0,W,H);
-
-    // Zero line
     ctx.strokeStyle='#1e2430';ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(padL,zeroY);ctx.lineTo(W-padR,zeroY);ctx.stroke();
-
     sorted.forEach((s,i)=>{
-      const color=colors[i]||'#888';
+      const color=COLORS[i]||'#888';
       const cx=padL+i*slotW+slotW/2;
       const x=cx-barW/2;
       const fullH=Math.max((Math.abs(s.score)/maxAbs)*(chartH/2-4),3);
       const animH=fullH*ease;
-
       ctx.fillStyle=color;
-      if(s.score>=0){
-        ctx.beginPath();ctx.roundRect(x,zeroY-animH,barW,animH,3);ctx.fill();
-      } else {
-        ctx.beginPath();ctx.roundRect(x,zeroY,barW,animH,3);ctx.fill();
-      }
-
-      // Currency label
-      ctx.fillStyle='#8a9ab5';ctx.font=`600 9px Inter,sans-serif`;
+      if(s.score>=0){ctx.beginPath();ctx.roundRect(x,zeroY-animH,barW,animH,3);ctx.fill();}
+      else{ctx.beginPath();ctx.roundRect(x,zeroY,barW,animH,3);ctx.fill();}
+      ctx.fillStyle='#8a9ab5';ctx.font=`600 9px Poppins,sans-serif`;
       ctx.textAlign='center';ctx.textBaseline='top';
       ctx.fillText(s.code,cx,H-padB+4);
-
-      // Score
       if(ease>0.5){
         ctx.globalAlpha=(ease-0.5)*2;
-        ctx.fillStyle=color;ctx.font=`600 9px Inter,sans-serif`;
+        ctx.fillStyle=color;ctx.font=`600 9px Poppins,sans-serif`;
         ctx.textBaseline='middle';
         if(s.score>=0) ctx.fillText((s.score>0?'+':'')+s.score.toFixed(1),cx,zeroY-animH-9);
         else ctx.fillText(s.score.toFixed(1),cx,zeroY+animH+9);
@@ -489,347 +498,430 @@ function renderBarChart(sorted){
 }
 
 function renderLegend(sorted){
-  const leg = document.getElementById('legend');
-  const colors = TF_COLORS[currentTF];
-  leg.innerHTML = sorted.map((s,i)=>`
+  document.getElementById('legend').innerHTML=sorted.map((s,i)=>`
     <div class="legend-item">
-      <div class="legend-info">
+      <div>
         <div class="legend-name">${s.code}</div>
-        <div class="legend-rank">#${i+1} · ${CURRENCY_NAMES[s.code]||s.code}</div>
+        <div class="legend-rank">#${i+1} · ${CUR_NAMES[s.code]||s.code}</div>
       </div>
-      <div class="legend-score" style="color:${colors[i]||'#888'}">${s.score>0?'+':''}${s.score.toFixed(1)}</div>
+      <div class="legend-score" style="color:${COLORS[i]||'#888'}">${s.score>0?'+':''}${s.score.toFixed(1)}</div>
     </div>`).join('');
 }
 
-// ═══════════════════════════════════════════════
-// WATCHLIST
-// ═══════════════════════════════════════════════
+// ═══════════ WATCHLIST ═══════════
 function getPipThreshold(price){
   if(price>50000) return price*0.015;
   if(price>30000) return price*0.01;
-  if(price>3000)  return 50;
-  if(price>50)    return 0.50;
+  if(price>3000) return 50;
+  if(price>50) return 0.50;
   return 0.005;
 }
 
-function getPipsAway(p1,p2,price){
-  const diff=Math.abs(p1-p2);
-  if(price>50000) return Math.round(diff/price*10000);
-  if(price>3000)  return Math.round(diff);
-  if(price>50)    return Math.round(diff*100);
-  return Math.round(diff*10000);
+function getPips(p1,p2,price){
+  const d=Math.abs(p1-p2);
+  if(price>50000) return Math.round(d/price*10000);
+  if(price>3000) return Math.round(d);
+  if(price>50) return Math.round(d*100);
+  return Math.round(d*10000);
+}
+
+function getSignalLevel(pair,bounceDir){
+  // Green = Weekly confirms, Yellow = Weekly neutral, Orange = Weekly against
+  const base=pair.slice(0,3),quote=pair.slice(3,6);
+  const wBase=SCORES_W[base]||0,wQuote=SCORES_W[quote]||0;
+  const diff=wBase-wQuote;
+  const confirms=bounceDir==='BUY'?(diff>0.1):(diff<-0.1);
+  const against=bounceDir==='BUY'?(diff<-0.1):(diff>0.1);
+  if(confirms) return 'green';
+  if(against) return 'orange';
+  return 'yellow';
+}
+
+function getSignalText(level){
+  if(level==='green') return {text:'Strong Confluence',cls:'sig-green'};
+  if(level==='yellow') return {text:'Moderate Risk',cls:'sig-yellow'};
+  return {text:'Higher Risk',cls:'sig-orange'};
 }
 
 function renderWatchlist(){
-  const container = document.getElementById('wlList');
-  PIVOT_LEVELS.forEach(p=>{ p.price = getPrice(p.pair)||p.price; });
-
+  const container=document.getElementById('wlList');
+  PIVOT_LEVELS.forEach(p=>{p.price=getPrice(p.pair)||p.price;});
   if(PIVOT_LEVELS.length===0){
-    container.innerHTML = '<div class="empty">No data yet — tap Refresh to load live data.</div>';
-    return;
+    container.innerHTML='<div class="empty">No data — tap Refresh to load.</div>';return;
   }
-
-  const items = [];
-  const seenPair = new Set();
-
-  // Build list
+  const items=[];
+  const seen=new Set();
   PIVOT_LEVELS.forEach(p=>{
-    if(p.touches < 4) return;
-    const price = getPrice(p.pair)||0;
+    if(p.touches<4) return;
+    const price=getPrice(p.pair)||0;
     if(!price) return;
-    const threshold = getPipThreshold(price);
-    const dist = Math.abs(price-p.level);
-    if(dist > threshold) return;
-
-    // Only one entry per pair (closest level wins)
-    if(seenPair.has(p.pair)) return;
-    seenPair.add(p.pair);
-
-    const bounceDir = p.type==='resistance'?'SELL':'BUY';
-    const pips = getPipsAway(price,p.level,price);
-    const pivotRank = p.touches>=6?'Fortress':p.touches>=4?'Strong':'Valid';
-
-    // Breathing room to next level
-    let breathRoom = 9999;
-    PIVOT_LEVELS.forEach(other=>{
-      if(other.pair!==p.pair||other.level===p.level||other.touches<2) return;
-      if(bounceDir==='SELL'&&other.type==='support'&&other.level<price){
-        const r=getPipsAway(p.level,other.level,price);
-        if(r<breathRoom) breathRoom=r;
-      }
-      if(bounceDir==='BUY'&&other.type==='resistance'&&other.level>price){
-        const r=getPipsAway(p.level,other.level,price);
-        if(r<breathRoom) breathRoom=r;
-      }
+    const threshold=getPipThreshold(price);
+    if(Math.abs(price-p.level)>threshold) return;
+    if(seen.has(p.pair)) return;
+    seen.add(p.pair);
+    const bounceDir=p.type==='resistance'?'SELL':'BUY';
+    const pips=getPips(price,p.level,price);
+    const pivotRank=p.touches>=6?'Fortress':p.touches>=4?'Strong':'Valid';
+    const signal=getSignalLevel(p.pair,bounceDir);
+    let breathRoom=9999;
+    PIVOT_LEVELS.forEach(o=>{
+      if(o.pair!==p.pair||o.level===p.level||o.touches<2) return;
+      if(bounceDir==='SELL'&&o.type==='support'&&o.level<price){const r=getPips(p.level,o.level,price);if(r<breathRoom)breathRoom=r;}
+      if(bounceDir==='BUY'&&o.type==='resistance'&&o.level>price){const r=getPips(p.level,o.level,price);if(r<breathRoom)breathRoom=r;}
     });
-
-    const quality = (p.touches*30)+(breathRoom<9999?Math.min(breathRoom*2,600):0);
-    items.push({p,price,pips,pivotRank,bounceDir,quality,breathRoom});
+    const quality=(signal==='green'?300:signal==='yellow'?100:0)+(p.touches*30)+(breathRoom<9999?Math.min(breathRoom,200):0);
+    items.push({p,price,pips,pivotRank,bounceDir,signal,quality,breathRoom});
   });
-
-  // Sort by quality
   items.sort((a,b)=>b.quality-a.quality);
-
-  if(items.length===0){
-    container.innerHTML = '<div class="empty">No pairs at key levels right now.<br>The system is monitoring — you will get a Telegram alert when a setup appears.</div>';
-    return;
+  if(!items.length){
+    container.innerHTML='<div class="empty">No pairs at key levels right now.<br>Telegram alert will fire when a setup appears.</div>';return;
   }
-
   const rankColors=['#f5c518','#a8a9ad','#cd7f32'];
-  container.innerHTML = items.map(({p,price,pips,pivotRank,bounceDir,breathRoom},idx)=>{
+  container.innerHTML=items.map(({p,price,pips,pivotRank,bounceDir,signal,breathRoom},idx)=>{
     const rColor=rankColors[idx]||'var(--muted)';
     const dec=p.dec||(price>50?2:4);
-    const isJpy=p.pair.includes('JPY');
-    const pipVal=isJpy?0.01:price>3000?1:price>50?0.01:0.0001;
-    const slPips=isJpy?120:price>3000?2500:100;
-    let sl,tp;
-    if(bounceDir==='BUY'){sl=(price-slPips*pipVal).toFixed(dec);tp=(price+slPips*pipVal).toFixed(dec);}
-    else{sl=(price+slPips*pipVal).toFixed(dec);tp=(price-slPips*pipVal).toFixed(dec);}
-
+    const sig=getSignalText(signal);
     const dots='●'.repeat(Math.min(p.touches,5))+'○'.repeat(Math.max(0,5-p.touches));
-    const roomText=breathRoom<9999?`${breathRoom} pips clear`:'Clear path';
     const pivRankColor=p.touches>=6?'var(--weak)':p.touches>=4?'#f59418':'var(--muted)';
-
-    return `<div class="wl-card" onclick="openModal('${p.pair}','${bounceDir}','${p.type}',${price},'${p.level.toFixed(dec)}',${p.touches},'${pivotRank}','${sl}','${tp}')">
-      <div class="wl-card-top">
+    const roomText=breathRoom<9999?`${breathRoom} pips to next level`:'';
+    return `<div class="wl-card ${signal}" onclick="openModal('${p.pair}','${bounceDir}','${p.type}',${price},'${p.level.toFixed(dec)}',${p.touches},'${pivotRank}','${signal}')">
+      <div class="wl-top">
         <div class="wl-rank" style="color:${rColor}">#${idx+1}</div>
         <div class="wl-pair">${p.pair}</div>
         <span class="wl-badge ${p.type==='support'?'badge-sup':'badge-res'}">${p.type==='support'?'SUPPORT':'RESISTANCE'}</span>
-        <span class="wl-rank-label" style="color:${pivRankColor}">${pivotRank}</span>
-        <div class="wl-dir ${bounceDir==='BUY'?'dir-buy':'dir-sell'}" style="margin-left:auto">${bounceDir}</div>
+        <span class="wl-prank" style="color:${pivRankColor}">${pivotRank}</span>
+        <span class="wl-signal ${sig.cls}" style="margin-left:auto">${sig.text}</span>
       </div>
-      <div class="wl-card-mid">
-        <div class="wl-stat">
-          <div class="wl-stat-label">Key Level</div>
-          <div class="wl-stat-val" style="color:${pivRankColor}">${p.level.toFixed(dec)}</div>
-        </div>
-        <div class="wl-stat">
-          <div class="wl-stat-label">Current Price</div>
-          <div class="wl-stat-val">${price.toFixed(dec)}</div>
-        </div>
+      <div class="wl-mid">
+        <div class="wl-stat"><div class="wl-stat-lbl">Key Level</div><div class="wl-stat-val" style="color:${pivRankColor}">${p.level.toFixed(dec)}</div></div>
+        <div class="wl-stat"><div class="wl-stat-lbl">Current Price</div><div class="wl-stat-val">${price.toFixed(dec)}</div></div>
       </div>
-      <div class="wl-card-bot">
+      <div class="wl-bot">
         <span class="touch-dots" style="color:${pivRankColor}">${dots}</span>
-        <span>Tested ${p.touches}x · ${roomText}</span>
+        <span>Tested ${p.touches}x${roomText?' · '+roomText:''}</span>
       </div>
     </div>`;
   }).join('');
 }
 
-// ═══════════════════════════════════════════════
-// MODAL
-// ═══════════════════════════════════════════════
-function openModal(pair,dir,type,price,level,touches,rank,sl,tp){
+// ═══════════ MODAL ═══════════
+function openModal(pair,dir,type,price,level,touches,rank,signal){
   const dec=price>50?2:4;
-  const isJpy=pair.includes('JPY');
-  const partial=dir==='BUY'?(price+(price-parseFloat(sl))*0.5).toFixed(dec):(price-(parseFloat(sl)-price)*0.5).toFixed(dec);
-
-  document.getElementById('mPair').textContent=pair+' — '+dir;
-  document.getElementById('mSub').textContent=`${rank} ${type} at ${level} · tested ${touches}x`;
-
-  const vEl=document.getElementById('mVerdict');
-  vEl.className='modal-verdict';
-  vEl.style.background='rgba(0,212,170,0.06)';
-  vEl.style.border='1px solid rgba(0,212,170,0.15)';
-  vEl.innerHTML=`<div class="vt" style="color:var(--accent)">⚡ POTENTIAL SETUP</div>
-    <div class="vs" style="color:var(--muted)">Price is at a key level. Wait for confirmation before entering.</div>`;
-
-  document.getElementById('mLevels').innerHTML=`
-    <div class="level-box"><div class="level-lbl">Key Level</div><div class="level-val val-entry">${level}</div></div>
-    <div class="level-box"><div class="level-lbl">Current Price</div><div class="level-val">${price.toFixed(dec)}</div></div>
-    <div class="level-box"><div class="level-lbl">Tested</div><div class="level-val val-tp">${touches}x</div></div>`;
-
-  // Build WHY paragraph
   const base=pair.slice(0,3),quote=pair.slice(3,6);
   const wBase=SCORES_W[base]||0,wQuote=SCORES_W[quote]||0;
   const dBase=SCORES_D[base]||0,dQuote=SCORES_D[quote]||0;
-  const hBase=SCORES_H4[base]||0,hQuote=SCORES_H4[quote]||0;
-  const wAgree=dir==='BUY'?(wBase>wQuote):(wBase<wQuote);
-  const dAgree=dir==='BUY'?(dBase>dQuote):(dBase<dQuote);
-  const hAgree=dir==='BUY'?(hBase>hQuote):(hBase<hQuote);
-  const tfCount=[wAgree,dAgree,hAgree].filter(Boolean).length;
-
-  const dirWord=dir==='BUY'?'support':'resistance';
-  const bounceWord=dir==='BUY'?'bounced higher':'rejected lower';
+  const h4Base=SCORES_H4[base]||0,h4Quote=SCORES_H4[quote]||0;
+  const sig=getSignalText(signal);
+  document.getElementById('mPair').textContent=pair;
+  document.getElementById('mSub').textContent=`${rank} ${type} at ${level} · tested ${touches}x`;
+  const vEl=document.getElementById('mVerdict');
+  const vColors={green:'rgba(0,212,170,0.08)',yellow:'rgba(245,197,24,0.08)',orange:'rgba(245,148,24,0.08)'};
+  const vBorders={green:'rgba(0,212,170,0.2)',yellow:'rgba(245,197,24,0.2)',orange:'rgba(245,148,24,0.2)'};
+  const vTextColors={green:'var(--accent)',yellow:'var(--gold)',orange:'#f59418'};
+  vEl.style.background=vColors[signal];
+  vEl.style.border=`1px solid ${vBorders[signal]}`;
+  vEl.innerHTML=`<div style="font-size:13px;font-weight:700;color:${vTextColors[signal]}">⚡ POTENTIAL SETUP · ${sig.text.toUpperCase()}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">Price is at a key level. Wait for confirmation before entering.</div>`;
+  document.getElementById('mStats').innerHTML=`
+    <div class="modal-stat"><div class="modal-stat-lbl">Key Level</div><div class="modal-stat-val" style="color:var(--accent)">${level}</div></div>
+    <div class="modal-stat"><div class="modal-stat-lbl">Price</div><div class="modal-stat-val">${price.toFixed(dec)}</div></div>
+    <div class="modal-stat"><div class="modal-stat-lbl">Tested</div><div class="modal-stat-val" style="color:var(--gold)">${touches}×</div></div>`;
+  const dirWord=type==='resistance'?'rejected lower':'bounced higher';
   const rankDesc=rank==='Fortress'?'an extremely strong fortress':rank==='Strong'?'a strong':'a valid';
-  const tfDesc=tfCount===3?'Weekly, Daily and 4H all agree on direction — maximum alignment.':tfCount===2?'2 out of 3 timeframes agree on direction.':'Timeframes are mixed — extra caution needed.';
-
-  const why=`${pair} is currently at ${rankDesc} ${dirWord} level at ${level}, which has been tested and respected ${touches} times on the Daily chart. Each time price has reached this zone, it has ${bounceWord} — showing clear institutional interest at this price. ${tfDesc} This makes it a potential ${dir} opportunity if price shows a confirmation signal at this level.`;
-
-  document.getElementById('mAnalysis').innerHTML=`
-    <h4>Why This Setup</h4>
-    <p style="font-size:12px;line-height:1.7;color:var(--text);margin-bottom:14px">${why}</p>
-    <div style="background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.15);border-radius:8px;padding:12px">
-      <div style="font-size:12px;font-weight:600;color:var(--accent);margin-bottom:6px">📊 Ready to enter?</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6">Upload your Weekly, Daily and 4H charts to the <b style="color:var(--text)">Check tab</b> — Claude will confirm the entry, calculate your exact Stop Loss and Take Profit, and guide you on closing 50% at halfway and moving your stop to breakeven.</div>
-    </div>`;
-
-  const warnEl=document.getElementById('mWarn');
+  const wDiff=dir==='BUY'?wBase-wQuote:wQuote-wBase;
+  const tfDesc=wDiff>0.1?`The Weekly index confirms this direction — ${base} is ${dir==='BUY'?'stronger':'weaker'} than ${quote}.`:wDiff<-0.1?`Note: The Weekly index is currently against this direction. Higher risk setup.`:`Weekly index is neutral — monitor closely.`;
+  document.getElementById('mWhy').innerHTML=`<h4>Why This Setup</h4>
+    <p>${pair} is at ${rankDesc} ${type} level at ${level}, which has been tested and respected ${touches} times on the Daily chart. Each time price reached this zone it has ${dirWord}. ${tfDesc}</p>`;
   const warnings=[];
   if(pair.includes('JPY')) warnings.push('BOJ intervention risk on JPY pairs.');
-  if(pair.includes('CAD')) warnings.push('CAD sensitive to oil prices — check crude.');
-  if(tfCount<2) warnings.push('Timeframes not aligned — wait for better confluence.');
-  if(warnings.length){warnEl.style.display='block';warnEl.innerHTML='⚠ '+warnings.join(' · ');}
+  if(pair.includes('CAD')) warnings.push('CAD sensitive to oil prices.');
+  if(signal==='orange') warnings.push('Weekly index is against this direction — reduce position size.');
+  const warnEl=document.getElementById('mWarn');
+  if(warnings.length){warnEl.style.display='block';warnEl.textContent='⚠ '+warnings.join(' · ');}
   else warnEl.style.display='none';
-
   document.getElementById('modalOverlay').classList.add('open');
 }
 
-function closeModal(){
-  document.getElementById('modalOverlay').classList.remove('open');
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+
+// ═══════════ ALERTS TAB ═══════════
+function renderAlertSlots(){
+  const container=document.getElementById('alertSlots');
+  const addBtn=document.getElementById('addAlertBtn');
+  addBtn.style.display=myAlerts.length>=10?'none':'block';
+  if(!myAlerts.length){
+    container.innerHTML='<div class="empty" style="padding:20px">No alerts set. Add one below.</div>';
+    return;
+  }
+  const curOptions=CURRENCIES.map(c=>`<option value="${c}">${c} — ${CUR_NAMES[c]}</option>`).join('');
+  container.innerHTML=myAlerts.map((a,i)=>{
+    const h4Base=SCORES_H4[a.cur1]||0, h4Quote=SCORES_H4[a.cur2]||0;
+    const diff=h4Base-h4Quote;
+    const confirmed=(a.dir==='stronger'&&diff>0.1)||(a.dir==='weaker'&&diff<-0.1);
+    const statusText=confirmed?`✅ ${a.cur1} is ${a.dir} than ${a.cur2} on 4H`:`⏳ Watching — ${a.cur1} ${a.dir==='stronger'?'not yet stronger':'not yet weaker'} than ${a.cur2} on 4H`;
+    return `<div class="alert-slot">
+      <div class="alert-slot-header">
+        <span class="alert-slot-num">Alert ${i+1}</span>
+        <button class="alert-delete" onclick="deleteAlert(${i})">×</button>
+      </div>
+      <div class="alert-row">
+        <select class="alert-select" onchange="updateAlert(${i},'cur1',this.value)">${CURRENCIES.map(c=>`<option value="${c}" ${a.cur1===c?'selected':''}>${c}</option>`).join('')}</select>
+        <div class="alert-vs">vs</div>
+        <select class="alert-select" onchange="updateAlert(${i},'cur2',this.value)">${CURRENCIES.map(c=>`<option value="${c}" ${a.cur2===c?'selected':''}>${c}</option>`).join('')}</select>
+      </div>
+      <div class="alert-dir">
+        <button class="alert-dir-btn ${a.dir==='stronger'?'active-str':''}" onclick="updateAlert(${i},'dir','stronger')">${a.cur1} Stronger</button>
+        <button class="alert-dir-btn ${a.dir==='weaker'?'active-wk':''}" onclick="updateAlert(${i},'dir','weaker')">${a.cur1} Weaker</button>
+      </div>
+      <div class="alert-status ${confirmed?'fired':'watching'}">${statusText}</div>
+    </div>`;
+  }).join('');
 }
 
-// ═══════════════════════════════════════════════
-// NEWS
-// ═══════════════════════════════════════════════
+function addAlertSlot(){
+  if(myAlerts.length>=10) return;
+  myAlerts.push({cur1:'EUR',cur2:'USD',dir:'stronger',lastFired:null});
+  saveAlerts();
+  renderAlertSlots();
+}
+
+function deleteAlert(idx){
+  myAlerts.splice(idx,1);
+  saveAlerts();
+  renderAlertSlots();
+}
+
+function updateAlert(idx,key,val){
+  myAlerts[idx][key]=val;
+  saveAlerts();
+  renderAlertSlots();
+}
+
+function saveAlerts(){
+  localStorage.setItem('dashbox_alerts',JSON.stringify(myAlerts));
+}
+
+async function sendTelegram(msg){
+  try{
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:TG_CHAT,text:msg,parse_mode:'HTML'})
+    });
+  }catch(e){}
+}
+
+let myAlertBaselines={};
+
+function startMyAlerts(){
+  // Set initial baseline — don't alert on first check
+  myAlerts.forEach((a,i)=>{
+    const h4Base=SCORES_H4[a.cur1]||0,h4Quote=SCORES_H4[a.cur2]||0;
+    const diff=h4Base-h4Quote;
+    myAlertBaselines[i]=(a.dir==='stronger'&&diff>0.1)||(a.dir==='weaker'&&diff<-0.1);
+  });
+}
+
+async function checkMyAlerts(){
+  myAlerts.forEach(async(a,i)=>{
+    const h4Base=SCORES_H4[a.cur1]||0,h4Quote=SCORES_H4[a.cur2]||0;
+    const diff=h4Base-h4Quote;
+    const confirmed=(a.dir==='stronger'&&diff>0.1)||(a.dir==='weaker'&&diff<-0.1);
+    const wasConfirmed=myAlertBaselines[i]||false;
+    if(confirmed&&!wasConfirmed){
+      const msg=`⚡ <b>DASHBOX ALERT</b>\n\n<b>${a.cur1}</b> is now <b>${a.dir}</b> than <b>${a.cur2}</b> on the 4H index\n\nDiff: ${diff>0?'+':''}${diff.toFixed(2)}\n\nCheck your charts for a potential entry.`;
+      await sendTelegram(msg);
+    }
+    myAlertBaselines[i]=confirmed;
+  });
+  if(document.getElementById('page-alerts').classList.contains('active')) renderAlertSlots();
+}
+
+// ═══════════ WATCHLIST ALERTS ═══════════
+let wlAlertStarted=false;
+
+function startWatchlistAlerts(){
+  if(wlAlertStarted) return;
+  wlAlertStarted=true;
+  checkWatchlistAlerts();
+  setInterval(checkWatchlistAlerts,60000);
+}
+
+async function checkWatchlistAlerts(){
+  PIVOT_LEVELS.forEach(p=>{p.price=getPrice(p.pair)||p.price;});
+  const current={};
+  PIVOT_LEVELS.forEach(p=>{
+    if(p.touches<4) return;
+    const price=getPrice(p.pair)||0;
+    if(!price) return;
+    if(Math.abs(price-p.level)>getPipThreshold(price)) return;
+    const dir=p.type==='resistance'?'SELL':'BUY';
+    current[p.pair+'|'+dir]={p,price,dir};
+  });
+  if(wlAlertBaseline===null){wlAlertBaseline=current;return;}
+  for(const[key,{p,price,dir}] of Object.entries(current)){
+    if(!wlAlertBaseline[key]){
+      const dec=p.dec||(price>50?2:4);
+      const rank=p.touches>=6?'Fortress':p.touches>=4?'Strong':'Valid';
+      const signal=getSignalLevel(p.pair,dir);
+      const sigText=signal==='green'?'🟢 Strong Confluence':signal==='yellow'?'🟡 Moderate Risk':'🟠 Higher Risk';
+      const msg=`🎯 <b>DASHBOX WATCHLIST</b>\n\n<b>${p.pair}</b> — ${rank} ${p.type} at ${p.level.toFixed(dec)}\nTested ${p.touches}× · ${sigText}\n\nPrice: ${price.toFixed(dec)}\nPrice is at a key level. Wait for confirmation before entering.`;
+      await sendTelegram(msg);
+    }
+  }
+  wlAlertBaseline=current;
+}
+
+// ═══════════ NEWS ═══════════
 async function loadNews(){
   const container=document.getElementById('newsList');
-  container.innerHTML='<div class="loading">Loading high impact news...</div>';
-
+  container.innerHTML='<div class="loading">Loading...</div>';
   try{
-    // Use ForexFactory calendar via CORS proxy
-    const today=new Date().toISOString().split('T')[0];
-    const url=`https://nfs.faireconomy.media/ff_calendar_thisweek.json`;
-    const res=await fetch(url);
+    const res=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json');
     const data=await res.json();
-
-    // Filter to HIGH impact only (red)
-    const todayStr=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
     const high=data.filter(e=>e.impact==='High');
-
-    if(!high.length){
-      container.innerHTML='<div class="empty">No high impact news today. Good day to trade!</div>';
-      return;
-    }
-
-    // Check for imminent news (within 2 hours)
+    if(!high.length){container.innerHTML='<div class="empty">No high impact news today.</div>';return;}
     const now=new Date();
-    const warnings=[];
+    let html='';
     high.forEach(e=>{
       if(!e.date) return;
       const eTime=new Date(e.date);
-      const diff=(eTime-now)/60000; // minutes
-      if(diff>0&&diff<120) warnings.push(`⚠️ ${e.currency} news in ${Math.round(diff)} mins — ${e.title}`);
+      const diff=(eTime-now)/60000;
+      if(diff>0&&diff<120) html+=`<div class="news-warn">⚠️ ${e.currency} news in ${Math.round(diff)} mins — ${e.title}</div>`;
     });
-
-    let html='';
-    if(warnings.length){
-      html+=warnings.map(w=>`<div class="news-warning">${w}</div>`).join('');
-    }
-
     html+=high.map(e=>{
       const t=e.date?new Date(e.date).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'TBA';
-      return `<div class="news-card">
-        <div class="news-time">${t} · ${e.country||''}</div>
-        <div class="news-event">${e.title}</div>
-        <div style="margin-top:5px"><span class="news-currency">${e.currency}</span></div>
-      </div>`;
+      return `<div class="news-card"><div class="news-time">${t}</div><div class="news-event">${e.title}</div><div style="margin-top:5px"><span class="news-cur">${e.currency}</span></div></div>`;
     }).join('');
-
     container.innerHTML=html||'<div class="empty">No high impact news found.</div>';
   }catch(e){
-    console.error('News error:',e);
     container.innerHTML='<div class="empty">Could not load news. Try refreshing.</div>';
   }
 }
 
-// ═══════════════════════════════════════════════
-// CHECK TAB
-// ═══════════════════════════════════════════════
-const UPLOAD_LABELS=['Daily Chart','4H Chart','Weekly Chart'];
+// ═══════════ CHECK TAB ═══════════
+const UPLOAD_LABELS={
+  1:['Daily Chart (Required)','4H Chart (Required)','Weekly Chart (Optional)'],
+  2:['Chart 1','Chart 2','Chart 3']
+};
 
-function renderUploadGrid(){
-  const grid=document.getElementById('uploadGrid');
-  grid.innerHTML=checkImages.map((img,i)=>`
-    <div class="upload-slot ${img?'filled':''}" onclick="document.getElementById('f${i}').click()"
-      ondragover="event.preventDefault()" ondrop="event.preventDefault();dropFile(${i},event)">
-      ${img?`<img src="${img}"><button class="upload-x" onclick="event.stopPropagation();removeImage(${i})">×</button>`
-           :`<div class="upload-plus">+</div><div class="upload-label">${UPLOAD_LABELS[i]||'Chart '+(i+1)}</div>`}
+function renderUploadGrid(section){
+  const grid=document.getElementById('uploadGrid'+section);
+  const imgs=checkImages[section];
+  grid.innerHTML=imgs.map((img,i)=>`
+    <div class="upload-slot ${img?'filled':''}" onclick="document.getElementById('f${section}_${i}').click()"
+      ondragover="event.preventDefault()" ondrop="event.preventDefault();dropFile(${section},${i},event)">
+      ${img?`<img src="${img}"><button class="upload-x" onclick="event.stopPropagation();removeImage(${section},${i})">×</button>`
+           :`<div class="upload-plus">+</div><div class="upload-lbl">${UPLOAD_LABELS[section][i]}</div>`}
     </div>`).join('');
-  const btn=document.getElementById('analyseBtn');
-  const hasImg=checkImages.some(x=>x);
-  btn.classList.toggle('ready',hasImg);
+  const btn=document.getElementById('analyseBtn'+section);
+  btn.classList.toggle('ready',imgs.some(x=>x));
 }
 
-function uploadSlot(idx,event){
+function uploadSlot(section,idx,event){
   const file=event.target.files[0];
   if(!file) return;
   const r=new FileReader();
-  r.onload=e=>{checkImages[idx]=e.target.result;renderUploadGrid();};
+  r.onload=e=>{checkImages[section][idx]=e.target.result;renderUploadGrid(section);};
   r.readAsDataURL(file);
 }
 
-function dropFile(idx,event){
+function dropFile(section,idx,event){
   const file=event.dataTransfer.files[0];
   if(!file) return;
   const r=new FileReader();
-  r.onload=e=>{checkImages[idx]=e.target.result;renderUploadGrid();};
+  r.onload=e=>{checkImages[section][idx]=e.target.result;renderUploadGrid(section);};
   r.readAsDataURL(file);
 }
 
-function removeImage(idx){
-  checkImages[idx]=null;
-  document.getElementById('f'+idx).value='';
-  renderUploadGrid();
+function removeImage(section,idx){
+  checkImages[section][idx]=null;
+  document.getElementById(`f${section}_${idx}`).value='';
+  renderUploadGrid(section);
 }
 
-async function runAnalysis(){
-  const btn=document.getElementById('analyseBtn');
-  const result=document.getElementById('checkResult');
+const PROMPTS={
+  1:`You are Dashbox AI — a professional forex trading analyst. Analyse the uploaded chart(s) using the Dashbox strategy.
+
+THE DASHBOX STRATEGY:
+- The DAILY chart shows the key pivot level (support or resistance tested 4+ times) — this determines the setup direction
+- The WEEKLY index/trend confirms whether the direction is with or against the higher timeframe
+- The 4H chart shows the entry confirmation candle at the level
+- Stop Loss: 100 pips minimum OR place above the recent swing high (for a downward setup) / below the recent swing low (for an upward setup) — whichever gives more space
+- Take Profit: same distance as SL (1:1 R:R)
+- At 50% of TP distance → close 50% of position and move SL to breakeven
+
+CRITICAL RULES:
+1. Read the DAILY chart first — identify the key pivot level and its type (support or resistance)
+2. Support level = upward setup. Resistance level = downward setup. Never offer both directions.
+3. Check if the Weekly trend confirms this direction
+4. Check if the 4H shows a confirmation candle at the level
+5. NEVER use the words "buy" or "sell" — instead say "trading with the level" or describe the setup direction as "upward setup" or "downward setup"
+6. If you cannot clearly identify a pivot level, say so honestly
+
+RESPOND IN THIS EXACT FORMAT:
+
+VERDICT: [VALID SETUP / POTENTIAL SETUP / WATCHING — NOT YET / NO CLEAR SETUP]
+
+PIVOT LEVEL:
+Level: [price]
+Type: [Support / Resistance]
+Tested: [N]×
+Quality: [Fortress / Strong / Valid] [●●●●○ dots out of 5]
+
+ENTRY PLAN:
+Setup: [Upward setup from support / Downward setup from resistance]
+Entry: [price]
+Stop Loss: [price] ([N] pips / above recent high or below recent low)
+Take Profit: [price] ([N] pips, 1:1 R:R)
+Partial close at: [midpoint price] → move SL to breakeven
+
+TIMEFRAMES:
+Weekly: [✅ or ❌] [one sentence — does trend confirm?]
+Daily: [✅ or ❌] [one sentence — is price at the level?]
+4H: [✅ or ❌] [one sentence — is there a confirmation candle?]
+
+CONCERNS:
+[2-3 honest sentences. Mention any news risk, messy levels, unclear structure, or reasons to wait.]`,
+
+  2:`You are a professional forex and trading analyst. Analyse the uploaded chart(s) and give an honest, concise technical read.
+
+Look at:
+- What pair and timeframe is shown
+- What is the overall trend direction
+- Are there any key support or resistance levels visible
+- What is price doing right now — at a level, trending, ranging
+- What does the candle structure suggest
+- Any concerns or risks
+
+RESPOND IN THIS FORMAT:
+
+OVERVIEW:
+[2-3 sentences describing what you see on the chart]
+
+KEY LEVELS:
+[List any significant support/resistance levels with prices]
+
+PRICE ACTION:
+[What is price currently doing — be specific]
+
+CONCERNS:
+[Anything that looks risky, unclear, or worth noting]
+
+Keep it concise, honest and professional. Describe only what you see.`
+};
+
+async function runAnalysis(section){
+  const btn=document.getElementById('analyseBtn'+section);
+  const result=document.getElementById('checkResult'+section);
   btn.textContent='⟳ Analysing...';
   btn.classList.remove('ready');
   result.style.display='block';
-  result.innerHTML='<div class="loading">Claude is analysing your charts...</div>';
+  result.innerHTML='<div class="loading">Analysing your charts...</div>';
 
-  const PROMPT=`You are Dashbox AI — a professional forex trading analyst. Analyse the uploaded chart(s) using the Dashbox strategy and validate whether this is a valid trade entry.
-
-THE DASHBOX STRATEGY:
-- Key pivot levels on the Daily chart (support/resistance tested 4+ times)
-- Entry trigger: confirmation candle at the level on the 4H chart
-- Direction: BUY from support, SELL from resistance
-- Weekly, Daily and 4H must ideally all agree on direction
-- Stop Loss: 100 pips standard forex, 120 pips for JPY pairs (1:1 R:R)
-- Take Profit: same distance as SL (1:1)
-- At 50% of TP distance → close 50% of position and move SL to breakeven
-
-RESPOND WITH THIS EXACT STRUCTURE:
-
-VERDICT: [VALID ENTRY / POTENTIAL ENTRY / WAIT / AVOID]
-
-PIVOT ANALYSIS:
-• Is there a clear Daily pivot level visible?
-• How many times has it been tested?
-• Is this a genuine rejection or just price passing through?
-
-4H SETUP:
-• Is there a clear entry candle / confirmation at the level?
-• What does the candle structure say?
-
-TIMEFRAME ALIGNMENT:
-• What does the Weekly trend suggest?
-• What does the Daily trend suggest?
-• Does the 4H confirm?
-
-TRADE LEVELS:
-• Entry: [exact price from chart]
-• Stop Loss: [price] ([X] pips)
-• Take Profit: [price] ([X] pips, 1:1)
-• Partial close at: [halfway to TP]
-
-CONCERNS:
-• Any reasons NOT to take this trade?
-• Any upcoming news risk?
-• Is the level clean or messy?
-
-CONFIDENCE: [X]/10
-[One sentence reason]
-
-Be direct, specific and use prices visible on the charts. Plain English — no jargon.`;
-
-  const content=checkImages.filter(x=>x).map(img=>({
+  const content=checkImages[section].filter(x=>x).map(img=>({
     type:'image',source:{type:'base64',media_type:img.split(';')[0].split(':')[1],data:img.split(',')[1]}
   }));
-  content.push({type:'text',text:PROMPT});
+  content.push({type:'text',text:PROMPTS[section]});
 
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -838,95 +930,68 @@ Be direct, specific and use prices visible on the charts. Plain English — no j
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content}]})
     });
     const data=await res.json();
-    if(data.error){throw new Error(data.error.message);}
+    if(data.error) throw new Error(data.error.message);
     const text=data.content[0].text;
 
-    // Parse verdict
-    const vLine=text.match(/VERDICT:\s*(.+)/i);
-    const vText=vLine?vLine[1].trim():'ANALYSED';
-    const isGood=vText.includes('VALID')||vText.includes('POTENTIAL');
-    const isAvoid=vText.includes('AVOID')||vText.includes('WAIT');
-    const vColor=isGood?'var(--accent)':isAvoid?'var(--weak)':'var(--gold)';
+    if(section===1){
+      // Parse structured Dashbox response
+      const vLine=text.match(/VERDICT:\s*(.+)/i);
+      const vText=vLine?vLine[1].trim():'ANALYSED';
+      const isValid=vText.includes('VALID')||vText.includes('POTENTIAL');
+      const isWait=vText.includes('WATCHING')||vText.includes('NO CLEAR');
+      const vColor=isValid?'var(--accent)':isWait?'var(--gold)':'var(--weak)';
+      const vBg=isValid?'rgba(0,212,170,0.08)':isWait?'rgba(245,197,24,0.08)':'rgba(224,92,92,0.08)';
 
-    // Parse confidence
-    const confMatch=text.match(/CONFIDENCE:\s*(\d+)\/10/i);
-    const conf=confMatch?confMatch[1]:null;
+      // Parse sections
+      const getSection=(name)=>{
+        const match=text.match(new RegExp(name+':\\s*([\\s\\S]*?)(?=\\n[A-Z]+:|$)','i'));
+        return match?match[1].trim():'';
+      };
 
-    const bodyHtml=text.split('\n').map(line=>{
-      if(line.startsWith('VERDICT:')) return '';
-      if(line.match(/^[A-Z\s]+:/)) return `<div class="result-section">${line}</div>`;
-      if(line.startsWith('•')) return `<div style="padding:2px 0 2px 8px;border-left:2px solid var(--border2);margin:3px 0;font-size:12px">${line}</div>`;
-      return `<div style="font-size:12px;padding:2px 0">${line}</div>`;
-    }).join('');
+      const pivot=getSection('PIVOT LEVEL');
+      const entry=getSection('ENTRY PLAN');
+      const tfs=getSection('TIMEFRAMES');
+      const concerns=getSection('CONCERNS');
 
-    result.innerHTML=`
-      <div class="result-verdict" style="background:${isGood?'rgba(0,212,170,0.08)':'rgba(224,92,92,0.08)'};border:1px solid ${vColor};color:${vColor}">
-        ${vText}${conf?` · ${conf}/10`:''}
-      </div>
-      <div class="result-body">${bodyHtml}</div>`;
+      const parseRows=(block)=>block.split('\n').filter(l=>l.trim()&&l.includes(':'));
+
+      result.innerHTML=`
+        <div class="result-verdict" style="background:${vBg};border:1px solid ${vColor};color:${vColor}">${vText}</div>
+        ${pivot?`<div class="result-block">
+          <div class="result-block-title">Pivot Level</div>
+          ${parseRows(pivot).map(l=>{const[lbl,...rest]=l.split(':');return`<div class="result-row"><span class="result-row-label">${lbl.replace('•','').trim()}</span><span class="result-row-val">${rest.join(':').trim()}</span></div>`;}).join('')}
+        </div>`:''}
+        ${entry?`<div class="result-block">
+          <div class="result-block-title">Entry Plan</div>
+          ${parseRows(entry).map(l=>{const[lbl,...rest]=l.split(':');return`<div class="result-row"><span class="result-row-label">${lbl.replace('•','').trim()}</span><span class="result-row-val">${rest.join(':').trim()}</span></div>`;}).join('')}
+        </div>`:''}
+        ${tfs?`<div class="result-block">
+          <div class="result-block-title">Timeframes</div>
+          ${tfs.split('\n').filter(l=>l.trim()).map(l=>`<div class="result-row"><span class="result-row-val">${l.trim()}</span></div>`).join('')}
+        </div>`:''}
+        ${concerns?`<div class="result-block">
+          <div class="result-block-title">Concerns</div>
+          <div class="result-concern">${concerns}</div>
+        </div>`:''}`;
+    } else {
+      // General analysis — simple display
+      result.innerHTML=`<div class="result-body" style="font-size:12px;line-height:1.7;color:var(--text)">${
+        text.split('\n').map(l=>{
+          if(l.match(/^[A-Z\s]+:$/)) return `<div class="result-block-title" style="font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)">${l}</div>`;
+          return `<div style="padding:2px 0">${l}</div>`;
+        }).join('')
+      }</div>`;
+    }
   }catch(err){
-    result.innerHTML=`<div style="color:var(--weak);font-size:13px;padding:16px">
-      ⚠ Analysis failed: ${err.message}<br><br>
-      <span style="color:var(--muted);font-size:11px">The CHECK tab requires an Anthropic API key. Get one at console.anthropic.com and add it to the app settings.</span>
-    </div>`;
+    result.innerHTML=`<div style="color:var(--weak);font-size:13px;padding:8px">⚠ ${err.message}<br><br><span style="color:var(--muted);font-size:11px">Check tab requires an Anthropic API key. Contact your Dashbox provider.</span></div>`;
   }
-  btn.textContent='⚡ Analyse Charts';
+  btn.textContent=section===1?'⚡ Validate Setup':'⚡ Analyse Charts';
   btn.classList.add('ready');
 }
 
-// ═══════════════════════════════════════════════
-// ALERTS (Browser-based Telegram)
-// ═══════════════════════════════════════════════
-async function sendTelegram(msg){
-  try{
-    const url=`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`;
-    await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:TG_CHAT,text:msg,parse_mode:'HTML'})});
-  }catch(e){}
-}
-
-function getAlertKey(pair,dir,level){return `${pair}|${dir}|${level}`;}
-
-async function checkAlerts(){
-  await fetchData();
-  const current={};
-  PIVOT_LEVELS.forEach(p=>{
-    if(p.touches<4) return;
-    const price=getPrice(p.pair)||0;
-    if(!price) return;
-    const threshold=getPipThreshold(price);
-    if(Math.abs(price-p.level)>threshold) return;
-    const dir=p.type==='resistance'?'SELL':'BUY';
-    const key=getAlertKey(p.pair,dir,p.level);
-    current[key]={p,price,dir};
-  });
-
-  if(alertBaseline===null){
-    alertBaseline=current;
-    return;
-  }
-
-  for(const [key,{p,price,dir}] of Object.entries(current)){
-    if(!alertBaseline[key]){
-      const dec=p.dec||(price>50?2:4);
-      const rank=p.touches>=6?'Fortress':p.touches>=4?'Strong':'Valid';
-      const msg=`🎯 <b>DASHBOX ALERT</b>\n\n<b>${p.pair}</b> ${dir}\n${rank} ${p.type} at ${p.level.toFixed(dec)} (tested ${p.touches}x)\n\nPrice: ${price.toFixed(dec)}\n⚠️ Price is at a key level. Wait for confirmation before entering.`;
-      await sendTelegram(msg);
-    }
-  }
-  alertBaseline=current;
-}
-
-function startAlerts(){
-  if(alertInterval) return;
-  checkAlerts();
-  alertInterval=setInterval(checkAlerts,60000);
-}
-
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-renderUploadGrid();
+// ═══════════ INIT ═══════════
+renderUploadGrid(1);
+renderUploadGrid(2);
 </script>
 </body>
 </html>
