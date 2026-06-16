@@ -651,7 +651,7 @@ function closeModal(){document.getElementById('modalOverlay').classList.remove('
 function renderAlertSlots(){
   const container=document.getElementById('alertSlots');
   const addBtn=document.getElementById('addAlertBtn');
-  addBtn.style.display=myAlerts.length>=10?'none':'block';
+  addBtn.style.display=myAlerts.length>=15?'none':'block';
   if(!myAlerts.length){
     container.innerHTML='<div class="empty" style="padding:20px">No alerts set. Add one below.</div>';
     return;
@@ -682,7 +682,7 @@ function renderAlertSlots(){
 }
 
 function addAlertSlot(){
-  if(myAlerts.length>=10) return;
+  if(myAlerts.length>=15) return;
   myAlerts.push({cur1:'EUR',cur2:'USD',dir:'stronger',lastFired:null});
   saveAlerts();
   renderAlertSlots();
