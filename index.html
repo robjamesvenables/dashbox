@@ -757,11 +757,12 @@ async function loadNews(){
   const container=document.getElementById('newsList');
   container.innerHTML='<div class="loading">Loading...</div>';
   try{
-    const res=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{cache:'no-cache'});
+    // Use ForexFactory JSON feed via proxy
+    const res=await fetch('https://corsproxy.io/?https://nfs.faireconomy.media/ff_calendar_thisweek.json',{cache:'no-cache'});
     if(!res.ok) throw new Error('Failed');
     const data=await res.json();
     const high=data.filter(e=>e.impact==='High');
-    if(!high.length){container.innerHTML='<div class="empty">No high impact news today.</div>';return;}
+    if(!high.length){container.innerHTML='<div class="empty">No high impact news today. Good day to trade!</div>';return;}
     const now=new Date();
     let html='';
     high.forEach(e=>{
@@ -776,7 +777,20 @@ async function loadNews(){
     }).join('');
     container.innerHTML=html||'<div class="empty">No high impact news found.</div>';
   }catch(e){
-    container.innerHTML='<div class="empty">Could not load news.<br>Try refreshing — ForexFactory may be temporarily unavailable.</div>';
+    // Fallback: try direct
+    try{
+      const res2=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json');
+      const data2=await res2.json();
+      const high2=data2.filter(e=>e.impact==='High');
+      if(!high2.length){container.innerHTML='<div class="empty">No high impact news today.</div>';return;}
+      let html2=high2.map(e=>{
+        const t=e.date?new Date(e.date).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'TBA';
+        return `<div class="news-card"><div class="news-time">${t}</div><div class="news-event">${e.title}</div><div style="margin-top:5px"><span class="news-cur">${e.currency}</span></div></div>`;
+      }).join('');
+      container.innerHTML=html2;
+    }catch(e2){
+      container.innerHTML='<div class="empty">Could not load news.<br>ForexFactory may be temporarily unavailable.</div>';
+    }
   }
 }
 
