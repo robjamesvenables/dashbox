@@ -409,17 +409,23 @@ async function splashLoad(){
   btn.textContent='⟳ Connecting...';
   btn.style.opacity='0.6';
   status.textContent='Fetching live data...';
-  const ok=await fetchData();
-  if(ok&&Object.keys(SCORES_W).length>0){
-    status.textContent='✓ Connected';
-    setTimeout(()=>{
-      document.getElementById('splash').classList.add('hidden');
-      renderIndex();
-      startMyAlerts();
-      setInterval(async()=>{await fetchData();renderIndex();checkMyAlerts();},60000);
-    },400);
-  } else {
-    status.textContent='⚠ Could not connect — check MT4 EA is running';
+  try{
+    const ok=await fetchData();
+    if(ok&&Object.keys(SCORES_W).length>0){
+      status.textContent='✓ Connected';
+      setTimeout(()=>{
+        document.getElementById('splash').classList.add('hidden');
+        renderIndex();
+        startMyAlerts();
+        setInterval(async()=>{await fetchData();renderIndex();checkMyAlerts();},60000);
+      },400);
+    } else {
+      status.textContent='⚠ Could not connect — check MT4 EA is running';
+      btn.textContent='↻ Try Again';
+      btn.style.opacity='1';
+    }
+  }catch(err){
+    status.textContent='⚠ Error: '+err.message;
     btn.textContent='↻ Try Again';
     btn.style.opacity='1';
   }
