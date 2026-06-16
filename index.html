@@ -661,8 +661,14 @@ function renderAlertSlots(){
     const h4Base=SCORES_H4[a.cur1]||0, h4Quote=SCORES_H4[a.cur2]||0;
     const diff=h4Base-h4Quote;
     const confirmed=(a.dir==='stronger'&&diff>0.1)||(a.dir==='weaker'&&diff<-0.1);
-    const statusText=confirmed?`✅ ${a.cur1} is ${a.dir} than ${a.cur2} on 4H`:`⏳ Watching — ${a.cur1} ${a.dir==='stronger'?'not yet stronger':'not yet weaker'} than ${a.cur2} on 4H`;
-    return `<div class="alert-slot">
+    const hasFired = a.firedAt;
+    const statusText=hasFired
+      ? `✅ Alert fired at ${a.firedAt} — check your charts`
+      : confirmed
+      ? `✅ ${a.cur1} is ${a.dir} than ${a.cur2} on 4H now`
+      : `⏳ Watching — ${a.cur1} ${a.dir==='stronger'?'not yet stronger':'not yet weaker'} than ${a.cur2} on 4H`;
+    const slotStyle=hasFired?'background:rgba(0,212,170,0.06);border-color:rgba(0,212,170,0.3)':'';
+    return `<div class="alert-slot" style="${slotStyle}">
       <div class="alert-slot-header">
         <span class="alert-slot-num">Alert ${i+1}</span>
         <button class="alert-delete" onclick="deleteAlert(${i})">×</button>
@@ -733,6 +739,14 @@ async function checkMyAlerts(){
     if(confirmed&&!wasConfirmed){
       const msg=`⚡ <b>DASHBOX ALERT</b>\n\n<b>${a.cur1}</b> is now <b>${a.dir}</b> than <b>${a.cur2}</b> on the 4H index\n\nDiff: ${diff>0?'+':''}${diff.toFixed(2)}\n\nCheck your charts for a potential entry.`;
       await sendTelegram(msg);
+      // Store fired time
+      myAlerts[i].firedAt=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      saveAlerts();
+    }
+    if(!confirmed&&wasConfirmed){
+      // Reset fired state when condition no longer met
+      myAlerts[i].firedAt=null;
+      saveAlerts();
     }
     myAlertBaselines[i]=confirmed;
   });
