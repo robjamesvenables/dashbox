@@ -412,6 +412,7 @@ async function splashLoad(){
     setTimeout(()=>{
       document.getElementById('splash').classList.add('hidden');
       renderIndex();
+      startWatchlistAlerts();
       startMyAlerts();
       setInterval(async()=>{await fetchData();renderIndex();checkMyAlerts();},60000);
     },400);
@@ -750,6 +751,41 @@ async function checkMyAlerts(){
     myAlertBaselines[i]=confirmed;
   });
   if(document.getElementById('page-alerts').classList.contains('active')) renderAlertSlots();
+}
+
+// ═══════════ WATCHLIST ALERTS ═══════════
+let wlAlertStarted=false;
+
+function startWatchlistAlerts(){
+  if(wlAlertStarted) return;
+  wlAlertStarted=true;
+  checkWatchlistAlerts();
+  setInterval(checkWatchlistAlerts,60000);
+}
+
+async function checkWatchlistAlerts(){
+  PIVOT_LEVELS.forEach(p=>{p.price=getPrice(p.pair)||p.price;});
+  const current={};
+  PIVOT_LEVELS.forEach(p=>{
+    if(p.touches<4) return;
+    const price=getPrice(p.pair)||0;
+    if(!price) return;
+    if(Math.abs(price-p.level)>getPipThreshold(price)) return;
+    const dir=p.type==='resistance'?'SELL':'BUY';
+    current[p.pair+'|'+dir]={p,price,dir};
+  });
+  if(wlAlertBaseline===null){wlAlertBaseline=current;return;}
+  for(const[key,{p,price,dir}] of Object.entries(current)){
+    if(!wlAlertBaseline[key]){
+      const dec=p.dec||(price>50?2:4);
+      const rank=p.touches>=6?'Fortress':p.touches>=4?'Strong':'Valid';
+      const signal=getSignalLevel(p.pair,dir);
+      const sigText=signal==='green'?'🟢 Strong Confluence':signal==='yellow'?'🟡 Moderate Risk':'🟠 Higher Risk';
+      const msg=`🎯 <b>DASHBOX WATCHLIST</b>\n\n<b>${p.pair}</b> — ${rank} ${p.type} at ${p.level.toFixed(dec)}\nTested ${p.touches}× · ${sigText}\n\nPrice: ${price.toFixed(dec)}\nPrice is at a key level. Wait for confirmation before entering.`;
+      await sendTelegram(msg);
+    }
+  }
+  wlAlertBaseline=current;
 }
 
 // ═══════════ NEWS ═══════════
