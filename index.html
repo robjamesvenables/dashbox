@@ -1703,27 +1703,37 @@ function renderWatchlist(){
       const pivotRank = p.touches>=4?'Fortress':p.touches===3?'Strong':'Valid';
       const rankColor = p.touches>=4?'#e05c5c':p.touches===3?'#f97316':'#c9a84c';
 
-      // Check if strength agrees (for info only — not a filter)
-      let strengthNote = '';
-      const base = p.pair.slice(0,3), quote = p.pair.slice(3,6);
-      const baseS = currentScores.find(s=>s.code===base);
-      const quoteS = currentScores.find(s=>s.code===quote);
-      if(baseS && quoteS){
-        const bounceDir = p.type==='resistance'?'SELL':'BUY';
-        const diff = bounceDir==='SELL' ? quoteS.score - baseS.score : baseS.score - quoteS.score;
-        const bDir = p.type==='resistance'?'SELL':'BUY';
-        if(diff > 1.5) strengthNote = `<span style="color:var(--strong);font-size:10px">✓ Strength confirms ${bDir}</span>`;
-        else if(diff > 0) strengthNote = `<span style="color:var(--gold);font-size:10px">~ Partial confirmation for ${bDir}</span>`;
-        else strengthNote = `<span style="color:var(--muted);font-size:10px">Strength not aligned — monitor only</span>`;
-      }
+      // Calculate breathing room - distance to next pivot on the other side
+      const bounceDir = p.type === 'resistance' ? 'SELL' : 'BUY';
+      let breathingRoom = 999; // pips to next blocking level
+      PIVOT_LEVELS.forEach(other=>{
+        if(other.pair !== p.pair || other.level === p.level) return;
+        if(other.touches < 2) return;
+        // For SELL: look for support levels below current price
+        // For BUY: look for resistance levels above current price
+        if(bounceDir === 'SELL' && other.type === 'support' && other.level < livePrice){
+          const pipsAway = Math.round(getPipsAway(p.level, other.level, p.dec || 4));
+          if(pipsAway < breathingRoom) breathingRoom = pipsAway;
+        }
+        if(bounceDir === 'BUY' && other.type === 'resistance' && other.level > livePrice){
+          const pipsAway = Math.round(getPipsAway(p.level, other.level, p.dec || 4));
+          if(pipsAway < breathingRoom) breathingRoom = pipsAway;
+        }
+      });
+      const roomNote = breathingRoom < 999
+        ? `${breathingRoom} pips clear to next level`
+        : 'Clear path — no blocking levels detected';
+      const strengthNote = `<span style="font-size:10px;color:var(--muted)">⚡ Wait for H4 Heiken Ashi confirmation · ${roomNote}</span>`;
 
-      items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct });
+      items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct, breathingRoom });
     });
 
-    // Sort by quality score: touches weighted heavily + proximity
+    // Sort by quality: touches + breathing room (more space = better) + proximity
     items.sort((a,b)=>{
-      const scoreA = (a.p.touches * 2) + (1 - a.pct);
-      const scoreB = (b.p.touches * 2) + (1 - b.pct);
+      const roomA = a.breathingRoom < 999 ? Math.min(a.breathingRoom / 100, 3) : 3;
+      const roomB = b.breathingRoom < 999 ? Math.min(b.breathingRoom / 100, 3) : 3;
+      const scoreA = (a.p.touches * 2) + roomA + (1 - a.pct);
+      const scoreB = (b.p.touches * 2) + roomB + (1 - b.pct);
       return scoreB - scoreA;
     });
     // Deduplicate — keep only closest level per pair
