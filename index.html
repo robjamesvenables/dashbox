@@ -1729,13 +1729,11 @@ function renderWatchlist(){
       items.push({ p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote, pct, breathingRoom });
     });
 
-    // Sort by quality: touches + breathing room (more space = better) + proximity
+    // Sort by breathing room (most pips clear = best trade opportunity)
     items.sort((a,b)=>{
-      const roomA = a.breathingRoom < 999 ? Math.min(a.breathingRoom / 100, 3) : 3;
-      const roomB = b.breathingRoom < 999 ? Math.min(b.breathingRoom / 100, 3) : 3;
-      const scoreA = (a.p.touches * 2) + roomA + (1 - a.pct);
-      const scoreB = (b.p.touches * 2) + roomB + (1 - b.pct);
-      return scoreB - scoreA;
+      const roomA = a.breathingRoom < 999 ? a.breathingRoom : 9999;
+      const roomB = b.breathingRoom < 999 ? b.breathingRoom : 9999;
+      return roomB - roomA;
     });
     // Deduplicate — keep only closest level per pair
     const seen = new Set();
@@ -1756,17 +1754,20 @@ function renderWatchlist(){
     }
 
     container.innerHTML = '';
-    items.forEach(({p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote})=>{
+    items.forEach(({p, livePrice, pips, unit, isNear, pivotRank, rankColor, dec, strengthNote}, idx)=>{
       const typeColor = p.type==='support'?'var(--strong)':'var(--weak)';
       const typeLabel = p.type==='support'?'SUPPORT':'RESISTANCE';
       const bounceDir = p.type==='resistance'?'SELL':'BUY';
       const touchDots = '●'.repeat(Math.min(p.touches,5))+'○'.repeat(Math.max(0,5-p.touches));
       const dirColor = bounceDir==='BUY'?'var(--strong)':'var(--weak)';
 
+      const rankNum = idx + 1;
+      const rankColor2 = rankNum===1?'#f5c518':rankNum===2?'#a8a9ad':rankNum===3?'#cd7f32':'var(--muted)';
       container.innerHTML += `
         <div onclick="openReport('${p.pair}','${bounceDir}',${Math.min(Math.round(5 + Math.min(p.touches-2,3)*0.8),9)},'forex')" style="background:#111318;border-top:2px solid #1e2129;border-right:2px solid #1e2129;border-bottom:2px solid #1e2129;border-left:5px solid ${dirColor};border-radius:8px;margin-bottom:12px;padding:14px;cursor:pointer;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
             <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:13px;font-weight:700;color:${rankColor2};min-width:24px">#${rankNum}</span>
               <span style="font-size:15px;font-weight:600;color:#e8ecf4">${p.pair}</span>
               <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;background:${p.type==='support'?'rgba(0,212,170,0.12)':'rgba(224,92,92,0.12)'};color:${typeColor}">${typeLabel}</span>
               <span style="font-size:10px;font-weight:600;color:${rankColor}">${pivotRank}</span>
