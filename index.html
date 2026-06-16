@@ -41,9 +41,9 @@ header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px 
 #clock{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 
 /* TABS */
-nav{display:flex;overflow-x:auto;scrollbar-width:none;gap:0;padding:0 16px;background:var(--bg);border-bottom:1px solid var(--border)}
+nav{display:flex;overflow-x:hidden;gap:0;background:var(--bg);border-bottom:1px solid var(--border)}
 nav::-webkit-scrollbar{display:none}
-.tab{flex-shrink:0;padding:12px 16px;font-size:11px;font-weight:500;color:#b0b8cc;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;letter-spacing:0.04em;white-space:nowrap;font-family:var(--font)}
+.tab{flex:1;padding:12px 8px;font-size:11px;font-weight:500;color:#b0b8cc;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;letter-spacing:0.02em;white-space:nowrap;font-family:var(--font);text-align:center}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 
 /* PAGES */
@@ -428,7 +428,7 @@ function renderIndex(){
 function renderBarChart(sorted){
   const canvas = document.getElementById('barChart');
   const dpr = window.devicePixelRatio||1;
-  const W = Math.min(canvas.parentElement.offsetWidth-32, 560);
+  const W = Math.max(Math.min(canvas.parentElement.offsetWidth-32, 560), 300);
   const H = 220;
   canvas.width = W*dpr; canvas.height = H*dpr;
   canvas.style.width = W+'px'; canvas.style.height = H+'px';
