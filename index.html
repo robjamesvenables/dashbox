@@ -561,7 +561,7 @@ function renderWatchlist(){
       }
     });
 
-    const quality = (p.touches*50)+(breathRoom<9999?Math.min(breathRoom,300):0);
+    const quality = (p.touches*30)+(breathRoom<9999?Math.min(breathRoom*2,600):0);
     items.push({p,price,pips,pivotRank,bounceDir,quality,breathRoom});
   });
 
