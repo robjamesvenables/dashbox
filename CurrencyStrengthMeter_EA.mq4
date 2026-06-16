@@ -247,8 +247,12 @@ void CheckHACrossAlerts()
 
       // Calculate 1:1 levels
       int    digits   = (int)MarketInfo(sym, MODE_DIGITS);
-      double atr      = iATR(sym, PERIOD_H4, ATRPeriod, 1);
-      double slDist   = atr * 1.5;
+      double point    = MarketInfo(sym, MODE_POINT);
+      int    dg       = (int)MarketInfo(sym, MODE_DIGITS);
+      double slDist;
+      if(dg<=2)      slDist = 1.20;    // JPY — 120 pips
+      else if(bid>1000) slDist = bid*0.008; // Gold/indices — 0.8%
+      else           slDist = 0.0100;  // Standard forex — 100 pips
       double entry    = bid;
       double sl       = direction=="BUY" ? entry-slDist : entry+slDist;
       double tp       = direction=="BUY" ? entry+slDist : entry-slDist; // 1:1

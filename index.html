@@ -969,7 +969,7 @@ function renderSignals(){
       const dec = livePrice > 50 ? 2 : livePrice > 1 ? 4 : 5;
       const isJpy = p.pair.includes('JPY');
       const pipVal = isJpy ? 0.01 : 0.0001;
-      const slPips = isJpy ? 70 : 50;
+      const slPips = isJpy ? 120 : 100;
 
       let sl, tp;
       if(bounceDir === 'BUY'){
@@ -1194,7 +1194,7 @@ function generateReport(sym,direction,conf,market){
   const isIndex=market==='indices';
   const dec=isCrypto&&price>1000?0:isGold||isSilver?2:price>10?2:price>1?4:5;
   const pipVal=isJpy?0.01:isGold?1:isSilver?0.01:isIndex?1:isCrypto?1:0.0001;
-  const baseSLPips=isGold?1500:isSilver?150:isIndex?100:isCrypto?2000:isJpy?70:50;
+  const baseSLPips=isGold?2500:isSilver?200:isIndex?200:isCrypto?2000:isJpy?120:100;
 
   let sl,tp,partial;
   if(direction==='BUY'){
