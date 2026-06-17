@@ -235,7 +235,7 @@ nav{display:flex;background:var(--bg);border-bottom:1px solid var(--border)}
     Use Weekly for trade bias · Daily to confirm trend · 4H to time your entry
   </div>
   <div class="chart-wrap">
-    <canvas id="barChart" height="220"></canvas>
+    <canvas id="barChart" height="260"></canvas>
   </div>
   <div class="legend" id="legend"></div>
 </div>
@@ -446,13 +446,13 @@ function renderBarChart(sorted){
   const canvas=document.getElementById('barChart');
   const dpr=window.devicePixelRatio||1;
   const W=Math.max(canvas.parentElement.offsetWidth-16,280);
-  const H=220;
+  const H=260;
   canvas.width=W*dpr;canvas.height=H*dpr;
   canvas.style.width=W+'px';canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
   const n=sorted.length;
-  const padL=6,padR=6,padT=36,padB=26;
+  const padL=6,padR=6,padT=44,padB=30;
   const chartW=W-padL-padR,chartH=H-padT-padB;
   const slotW=chartW/n,barW=Math.floor(slotW*0.6);
   const maxAbs=Math.max(...sorted.map(s=>Math.abs(s.score)),0.5);
