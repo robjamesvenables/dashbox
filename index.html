@@ -452,7 +452,7 @@ function renderBarChart(sorted){
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
   const n=sorted.length;
-  const padL=6,padR=6,padT=28,padB=22;
+  const padL=6,padR=6,padT=36,padB=26;
   const chartW=W-padL-padR,chartH=H-padT-padB;
   const slotW=chartW/n,barW=Math.floor(slotW*0.6);
   const maxAbs=Math.max(...sorted.map(s=>Math.abs(s.score)),0.5);
@@ -467,7 +467,7 @@ function renderBarChart(sorted){
       const color=COLORS[i]||'#888';
       const cx=padL+i*slotW+slotW/2;
       const x=cx-barW/2;
-      const fullH=Math.max((Math.abs(s.score)/maxAbs)*(chartH/2-4),3);
+      const fullH=Math.max(Math.min((Math.abs(s.score)/maxAbs)*(chartH/2-8),chartH/2-8),3);
       const animH=fullH*ease;
       ctx.fillStyle=color;
       if(s.score>=0){ctx.beginPath();ctx.roundRect(x,zeroY-animH,barW,animH,3);ctx.fill();}
