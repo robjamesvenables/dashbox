@@ -343,6 +343,7 @@ function showTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
+  if(name==='index') renderIndex();
   if(name==='watchlist') renderWatchlist();
   if(name==='alerts') renderAlertSlots();
   if(name==='check'){renderUploadGrid(1);renderUploadGrid(2);}
@@ -478,8 +479,8 @@ function renderBarChart(sorted){
         ctx.globalAlpha=(ease-0.5)*2;
         ctx.fillStyle=color;ctx.font=`600 9px Poppins,sans-serif`;
         ctx.textBaseline='middle';
-        if(s.score>=0) ctx.fillText((s.score>0?'+':'')+s.score.toFixed(1),cx,zeroY-animH-9);
-        else ctx.fillText(s.score.toFixed(1),cx,zeroY+animH+9);
+        if(s.score>=0) ctx.fillText((s.score>0?'+':'')+s.score.toFixed(1),cx,zeroY-animH-12);
+        else ctx.fillText(s.score.toFixed(1),cx,zeroY+animH+12);
         ctx.globalAlpha=1;
       }
     });
