@@ -36,7 +36,7 @@ int EXY_Dir[]={+1,+1,+1,+1,+1,+1,+1};
 int BXY_Dir[]={+1,-1,+1,+1,+1,+1,+1};
 int AXY_Dir[]={+1,-1,-1,+1,+1,+1,+1};
 int NXY_Dir[]={+1,-1,-1,+1,+1,+1,-1};
-int CAD_Dir[]={-1,-1,-1,+1,+1,+1,+1};
+int CAD_Dir[]={-1,-1,-1,+1,+1,-1,-1};
 int CHF_Dir[]={-1,-1,-1,-1,+1,+1,+1};
 int JXY_Dir[]={-1,-1,-1,-1,-1,-1,-1};
 string ScoreNames[]={"DXY","EXY","BXY","AXY","NXY","CAD","CHF","JXY"};
@@ -305,18 +305,22 @@ void CheckHACrossAlerts()
 //+------------------------------------------------------------------+
 double CalcScore(string &pairs[],int &dirs[],int count,int period)
 {
-   // Use percentage change over 5 bars — more accurate than EMA/ATR
+   // Percentage change — lookback varies by timeframe
+   int lookback;
+   if(period==PERIOD_W1)  lookback=4;  // 4 weeks
+   else if(period==PERIOD_D1) lookback=5;  // 5 days = 1 week
+   else lookback=24; // 24 x 4H bars = 4 days
+   
    double total=0; int valid=0;
-   int lookback=5; // 5 bars = 1 week on W, 1 week on D, 20hrs on H4
    for(int i=0;i<count;i++){
       double cNow  = iClose(pairs[i],period,1);
       double cPrev = iClose(pairs[i],period,lookback+1);
       if(cNow==0||cPrev==0) continue;
-      double pctChange = ((cNow-cPrev)/cPrev)*100.0; // % change
+      double pctChange = ((cNow-cPrev)/cPrev)*100.0;
       total += MathMax(MathMin(pctChange,3.0),-3.0)*dirs[i];
       valid++;
    }
-   return valid>0?NormalizeDouble(total/valid*10,2):0; // scale to readable range
+   return valid>0?NormalizeDouble(total/valid*10,2):0;
 }
 
 string BuildScoreBlock(string label,int period)
