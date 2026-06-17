@@ -37,7 +37,7 @@ int BXY_Dir[]={+1,-1,+1,+1,+1,+1,+1};
 int AXY_Dir[]={+1,-1,-1,+1,+1,+1,+1};
 int NXY_Dir[]={+1,-1,-1,+1,+1,+1,-1};
 int CAD_Dir[]={-1,-1,-1,+1,+1,-1,-1};
-int CHF_Dir[]={-1,-1,-1,-1,+1,+1,+1};
+int CHF_Dir[]={-1,-1,-1,+1,-1,-1,-1};
 int JXY_Dir[]={-1,-1,-1,-1,-1,-1,-1};
 string ScoreNames[]={"DXY","EXY","BXY","AXY","NXY","CAD","CHF","JXY"};
 
