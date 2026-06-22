@@ -213,45 +213,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .valid .pivot-rank-count{background:rgba(201,168,76,0.15);color:var(--gold);}
 .unconfirmed .pivot-rank-count{background:var(--surface2);color:var(--muted);}
 
-/* BEST PAIR TAB */
-.bp-splash{display:flex;flex-direction:column;align-items:center;padding:24px 16px 16px;}
-.bp-title{font-size:11px;letter-spacing:0.18em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
-.bp-subtitle{font-size:12px;color:var(--muted);margin-bottom:24px;text-align:center;line-height:1.5;}
-.bp-scan-btn{background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);letter-spacing:0.05em;box-shadow:0 4px 24px rgba(201,168,76,0.3);transition:all 0.2s;margin-bottom:28px;}
-.bp-scan-btn:hover{transform:translateY(-2px);box-shadow:0 6px 32px rgba(201,168,76,0.5);}
-.bp-scan-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
-.bp-scanning{text-align:center;padding:20px;font-size:12px;color:var(--muted);}
-.bp-scanning-dots{display:flex;justify-content:center;gap:6px;margin-top:12px;}
-.bp-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:typingDot 1.2s infinite;}
-.bp-dot:nth-child(2){animation-delay:0.2s;}.bp-dot:nth-child(3){animation-delay:0.4s;}
-.bp-results{width:100%;display:flex;flex-direction:column;gap:12px;}
-.bp-card{border-radius:12px;padding:18px 18px 16px;position:relative;overflow:hidden;}
-.bp-card.rank-1{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05));border:1.5px solid rgba(201,168,76,0.6);}
-.bp-card.rank-2{background:linear-gradient(135deg,rgba(160,160,180,0.12),rgba(160,160,180,0.04));border:1px solid rgba(160,160,180,0.4);}
-.bp-card.rank-3{background:linear-gradient(135deg,rgba(180,120,80,0.12),rgba(180,120,80,0.04));border:1px solid rgba(180,120,80,0.35);}
-.bp-rank-badge{position:absolute;top:14px;right:14px;font-size:22px;}
-.bp-pair-name{font-size:28px;font-weight:700;color:#e8ecf4;letter-spacing:-0.5px;margin-bottom:4px;}
-.bp-card.rank-1 .bp-pair-name{color:#f5d87a;}
-.bp-direction{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;margin-bottom:12px;}
-.bp-direction.buy{background:rgba(0,212,170,0.15);color:var(--strong);}
-.bp-direction.sell{background:rgba(224,92,92,0.15);color:var(--weak);}
-.bp-score-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
-.bp-score-bar-wrap{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
-.bp-score-bar{height:100%;border-radius:3px;}
-.rank-1 .bp-score-bar{background:linear-gradient(90deg,#c9a84c,#f5d87a);}
-.rank-2 .bp-score-bar{background:linear-gradient(90deg,#a0a0b4,#c8c8d8);}
-.rank-3 .bp-score-bar{background:linear-gradient(90deg,#b47850,#d49870);}
-.bp-score-num{font-size:13px;font-weight:700;color:var(--text);min-width:40px;text-align:right;}
-.bp-factors{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-.bp-factor{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px;text-align:center;}
-.bp-factor-label{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
-.bp-factor-val{font-size:11px;font-weight:600;}
-.bp-factor-val.pos{color:var(--strong);}.bp-factor-val.neg{color:var(--weak);}.bp-factor-val.neu{color:var(--neutral);}
-.bp-timestamp{font-size:10px;color:var(--muted);text-align:center;margin-top:8px;}
-.bp-no-data{text-align:center;padding:30px;font-size:12px;color:var(--muted);line-height:1.7;}
-.bp-method{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.8;width:100%;}
-.bp-method strong{color:var(--text);}
-
 /* CHECK TAB */
 .check-upload-area{border:2px dashed var(--border2);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:16px;background:var(--surface);}
 .check-upload-area:hover{border-color:var(--accent);background:rgba(0,212,170,0.04);}
@@ -293,6 +254,44 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .check-point{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.5;color:var(--text);}
 .check-point-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
 
+
+/* BEST PAIR */
+.bp-splash{display:flex;flex-direction:column;align-items:center;padding:24px 16px 16px;}
+.bp-title{font-size:11px;letter-spacing:0.18em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.bp-subtitle{font-size:12px;color:var(--muted);margin-bottom:24px;text-align:center;line-height:1.5;}
+.bp-scan-btn{background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);box-shadow:0 4px 24px rgba(201,168,76,0.3);transition:all 0.2s;margin-bottom:28px;}
+.bp-scan-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.bp-scanning{text-align:center;padding:20px;font-size:12px;color:var(--muted);}
+.bp-scanning-dots{display:flex;justify-content:center;gap:6px;margin-top:12px;}
+.bp-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:typingDot 1.2s infinite;}
+.bp-dot:nth-child(2){animation-delay:0.2s;}.bp-dot:nth-child(3){animation-delay:0.4s;}
+.bp-results{width:100%;display:flex;flex-direction:column;gap:12px;}
+.bp-card{border-radius:12px;padding:18px 18px 16px;position:relative;overflow:hidden;}
+.bp-card.rank-1{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05));border:1.5px solid rgba(201,168,76,0.6);}
+.bp-card.rank-2{background:linear-gradient(135deg,rgba(160,160,180,0.12),rgba(160,160,180,0.04));border:1px solid rgba(160,160,180,0.4);}
+.bp-card.rank-3{background:linear-gradient(135deg,rgba(180,120,80,0.12),rgba(180,120,80,0.04));border:1px solid rgba(180,120,80,0.35);}
+.bp-rank-badge{position:absolute;top:14px;right:14px;font-size:22px;}
+.bp-pair-name{font-size:28px;font-weight:700;color:#e8ecf4;letter-spacing:-0.5px;margin-bottom:4px;}
+.bp-card.rank-1 .bp-pair-name{color:#f5d87a;}
+.bp-direction{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;margin-bottom:12px;}
+.bp-direction.buy{background:rgba(0,212,170,0.15);color:var(--strong);}
+.bp-direction.sell{background:rgba(224,92,92,0.15);color:var(--weak);}
+.bp-score-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.bp-score-bar-wrap{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.bp-score-bar{height:100%;border-radius:3px;}
+.rank-1 .bp-score-bar{background:linear-gradient(90deg,#c9a84c,#f5d87a);}
+.rank-2 .bp-score-bar{background:linear-gradient(90deg,#a0a0b4,#c8c8d8);}
+.rank-3 .bp-score-bar{background:linear-gradient(90deg,#b47850,#d49870);}
+.bp-score-num{font-size:13px;font-weight:700;color:var(--text);min-width:40px;text-align:right;}
+.bp-factors{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.bp-factor{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px;text-align:center;}
+.bp-factor-label{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
+.bp-factor-val{font-size:11px;font-weight:600;}
+.bp-factor-val.pos{color:var(--strong);}.bp-factor-val.neg{color:var(--weak);}.bp-factor-val.neu{color:var(--neutral);}
+.bp-timestamp{font-size:10px;color:var(--muted);text-align:center;margin-top:8px;}
+.bp-no-data{text-align:center;padding:30px;font-size:12px;color:var(--muted);line-height:1.7;}
+.bp-method{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.8;width:100%;}
+.bp-method strong{color:var(--text);}
 </style>
 </head>
 <body>
@@ -390,17 +389,15 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   <div id="pivotList"></div>
 </div>
 
+
 <!-- BEST PAIR -->
 <div class="page" id="tab-bestpair">
   <div class="bp-splash">
     <div class="bp-title">Best Pair of the Day</div>
     <div class="bp-subtitle">Currency Strength + EMA + RSI + MACD + ADX<br>D1 &amp; H4 · All 28 Pairs Ranked</div>
-    <button class="bp-scan-btn" id="bpScanBtn" onclick="runBestPairScan()">⚡ SCAN MARKET</button>
+    <button class="bp-scan-btn" id="bpScanBtn" onclick="runBestPairScan()">&#9889; SCAN MARKET</button>
     <div id="bpResults" style="width:100%"></div>
-    <div class="bp-method">
-      <strong>Formula:</strong> Strength Differential (40pts) · Zero-side Bonus (5pts) · MTF Confluence (55pts)<br>
-      <strong>Confluence:</strong> EMA 20/50 · RSI 14 · MACD · ADX≥20 · D1+H4
-    </div>
+    <div class="bp-method"><strong>Formula:</strong> Strength (40pts) + Bonus (5pts) + Confluence (55pts)<br><strong>Uses:</strong> EMA 20/50 · RSI 14 · MACD · ADX&ge;20 · D1+H4</div>
   </div>
 </div>
 
@@ -1697,142 +1694,107 @@ async function runAnalysis(){
 }
 
 
-// ═══════════ BEST PAIR TAB ═══════════
+// ═══════════ BEST PAIR ═══════════
 let bestPairData = null;
-
 function renderBestPair(){
-  const container = document.getElementById('bpResults');
-  if(bestPairData && bestPairData.pairs && bestPairData.pairs.length > 0){
-    renderBestPairCards(bestPairData);
-  } else {
-    container.innerHTML = '';
-    tryLoadBestPairFromTelegram();
-  }
+  const c=document.getElementById('bpResults');
+  if(bestPairData&&bestPairData.pairs&&bestPairData.pairs.length>0){renderBestPairCards(bestPairData);}
+  else{c.innerHTML='';tryLoadBestPairFromTelegram();}
 }
-
 async function tryLoadBestPairFromTelegram(){
-  const container = document.getElementById('bpResults');
-  container.innerHTML = '<div class="bp-scanning">Looking for latest scan...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
-  const data = await fetchBestPairFromTelegram();
-  if(data){ bestPairData = data; renderBestPairCards(data); }
-  else { container.innerHTML = '<div class="bp-no-data">No scan yet.<br>Tap <b>SCAN MARKET</b> to run.<br><br><span style="font-size:10px">Make sure DashboxBestPair_v2 EA is running on VPS.</span></div>'; }
+  const c=document.getElementById('bpResults');
+  c.innerHTML='<div class="bp-scanning">Looking for latest scan...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
+  const d=await fetchBestPairFromTelegram();
+  if(d){bestPairData=d;renderBestPairCards(d);}
+  else{c.innerHTML='<div class="bp-no-data">No scan yet.<br>Tap <b>SCAN MARKET</b> to run.<br><br><span style="font-size:10px">Make sure DashboxBestPair_v2 EA is running on VPS.</span></div>';}
 }
-
 async function fetchBestPairFromTelegram(){
-  try {
-    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if(!data.ok) return null;
-    const updates = [...(data.result||[])].reverse();
+  try{
+    const url=`https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
+    const res=await fetch(url);const data=await res.json();
+    if(!data.ok)return null;
+    const updates=[...(data.result||[])].reverse();
     for(const upd of updates){
-      const text = upd?.message?.text || '';
-      if(!text.startsWith('DASHBOX_BESTPAIR')) continue;
+      const text=upd?.message?.text||'';
+      if(!text.startsWith('DASHBOX_BESTPAIR'))continue;
       return parseBestPairMessage(text);
     }
     return null;
-  } catch(e){ return null; }
+  }catch(e){return null;}
 }
-
 function parseBestPairMessage(text){
-  const parts = text.split('|');
-  const pairs = [];
-  let ts = null;
-  parts.forEach(p => {
-    if(p === 'DASHBOX_BESTPAIR' || p.startsWith('||')) return;
-    if(p.startsWith('ts:')){ ts = parseInt(p.split(':')[1]) * 1000; return; }
-    const segs = p.split(':');
-    if(segs.length >= 4){
-      const rank = parseInt(segs[0]);
-      const pair = segs[1];
-      const direction = segs[2];
-      const score = parseInt(segs[3]);
-      if(!pair || pair.length !== 6) return;
-      const base = pair.substring(0,3);
-      const quote = pair.substring(3,6);
-      const baseScore = (currentScores.find(s=>s.code===base)||{score:0}).score;
-      const quoteScore = (currentScores.find(s=>s.code===quote)||{score:0}).score;
-      pairs.push({rank, pair, direction, score, base, quote, baseScore, quoteScore});
+  const parts=text.split('|');const pairs=[];let ts=null;
+  parts.forEach(p=>{
+    if(p==='DASHBOX_BESTPAIR')return;
+    if(p.startsWith('ts:')){ts=parseInt(p.split(':')[1])*1000;return;}
+    const segs=p.split(':');
+    if(segs.length>=4){
+      const pair=segs[1];if(!pair||pair.length!==6)return;
+      const base=pair.substring(0,3),quote=pair.substring(3,6);
+      const baseScore=(currentScores.find(s=>s.code===base)||{score:0}).score;
+      const quoteScore=(currentScores.find(s=>s.code===quote)||{score:0}).score;
+      pairs.push({rank:parseInt(segs[0]),pair,direction:segs[2],score:parseInt(segs[3]),base,quote,baseScore,quoteScore});
     }
   });
-  if(pairs.length === 0) return null;
-  return { pairs, ts };
+  if(pairs.length===0)return null;
+  return{pairs,ts};
 }
-
 function renderBestPairCards(data){
-  const container = document.getElementById('bpResults');
-  const medals = ['🥇','🥈','🥉'];
-  const rankClass = ['rank-1','rank-2','rank-3'];
-  let html = '<div class="bp-results">';
-  data.pairs.forEach((p, i) => {
-    const dirCls = p.direction === 'BUY' ? 'buy' : 'sell';
-    const dirArrow = p.direction === 'BUY' ? '▲' : '▼';
-    const baseColor = p.baseScore >= 0 ? 'pos' : 'neg';
-    const quoteColor = p.quoteScore >= 0 ? 'pos' : 'neg';
-    const diff = Math.abs(p.baseScore - p.quoteScore).toFixed(1);
-    html += `
-      <div class="bp-card ${rankClass[i]}">
-        <div class="bp-rank-badge">${medals[i]}</div>
-        <div class="bp-pair-name">${p.pair}</div>
-        <div class="bp-direction ${dirCls}">${dirArrow} ${p.direction}</div>
-        <div class="bp-score-row">
-          <div class="bp-score-bar-wrap"><div class="bp-score-bar" style="width:${p.score}%"></div></div>
-          <div class="bp-score-num">${p.score}<span style="font-size:9px;color:var(--muted)">/100</span></div>
-        </div>
-        <div class="bp-factors">
-          <div class="bp-factor"><div class="bp-factor-label">${p.base} Str</div><div class="bp-factor-val ${baseColor}">${p.baseScore>=0?'+':''}${(p.baseScore||0).toFixed(1)}</div></div>
-          <div class="bp-factor"><div class="bp-factor-label">${p.quote} Str</div><div class="bp-factor-val ${quoteColor}">${p.quoteScore>=0?'+':''}${(p.quoteScore||0).toFixed(1)}</div></div>
-          <div class="bp-factor"><div class="bp-factor-label">Diff</div><div class="bp-factor-val neu">${diff}pt</div></div>
-        </div>
-      </div>`;
+  const c=document.getElementById('bpResults');
+  const medals=['🥇','🥈','🥉'],rc=['rank-1','rank-2','rank-3'];
+  let html='<div class="bp-results">';
+  data.pairs.forEach((p,i)=>{
+    const dc=p.direction==='BUY'?'buy':'sell',da=p.direction==='BUY'?'▲':'▼';
+    const bc=p.baseScore>=0?'pos':'neg',qc=p.quoteScore>=0?'pos':'neg';
+    const diff=Math.abs(p.baseScore-p.quoteScore).toFixed(1);
+    html+=`<div class="bp-card ${rc[i]}">
+      <div class="bp-rank-badge">${medals[i]}</div>
+      <div class="bp-pair-name">${p.pair}</div>
+      <div class="bp-direction ${dc}">${da} ${p.direction}</div>
+      <div class="bp-score-row"><div class="bp-score-bar-wrap"><div class="bp-score-bar" style="width:${p.score}%"></div></div><div class="bp-score-num">${p.score}<span style="font-size:9px;color:var(--muted)">/100</span></div></div>
+      <div class="bp-factors">
+        <div class="bp-factor"><div class="bp-factor-label">${p.base} Str</div><div class="bp-factor-val ${bc}">${p.baseScore>=0?'+':''}${(p.baseScore||0).toFixed(1)}</div></div>
+        <div class="bp-factor"><div class="bp-factor-label">${p.quote} Str</div><div class="bp-factor-val ${qc}">${p.quoteScore>=0?'+':''}${(p.quoteScore||0).toFixed(1)}</div></div>
+        <div class="bp-factor"><div class="bp-factor-label">Diff</div><div class="bp-factor-val neu">${diff}pt</div></div>
+      </div></div>`;
   });
-  html += '</div>';
-  if(data.ts){
-    const age = Math.round((Date.now() - data.ts) / 60000);
-    html += `<div class="bp-timestamp">Last scan: ${age < 60 ? age+'m ago' : Math.round(age/60)+'h ago'}</div>`;
-  }
-  container.innerHTML = html;
+  html+='</div>';
+  if(data.ts){const age=Math.round((Date.now()-data.ts)/60000);html+=`<div class="bp-timestamp">Last scan: ${age<60?age+'m ago':Math.round(age/60)+'h ago'}</div>`;}
+  c.innerHTML=html;
 }
-
 async function runBestPairScan(){
-  const btn = document.getElementById('bpScanBtn');
-  const container = document.getElementById('bpResults');
-  btn.disabled = true;
-  btn.textContent = '⟳ Scanning...';
-  container.innerHTML = '<div class="bp-scanning">Scanning 28 pairs D1+H4...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
-  await new Promise(r => setTimeout(r, 2000));
-  const data = await fetchBestPairFromTelegram();
-  if(data){ bestPairData = data; renderBestPairCards(data); }
-  else {
-    const fallback = calcBestPairFromIndexOnly();
-    if(fallback){ bestPairData = fallback; renderBestPairCards(fallback); }
-    else { container.innerHTML = '<div class="bp-no-data">No data. Make sure EA is running.</div>'; }
+  const btn=document.getElementById('bpScanBtn');
+  const c=document.getElementById('bpResults');
+  btn.disabled=true;btn.textContent='⟳ Scanning...';
+  c.innerHTML='<div class="bp-scanning">Scanning 28 pairs D1+H4...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
+  await new Promise(r=>setTimeout(r,2000));
+  const data=await fetchBestPairFromTelegram();
+  if(data){bestPairData=data;renderBestPairCards(data);}
+  else{
+    const fb=calcBestPairFromIndexOnly();
+    if(fb){bestPairData=fb;renderBestPairCards(fb);}
+    else{c.innerHTML='<div class="bp-no-data">No data. Make sure EA is running.</div>';}
   }
-  btn.disabled = false;
-  btn.textContent = '⚡ SCAN MARKET';
+  btn.disabled=false;btn.textContent='⚡ SCAN MARKET';
 }
-
 function calcBestPairFromIndexOnly(){
-  if(!currentScores || currentScores.length < 2) return null;
-  const opps = [];
-  const FP = ['EURUSD','GBPUSD','AUDUSD','NZDUSD','USDCAD','USDCHF','USDJPY','EURJPY','GBPJPY','AUDJPY','NZDJPY','CADJPY','CHFJPY','EURGBP','EURAUD','EURNZD','EURCAD','EURCHF','GBPAUD','GBPNZD','GBPCAD','GBPCHF','AUDNZD','AUDCAD','AUDCHF','NZDCAD','NZDCHF','CADCHF'];
-  FP.forEach(pair => {
-    const base = pair.substring(0,3), quote = pair.substring(3,6);
-    const bs = currentScores.find(s=>s.code===base);
-    const qs = currentScores.find(s=>s.code===quote);
-    if(!bs||!qs) return;
-    const diff = bs.score - qs.score;
-    const direction = diff > 0 ? 'BUY' : 'SELL';
-    let score = Math.min(Math.round(Math.abs(diff) * 4.0), 40);
-    if(diff>0 && bs.score>0 && qs.score<0) score+=5;
-    if(diff<0 && bs.score<0 && qs.score>0) score+=5;
-    opps.push({pair, base, quote, direction, score, baseScore: bs.score, quoteScore: qs.score});
+  if(!currentScores||currentScores.length<2)return null;
+  const opps=[];
+  ['EURUSD','GBPUSD','AUDUSD','NZDUSD','USDCAD','USDCHF','USDJPY','EURJPY','GBPJPY','AUDJPY','NZDJPY','CADJPY','CHFJPY','EURGBP','EURAUD','EURNZD','EURCAD','EURCHF','GBPAUD','GBPNZD','GBPCAD','GBPCHF','AUDNZD','AUDCAD','AUDCHF','NZDCAD','NZDCHF','CADCHF'].forEach(pair=>{
+    const base=pair.substring(0,3),quote=pair.substring(3,6);
+    const bs=currentScores.find(s=>s.code===base),qs=currentScores.find(s=>s.code===quote);
+    if(!bs||!qs)return;
+    const diff=bs.score-qs.score,direction=diff>0?'BUY':'SELL';
+    let score=Math.min(Math.round(Math.abs(diff)*4),40);
+    if(diff>0&&bs.score>0&&qs.score<0)score+=5;
+    if(diff<0&&bs.score<0&&qs.score>0)score+=5;
+    opps.push({pair,base,quote,direction,score,baseScore:bs.score,quoteScore:qs.score});
   });
   opps.sort((a,b)=>b.score-a.score);
-  return { pairs: opps.slice(0,3).map((p,i)=>({...p,rank:i+1})), ts: Date.now() };
+  return{pairs:opps.slice(0,3).map((p,i)=>({...p,rank:i+1})),ts:Date.now()};
 }
 
-
+async function testTelegram(){
   await sendTelegramAlert(
     `✅ <b>Dashbox Connected!</b>\n\nTelegram alerts are working.\nYou will receive trade alerts here.\n\n🤙 Dashbox — Currency Intelligence`
   );
