@@ -292,6 +292,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .bp-no-data{text-align:center;padding:30px;font-size:12px;color:var(--muted);line-height:1.7;}
 .bp-method{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.8;width:100%;}
 .bp-method strong{color:var(--text);}
+
 </style>
 </head>
 <body>
@@ -1710,17 +1711,25 @@ async function tryLoadBestPairFromTelegram(){
 }
 async function fetchBestPairFromTelegram(){
   try{
-    const url=`https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
-    const res=await fetch(url);const data=await res.json();
-    if(!data.ok)return null;
-    const updates=[...(data.result||[])].reverse();
-    for(const upd of updates){
-      const text=upd?.message?.text||'';
-      if(!text.startsWith('DASHBOX_BESTPAIR'))continue;
-      return parseBestPairMessage(text);
-    }
-    return null;
-  }catch(e){return null;}
+    const url=`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
+    const res=await fetch(url,{headers:{'X-Access-Key':JSONBIN_KEY}});
+    const data=await res.json();
+    const bp=data?.record?.bestpair;
+    const ts=data?.record?.ts;
+    if(!bp) return null;
+    const pairs=[];
+    ['p1','p2','p3'].forEach((k,i)=>{
+      if(!bp[k]) return;
+      const pair=bp[k].pair, direction=bp[k].dir, score=bp[k].score;
+      if(!pair||pair.length<6) return;
+      const base=pair.substring(0,3), quote=pair.substring(3,6);
+      const baseScore=(currentScores.find(s=>s.code===base)||{score:0}).score;
+      const quoteScore=(currentScores.find(s=>s.code===quote)||{score:0}).score;
+      pairs.push({rank:i+1,pair,direction,score,base,quote,baseScore,quoteScore});
+    });
+    if(pairs.length===0) return null;
+    return{pairs,ts:ts?ts*1000:Date.now()};
+  }catch(e){console.log('Jsonbin fetch error:',e);return null;}
 }
 function parseBestPairMessage(text){
   const parts=text.split('|');const pairs=[];let ts=null;
