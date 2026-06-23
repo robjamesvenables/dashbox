@@ -1698,16 +1698,64 @@ async function runAnalysis(){
 // ═══════════ BEST PAIR ═══════════
 let bestPairData = null;
 function renderBestPair(){
-  const c=document.getElementById('bpResults');
-  if(bestPairData&&bestPairData.pairs&&bestPairData.pairs.length>0){renderBestPairCards(bestPairData);}
-  else{c.innerHTML='';tryLoadBestPairFromTelegram();}
+  // Always show step 1 first
+  showBestPairStep1();
 }
+
+function showBestPairStep1(){
+  const btn = document.getElementById('bpScanBtn');
+  const c = document.getElementById('bpResults');
+  btn.style.display = 'none';
+  c.innerHTML = `
+    <div style="text-align:center;padding:20px 0 28px;">
+      <div style="font-size:36px;margin-bottom:12px">📡</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.7">
+        Connect to live market data<br>via your MT4 VPS
+      </div>
+      <button onclick="connectToMarket()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 32px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);transition:all 0.2s;width:100%">
+        ⚡ CONNECT TO MARKET
+      </button>
+    </div>`;
+}
+
+async function connectToMarket(){
+  const c = document.getElementById('bpResults');
+  c.innerHTML = '<div class="bp-scanning">Connecting...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
+  
+  const data = await fetchBestPairFromTelegram();
+  
+  if(data){
+    bestPairData = data;
+    const age = data.ts ? Math.round((Date.now()-data.ts)/60000) : null;
+    const ageStr = age!==null ? (age<60?age+'m ago':Math.round(age/60)+'h ago') : '';
+    c.innerHTML = `
+      <div style="text-align:center;padding:16px 0 24px;">
+        <div style="font-size:11px;color:var(--strong);letter-spacing:0.1em;margin-bottom:4px">✅ CONNECTED — LIVE DATA</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:24px">Last EA scan: ${ageStr}</div>
+        <button onclick="runBestPairScan()" style="background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);box-shadow:0 4px 24px rgba(201,168,76,0.3);width:100%">
+          🔍 FIND BEST SETUP
+        </button>
+      </div>`;
+  } else {
+    const fallback = calcBestPairFromIndexOnly();
+    bestPairData = fallback;
+    c.innerHTML = `
+      <div style="text-align:center;padding:16px 0 24px;">
+        <div style="font-size:11px;color:var(--neutral);letter-spacing:0.1em;margin-bottom:4px">⚠ INDEX DATA ONLY</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:24px">EA not connected — using currency strength only</div>
+        <button onclick="runBestPairScan()" style="background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);box-shadow:0 4px 24px rgba(201,168,76,0.3);width:100%">
+          🔍 FIND BEST SETUP
+        </button>
+      </div>`;
+  }
+}
+
 async function tryLoadBestPairFromTelegram(){
   const c=document.getElementById('bpResults');
   c.innerHTML='<div class="bp-scanning">Looking for latest scan...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
   const d=await fetchBestPairFromTelegram();
   if(d){bestPairData=d;renderBestPairCards(d);}
-  else{c.innerHTML='<div class="bp-no-data">No scan yet.<br>Tap <b>SCAN MARKET</b> to run.<br><br><span style="font-size:10px">Make sure DashboxBestPair_v2 EA is running on VPS.</span></div>';}
+  else{c.innerHTML='<div class="bp-no-data">No scan yet.<br>Tap <b>CONNECT TO MARKET</b> to start.</div>';}
 }
 async function fetchBestPairFromTelegram(){
   try{
@@ -1772,19 +1820,16 @@ function renderBestPairCards(data){
   c.innerHTML=html;
 }
 async function runBestPairScan(){
-  const btn=document.getElementById('bpScanBtn');
   const c=document.getElementById('bpResults');
-  btn.disabled=true;btn.textContent='⟳ Scanning...';
-  c.innerHTML='<div class="bp-scanning">Scanning 28 pairs D1+H4...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
-  await new Promise(r=>setTimeout(r,2000));
-  const data=await fetchBestPairFromTelegram();
-  if(data){bestPairData=data;renderBestPairCards(data);}
-  else{
+  c.innerHTML='<div class="bp-scanning">Scanning all pairs...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
+  await new Promise(r=>setTimeout(r,1200));
+  if(bestPairData&&bestPairData.pairs&&bestPairData.pairs.length>0){
+    renderBestPairCards(bestPairData);
+  } else {
     const fb=calcBestPairFromIndexOnly();
     if(fb){bestPairData=fb;renderBestPairCards(fb);}
-    else{c.innerHTML='<div class="bp-no-data">No data. Make sure EA is running.</div>';}
+    else{c.innerHTML='<div class="bp-no-data">No data available.</div>';}
   }
-  btn.disabled=false;btn.textContent='⚡ SCAN MARKET';
 }
 function calcBestPairFromIndexOnly(){
   if(!currentScores||currentScores.length<2)return null;
