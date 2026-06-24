@@ -293,6 +293,17 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .bp-method{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.8;width:100%;}
 .bp-method strong{color:var(--text);}
 
+
+/* NON-FOREX SECTION */
+.nfx-section{width:100%;margin-top:16px;}
+.nfx-title{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:10px;}
+.nfx-cards{display:flex;flex-direction:column;gap:8px;}
+.nfx-card{border-radius:10px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.nfx-pair{font-size:16px;font-weight:700;color:var(--text);}
+.nfx-dir{font-size:11px;font-weight:700;padding:3px 10px;border-radius:5px;}
+.nfx-dir.buy{background:rgba(0,212,170,0.15);color:var(--strong);}
+.nfx-dir.sell{background:rgba(224,92,92,0.15);color:var(--weak);}
+.nfx-score{font-size:12px;color:var(--muted);}
 </style>
 </head>
 <body>
@@ -1768,7 +1779,7 @@ async function fetchBestPairFromTelegram(){
     const ts=data?.record?.ts;
     if(!bp) return null;
     const pairs=[];
-    ['p1','p2','p3'].forEach((k,i)=>{
+    ['p1','p2','p3','p4','p5'].forEach((k,i)=>{
       if(!bp[k]) return;
       const pair=bp[k].pair, direction=bp[k].dir, score=bp[k].score;
       if(!pair||pair.length<6) return;
@@ -1778,7 +1789,19 @@ async function fetchBestPairFromTelegram(){
       pairs.push({rank:i+1,pair,direction,score,base,quote,baseScore,quoteScore});
     });
     if(pairs.length===0) return null;
-    return{pairs,ts:ts?ts*1000:Date.now()};
+    
+    // Extract non-forex from p4/p5 if they are XAUUSD/NAS100/BTCUSD
+    // Or read from dedicated nonforex keys
+    const nonForex=[];
+    const nfxKeys=['nf1','nf2','nf3'];
+    nfxKeys.forEach((k,i)=>{
+      if(!bp[k]) return;
+      const pair=bp[k].pair,direction=bp[k].dir,score=bp[k].score;
+      if(!pair) return;
+      nonForex.push({pair,direction,score});
+    });
+    
+    return{pairs,ts:ts?ts*1000:Date.now(),nonForex};
   }catch(e){console.log('Jsonbin fetch error:',e);return null;}
 }
 function parseBestPairMessage(text){
@@ -1800,7 +1823,7 @@ function parseBestPairMessage(text){
 }
 function renderBestPairCards(data){
   const c=document.getElementById('bpResults');
-  const medals=['🥇','🥈','🥉'],rc=['rank-1','rank-2','rank-3'];
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣'],rc=['rank-1','rank-2','rank-3','rank-3','rank-3'];
   let html='<div class="bp-results">';
   data.pairs.forEach((p,i)=>{
     const dc=p.direction==='BUY'?'buy':'sell',da=p.direction==='BUY'?'▲':'▼';
@@ -1819,6 +1842,18 @@ function renderBestPairCards(data){
   });
   html+='</div>';
   if(data.ts){const age=Math.round((Date.now()-data.ts)/60000);html+=`<div class="bp-timestamp">Last scan: ${age<60?age+'m ago':Math.round(age/60)+'h ago'}</div>`;}
+
+  // NON-FOREX section
+  if(data.nonForex && data.nonForex.length>0){
+    html+=`<div class="nfx-section"><div class="nfx-title">⬡ Non-Forex</div><div class="nfx-cards">`;
+    data.nonForex.forEach(p=>{
+      const dc=p.direction==='BUY'?'buy':'sell';
+      const da=p.direction==='BUY'?'▲':'▼';
+      html+=`<div class="nfx-card"><div class="nfx-pair">${p.pair}</div><div class="nfx-dir ${dc}">${da} ${p.direction}</div><div class="nfx-score">${p.score}/100</div></div>`;
+    });
+    html+=`</div></div>`;
+  }
+
   c.innerHTML=html;
 }
 async function runBestPairScan(){
