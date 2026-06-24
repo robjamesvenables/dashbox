@@ -292,34 +292,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .bp-no-data{text-align:center;padding:30px;font-size:12px;color:var(--muted);line-height:1.7;}
 .bp-method{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.8;width:100%;}
 .bp-method strong{color:var(--text);}
-
-/* GOLDEN TAB */
-.golden-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:24px 16px;text-align:center;}
-.golden-waiting{font-size:13px;color:var(--muted);line-height:1.8;}
-.golden-card{width:100%;border-radius:16px;padding:32px 24px;background:linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.05));border:2px solid rgba(201,168,76,0.8);text-align:center;animation:goldenPulse 2s infinite;}
-@keyframes goldenPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0.4);}50%{box-shadow:0 0 0 20px rgba(201,168,76,0);}}
-.golden-star{font-size:48px;margin-bottom:12px;}
-.golden-label{font-size:10px;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;margin-bottom:8px;}
-.golden-pair{font-size:48px;font-weight:700;color:#f5d87a;letter-spacing:-1px;margin-bottom:8px;}
-.golden-dir{display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:700;padding:8px 24px;border-radius:8px;margin-bottom:16px;}
-.golden-dir.buy{background:rgba(0,212,170,0.2);color:var(--strong);}
-.golden-dir.sell{background:rgba(224,92,92,0.2);color:var(--weak);}
-.golden-tfs{font-size:12px;color:var(--gold);letter-spacing:0.1em;margin-bottom:8px;}
-.golden-age{font-size:10px;color:var(--muted);margin-top:8px;}
-
-/* NON-FOREX TAB */
-.nfx-wrap{padding:14px;}
-.nfx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
-.nfx-card.buy-card{border-left:3px solid var(--strong);}
-.nfx-card.sell-card{border-left:3px solid var(--weak);}
-.nfx-info{flex:1;}
-.nfx-sym{font-size:15px;font-weight:700;color:#e8ecf4;}
-.nfx-name{font-size:10px;color:var(--muted);margin-top:2px;}
-.nfx-dir-badge{font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;margin:0 12px;}
-.nfx-dir-badge.buy{background:rgba(0,212,170,0.15);color:var(--strong);}
-.nfx-dir-badge.sell{background:rgba(224,92,92,0.15);color:var(--weak);}
-.nfx-score{font-size:12px;color:var(--muted);min-width:50px;text-align:right;}
-.nfx-section-title{font-size:9px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin:14px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
 </style>
 </head>
 <body>
@@ -340,14 +312,19 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 </header>
 
 <div class="market-bar">
-  <button class="mkt-btn active" id="tb-bestpair" onclick="showTab('bestpair')" style="color:var(--gold);font-weight:600;">🏆 BEST PAIR</button>
-  <button class="mkt-btn" id="tb-golden" onclick="showTab('golden')" style="color:#f5d87a;font-weight:700;">⭐ GOLDEN</button>
-  <button class="mkt-btn" id="tb-nonfx" onclick="showTab('nonfx')" style="color:var(--purple);">📊 NON-FOREX</button>
-  <button class="mkt-btn" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
+  <button class="mkt-btn active" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
+  <button class="mkt-btn" id="tb-signals" onclick="showTab('signals')">⚡ SIGNALS</button>
+  <button class="mkt-btn" id="tb-forex" onclick="showTab('forex')">💱 FOREX</button>
+  <button class="mkt-btn" id="tb-metals" onclick="showTab('metals')">🥇 METALS</button>
+  <button class="mkt-btn" id="tb-indices" onclick="showTab('indices')">📈 INDICES</button>
+  <button class="mkt-btn" id="tb-crypto" onclick="showTab('crypto')">₿ CRYPTO</button>
+  <button class="mkt-btn" id="tb-pivots" onclick="showTab('pivots')">🎯 PIVOTS</button>
+  <button class="mkt-btn" id="tb-check" onclick="showTab('check')">🔍 CHECK</button>
+  <button class="mkt-btn" id="tb-bestpair" onclick="showTab('bestpair')" style="color:var(--gold);font-weight:600;">🏆 BEST PAIR</button>
 </div>
 
 <!-- INDEX -->
-<div class="page" id="tab-index">
+<div class="page active" id="tab-index">
   <div class="controls">
     <button class="btn primary" onclick="reloadData()">↻ Refresh</button>
     <span class="api-badge demo" id="apiBadge">● FETCHING...</span>
@@ -423,35 +400,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 </div>
 
 
-<!-- NON-FOREX -->
-<div class="page" id="tab-nonfx">
-  <div class="nfx-wrap">
-    <div id="nfxContent">
-      <div style="text-align:center;padding:40px;font-size:12px;color:var(--muted);">
-        Loading non-forex data...
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- GOLDEN -->
-<div class="page" id="tab-golden">
-  <div class="golden-wrap">
-    <div id="goldenContent">
-      <div style="font-size:40px;margin-bottom:16px;opacity:0.3">⭐</div>
-      <div class="golden-waiting">
-        Watching all 31 instruments<br>across 6 timeframes...<br><br>
-        When M5 M15 H1 H4 D1 W1 all agree<br>
-        + currency strength confirms<br><br>
-        Telegram fires instantly.<br><br>
-        <span style="font-size:10px">M5 · M15 · H1 · H4 · D1 · W1</span>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- BEST PAIR -->
-<div class="page active" id="tab-bestpair">
+<div class="page" id="tab-bestpair">
   <div class="bp-splash">
     <div class="bp-title">Best Pair of the Day</div>
     <div class="bp-subtitle">Currency Strength + EMA + RSI + MACD + ADX<br>D1 &amp; H4 · All 28 Pairs Ranked</div>
@@ -682,7 +632,7 @@ function showTab(name){
   document.querySelectorAll('.mkt-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('tb-'+name).classList.add('active');
-  if(name==='index') renderBestPair();
+  if(name==='index') renderIndex();
   if(name==='signals') renderSignals();
   if(name==='forex') renderForex(currentForexFilter);
   if(name==='metals') renderMetals();
@@ -691,8 +641,6 @@ function showTab(name){
   if(name==='pivots') fetchPricesFromTelegram().then(()=>renderPivots());
   if(name==='check') renderCheck();
   if(name==='bestpair') renderBestPair();
-  if(name==='golden') renderGolden();
-  if(name==='nonfx') renderNonForex();
 }
 
 // ═══════════ INDEX TAB ═══════════
@@ -1762,11 +1710,7 @@ const JSONBIN_KEY = '$2a$10$d0.NsjXsDQakZVLZnl4Lcuv1yl9POT37dx2yf4GzHZOWZxYk/JAy
 let bestPairData = null;
 
 function renderBestPair(){
-  if(bestPairData&&bestPairData.pairs&&bestPairData.pairs.length>0){
-    renderBestPairCards(bestPairData);
-  } else {
-    showBestPairStep1();
-  }
+  showBestPairStep1();
 }
 
 function showBestPairStep1(){
@@ -1775,7 +1719,7 @@ function showBestPairStep1(){
     <div style="text-align:center;padding:20px 0 28px;">
       <div style="font-size:36px;margin-bottom:12px">📡</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.7">Connect to live market data<br>via your MT4 VPS</div>
-      <button onclick="connectToMarket()" style="background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:10px;padding:14px 32px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);width:100%">
+      <button onclick="connectToMarket()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 32px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);width:100%">
         CONNECT TO MARKET
       </button>
     </div>`;
@@ -1855,7 +1799,6 @@ function renderBestPairCards(data){
   });
   html+='</div>';
   if(data.ts){const age=Math.round((Date.now()-data.ts)/60000);html+=`<div class="bp-timestamp">Last scan: ${age<60?age+'m ago':Math.round(age/60)+'h ago'}</div>`;}
-
   c.innerHTML=html;
 }
 
@@ -1888,108 +1831,6 @@ function calcBestPairFromIndexOnly(){
   opps.sort((a,b)=>b.score-a.score);
   return{pairs:opps.slice(0,5).map((p,i)=>({...p,rank:i+1})),ts:Date.now()};
 }
-
-
-// ═══════════ GOLDEN TAB ═══════════
-async function renderGolden(){
-  const c = document.getElementById('goldenContent');
-  c.innerHTML = '<div style="color:var(--muted);font-size:12px;">Checking...</div>';
-  try {
-    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if(!data.ok){ showGoldenWaiting(); return; }
-    const updates = [...(data.result||[])].reverse();
-    for(const upd of updates){
-      const text = upd&&upd.message&&upd.message.text ? upd.message.text : '';
-      if(!text.startsWith('DASHBOX GOLDEN SIGNAL')) continue;
-      const lines = text.split('\n').filter(l=>l.trim());
-      const pairLine = lines[1]||'';
-      const parts = pairLine.split(' - ');
-      if(parts.length>=2){ showGoldenSignal(parts[0].trim(), parts[1].trim()); return; }
-    }
-    showGoldenWaiting();
-  } catch(e){ showGoldenWaiting(); }
-}
-
-function showGoldenWaiting(){
-  document.getElementById('goldenContent').innerHTML = `
-    <div style="font-size:40px;margin-bottom:16px;opacity:0.3">⭐</div>
-    <div class="golden-waiting">
-      Watching all 31 instruments<br>across 6 timeframes...<br><br>
-      When M5 M15 H1 H4 D1 W1 all agree<br>
-      + currency strength confirms<br><br>
-      Telegram fires instantly.<br><br>
-      <span style="font-size:10px">M5 · M15 · H1 · H4 · D1 · W1</span>
-    </div>`;
-}
-
-function showGoldenSignal(pair, direction){
-  const dc = direction==='BUY'?'buy':'sell';
-  const da = direction==='BUY'?'▲ BUY':'▼ SELL';
-  document.getElementById('goldenContent').innerHTML = `
-    <div class="golden-card">
-      <div class="golden-star">⭐</div>
-      <div class="golden-label">Golden Signal - 6/6 Timeframes</div>
-      <div class="golden-pair">${pair}</div>
-      <div class="golden-dir ${dc}">${da}</div>
-      <div class="golden-tfs">M5 · M15 · H1 · H4 · D1 · W1</div>
-      <div style="font-size:11px;color:var(--muted)">All 6 timeframes + strength confirmed</div>
-    </div>`;
-}
-
-
-// ═══════════ NON-FOREX TAB ═══════════
-async function renderNonForex(){
-  const c = document.getElementById('nfxContent');
-  if(!window.nfxLoaded){
-    c.innerHTML = `<div style="text-align:center;padding:20px 0 28px;"><div style="font-size:36px;margin-bottom:12px">📡</div><div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.7">Connect to live market data via your MT4 VPS</div><button onclick="loadNonForex()" style="background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:10px;padding:14px 32px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);width:100%">CONNECT TO MARKET</button></div>`;
-    return;
-  }
-  await loadNonForex();
-}
-
-async function loadNonForex(){
-  window.nfxLoaded = true;
-  const c = document.getElementById('nfxContent');
-  c.innerHTML = '<div style="text-align:center;padding:30px;font-size:12px;color:var(--muted);">Loading...</div>';
-  try {
-    const url = 'https://api.jsonbin.io/v3/b/' + JSONBIN_ID + '/latest';
-    const res = await fetch(url, {headers: {'X-Master-Key': JSONBIN_KEY}});
-    const data = await res.json();
-    const nfx = data && data.record && data.record.nonfx;
-    if(!nfx){ c.innerHTML = '<div style="text-align:center;padding:30px;font-size:12px;color:var(--muted);">No data yet.<br>Make sure EA v9 is running.</div>'; return; }
-
-    const metals = ['XAUUSD','XAGUSD'];
-    const indices = ['SPX500','NDX100','US30'];
-    const crypto = ['BTCUSD','ETHUSD','XRPUSD','LTCUSD','SOLUSD'];
-
-    function cardHTML(sym){
-      const d = nfx[sym];
-      if(!d) return '';
-      const dc = d.dir==='BUY'?'buy':'sell';
-      const da = d.dir==='BUY'?'▲ BUY':'▼ SELL';
-      return `<div class="nfx-card ${dc}-card">
-        <div class="nfx-info"><div class="nfx-sym">${sym}</div><div class="nfx-name">${d.name||sym}</div></div>
-        <div class="nfx-dir-badge ${dc}">${da}</div>
-        <div class="nfx-score">${d.score}/100</div>
-      </div>`;
-    }
-
-    let html = '<div class="nfx-section-title">Metals</div>';
-    metals.forEach(s=>{ html += cardHTML(s); });
-    html += '<div class="nfx-section-title">Indices</div>';
-    indices.forEach(s=>{ html += cardHTML(s); });
-    html += '<div class="nfx-section-title">Crypto</div>';
-    crypto.forEach(s=>{ html += cardHTML(s); });
-
-    const ts = data.record.ts;
-    if(ts){ const age=Math.round((Date.now()-ts*1000)/60000); html+=`<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:12px;">Last scan: ${age<60?age+'m ago':Math.round(age/60)+'h ago'}</div>`; }
-    c.innerHTML = html;
-  } catch(e){
-    c.innerHTML = '<div style="text-align:center;padding:30px;font-size:12px;color:var(--muted);">Error loading data.</div>';
-  }
-
 
 async function testTelegram(){
   await sendTelegramAlert(
@@ -2069,7 +1910,7 @@ async function refreshAll(){
     if(badge){ badge.textContent='● NO SIGNAL'; badge.className='api-badge demo'; }
   }
   const active = document.querySelector('.page.active');
-  if(active){ showTab(active.id.replace('tab-','')); } else { renderBestPair(); }
+  if(active){ showTab(active.id.replace('tab-','')); } else { renderIndex(); }
 }
 
 function toggleLive(){
@@ -2089,7 +1930,6 @@ currentScores = getDemoScores();
 setInterval(updateClock,1000);
 updateClock();
 loadLiveData();
-renderBestPair();
 
 async function loadLiveData(){
   const badge = document.getElementById('apiBadge');
@@ -2107,7 +1947,7 @@ async function loadLiveData(){
     if(badge){ badge.textContent='● NO MT4 SIGNAL'; badge.className='api-badge demo'; }
     if(ageEl) ageEl.textContent = 'Is the EA running?';
   }
-  renderBestPair();
+  renderIndex();
 
   // Auto-refresh every 60s in sync with EA
   setInterval(async ()=>{
@@ -2116,7 +1956,7 @@ async function loadLiveData(){
       currentScores = r.scores;
       if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
       if(ageEl) ageEl.textContent = getAgeString(r.ts);
-      renderBestPair();
+      renderIndex();
     }
   }, 60000);
 }
@@ -2134,7 +1974,7 @@ async function reloadData(){
     if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
     if(ageEl) ageEl.textContent = getAgeString(currentScores[0]&&currentScores[0].ts);
   }
-  renderBestPair();
+  renderIndex();
 }
 </script>
 </body>
