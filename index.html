@@ -656,7 +656,7 @@ function showTab(name){
   document.querySelectorAll('.mkt-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   document.getElementById('tb-'+name).classList.add('active');
-  if(name==='index') renderIndex();
+  if(name==='index') renderBestPair();
   if(name==='signals') renderSignals();
   if(name==='forex') renderForex(currentForexFilter);
   if(name==='metals') renderMetals();
@@ -2032,7 +2032,7 @@ async function loadLiveData(){
     if(badge){ badge.textContent='● NO MT4 SIGNAL'; badge.className='api-badge demo'; }
     if(ageEl) ageEl.textContent = 'Is the EA running?';
   }
-  renderIndex();
+  renderBestPair();
 
   // Auto-refresh every 60s in sync with EA
   setInterval(async ()=>{
@@ -2041,7 +2041,7 @@ async function loadLiveData(){
       currentScores = r.scores;
       if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
       if(ageEl) ageEl.textContent = getAgeString(r.ts);
-      renderIndex();
+      renderBestPair();
     }
   }, 60000);
 }
@@ -2059,7 +2059,7 @@ async function reloadData(){
     if(badge){ badge.textContent='● MT4 LIVE'; badge.className='api-badge live'; }
     if(ageEl) ageEl.textContent = getAgeString(currentScores[0]&&currentScores[0].ts);
   }
-  renderIndex();
+  renderBestPair();
 }
 </script>
 </body>
