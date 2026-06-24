@@ -292,6 +292,20 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .bp-no-data{text-align:center;padding:30px;font-size:12px;color:var(--muted);line-height:1.7;}
 .bp-method{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.8;width:100%;}
 .bp-method strong{color:var(--text);}
+
+/* GOLDEN TAB */
+.golden-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:24px 16px;text-align:center;}
+.golden-waiting{font-size:13px;color:var(--muted);line-height:1.8;}
+.golden-card{width:100%;border-radius:16px;padding:32px 24px;background:linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.05));border:2px solid rgba(201,168,76,0.8);text-align:center;animation:goldenPulse 2s infinite;}
+@keyframes goldenPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0.4);}50%{box-shadow:0 0 0 20px rgba(201,168,76,0);}}
+.golden-star{font-size:48px;margin-bottom:12px;}
+.golden-label{font-size:10px;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;margin-bottom:8px;}
+.golden-pair{font-size:48px;font-weight:700;color:#f5d87a;letter-spacing:-1px;margin-bottom:8px;}
+.golden-dir{display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:700;padding:8px 24px;border-radius:8px;margin-bottom:16px;}
+.golden-dir.buy{background:rgba(0,212,170,0.2);color:var(--strong);}
+.golden-dir.sell{background:rgba(224,92,92,0.2);color:var(--weak);}
+.golden-tfs{font-size:12px;color:var(--gold);letter-spacing:0.1em;margin-bottom:8px;}
+.golden-age{font-size:10px;color:var(--muted);margin-top:8px;}
 </style>
 </head>
 <body>
@@ -313,14 +327,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 <div class="market-bar">
   <button class="mkt-btn active" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
-  <button class="mkt-btn" id="tb-signals" onclick="showTab('signals')">⚡ SIGNALS</button>
-  <button class="mkt-btn" id="tb-forex" onclick="showTab('forex')">💱 FOREX</button>
-  <button class="mkt-btn" id="tb-metals" onclick="showTab('metals')">🥇 METALS</button>
-  <button class="mkt-btn" id="tb-indices" onclick="showTab('indices')">📈 INDICES</button>
-  <button class="mkt-btn" id="tb-crypto" onclick="showTab('crypto')">₿ CRYPTO</button>
-  <button class="mkt-btn" id="tb-pivots" onclick="showTab('pivots')">🎯 PIVOTS</button>
-  <button class="mkt-btn" id="tb-check" onclick="showTab('check')">🔍 CHECK</button>
   <button class="mkt-btn" id="tb-bestpair" onclick="showTab('bestpair')" style="color:var(--gold);font-weight:600;">🏆 BEST PAIR</button>
+  <button class="mkt-btn" id="tb-golden" onclick="showTab('golden')" style="color:#f5d87a;font-weight:700;">⭐ GOLDEN</button>
 </div>
 
 <!-- INDEX -->
@@ -399,6 +407,22 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   </div>
 </div>
 
+
+<!-- GOLDEN -->
+<div class="page" id="tab-golden">
+  <div class="golden-wrap">
+    <div id="goldenContent">
+      <div style="font-size:40px;margin-bottom:16px;opacity:0.3">⭐</div>
+      <div class="golden-waiting">
+        Watching all 31 instruments<br>across 6 timeframes...<br><br>
+        When M5 M15 H1 H4 D1 W1 all agree<br>
+        + currency strength confirms<br><br>
+        Telegram fires instantly.<br><br>
+        <span style="font-size:10px">M5 · M15 · H1 · H4 · D1 · W1</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- BEST PAIR -->
 <div class="page" id="tab-bestpair">
@@ -641,6 +665,7 @@ function showTab(name){
   if(name==='pivots') fetchPricesFromTelegram().then(()=>renderPivots());
   if(name==='check') renderCheck();
   if(name==='bestpair') renderBestPair();
+  if(name==='golden') renderGolden();
 }
 
 // ═══════════ INDEX TAB ═══════════
@@ -1799,6 +1824,17 @@ function renderBestPairCards(data){
   });
   html+='</div>';
   if(data.ts){const age=Math.round((Date.now()-data.ts)/60000);html+=`<div class="bp-timestamp">Last scan: ${age<60?age+'m ago':Math.round(age/60)+'h ago'}</div>`;}
+  // NON-FOREX
+  const nfxPairs=['XAUUSD','NAS100','BTCUSD'];
+  html+='<div style="width:100%;margin-top:16px;"><div style="font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:10px;">Non-Forex</div><div style="display:flex;flex-direction:column;gap:8px;">';
+  nfxPairs.forEach(sym=>{
+    const nfScore=data.nfx&&data.nfx[sym];
+    const dir=nfScore?nfScore.dir:'--';
+    const score=nfScore?nfScore.score:'--';
+    const dc=dir==='BUY'?'var(--strong)':dir==='SELL'?'var(--weak)':'var(--muted)';
+    html+=`<div style="border-radius:10px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;"><div style="font-size:16px;font-weight:700;color:var(--text)">${sym}</div><div style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:5px;background:${dir==='BUY'?'rgba(0,212,170,0.15)':'rgba(224,92,92,0.15)'};color:${dc}">${dir==='BUY'?'▲':'▼'} ${dir}</div><div style="font-size:12px;color:var(--muted)">${score}/100</div></div>`;
+  });
+  html+='</div></div>';
   c.innerHTML=html;
 }
 
@@ -1830,6 +1866,55 @@ function calcBestPairFromIndexOnly(){
   });
   opps.sort((a,b)=>b.score-a.score);
   return{pairs:opps.slice(0,5).map((p,i)=>({...p,rank:i+1})),ts:Date.now()};
+}
+
+
+// ═══════════ GOLDEN TAB ═══════════
+async function renderGolden(){
+  const c = document.getElementById('goldenContent');
+  c.innerHTML = '<div style="color:var(--muted);font-size:12px;">Checking...</div>';
+  try {
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!data.ok){ showGoldenWaiting(); return; }
+    const updates = [...(data.result||[])].reverse();
+    for(const upd of updates){
+      const text = upd&&upd.message&&upd.message.text ? upd.message.text : '';
+      if(!text.startsWith('DASHBOX GOLDEN SIGNAL')) continue;
+      const lines = text.split('\n').filter(l=>l.trim());
+      const pairLine = lines[1]||'';
+      const parts = pairLine.split(' - ');
+      if(parts.length>=2){ showGoldenSignal(parts[0].trim(), parts[1].trim()); return; }
+    }
+    showGoldenWaiting();
+  } catch(e){ showGoldenWaiting(); }
+}
+
+function showGoldenWaiting(){
+  document.getElementById('goldenContent').innerHTML = `
+    <div style="font-size:40px;margin-bottom:16px;opacity:0.3">⭐</div>
+    <div class="golden-waiting">
+      Watching all 31 instruments<br>across 6 timeframes...<br><br>
+      When M5 M15 H1 H4 D1 W1 all agree<br>
+      + currency strength confirms<br><br>
+      Telegram fires instantly.<br><br>
+      <span style="font-size:10px">M5 · M15 · H1 · H4 · D1 · W1</span>
+    </div>`;
+}
+
+function showGoldenSignal(pair, direction){
+  const dc = direction==='BUY'?'buy':'sell';
+  const da = direction==='BUY'?'▲ BUY':'▼ SELL';
+  document.getElementById('goldenContent').innerHTML = `
+    <div class="golden-card">
+      <div class="golden-star">⭐</div>
+      <div class="golden-label">Golden Signal - 6/6 Timeframes</div>
+      <div class="golden-pair">${pair}</div>
+      <div class="golden-dir ${dc}">${da}</div>
+      <div class="golden-tfs">M5 · M15 · H1 · H4 · D1 · W1</div>
+      <div style="font-size:11px;color:var(--muted)">All 6 timeframes + strength confirmed</div>
+    </div>`;
 }
 
 async function testTelegram(){
