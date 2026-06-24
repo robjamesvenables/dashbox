@@ -563,43 +563,6 @@ async function fetchPricesFromTelegram(){
 function getPrice(sym){ return LIVE_PRICES[sym] || DEMO_PRICES[sym] || 0; }
 
 // Live prices from MT4 via Telegram — overrides demo when available
-let LIVE_PRICES = {};
-
-function parsePricesSection(section){
-  const parts = section.split('|');
-  const prices = {};
-  parts.forEach(p => {
-    if(!p || p === 'DASHBOX_PRICES' || p.startsWith('ts:')) return;
-    const idx = p.indexOf(':');
-    if(idx > 0){ prices[p.substring(0,idx)] = parseFloat(p.substring(idx+1)); }
-  });
-  if(Object.keys(prices).length > 0) LIVE_PRICES = prices;
-}
-
-async function fetchPricesFromTelegram(){
-  try {
-    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if(!data.ok) return;
-    const updates = [...(data.result||[])].reverse();
-    for(const upd of updates){
-      const text = upd && upd.message && upd.message.text ? upd.message.text : '';
-      // Handle combined message format
-      if(text.startsWith('DASHBOX_SCORES') && text.includes('||DASHBOX_PRICES')){
-        parsePricesSection(text.split('||DASHBOX_PRICES')[1]);
-        break;
-      }
-      // Handle legacy separate DASHBOX_PRICES message
-      if(text.startsWith('DASHBOX_PRICES')){
-        parsePricesSection(text);
-        break;
-      }
-    }
-  } catch(e){ console.log('Price fetch error:', e.message); }
-}
-
-function getPrice(sym){ return LIVE_PRICES[sym] || DEMO_PRICES[sym] || 0; }
 
 const RANK_COLORS=['#00a86b','#00d4aa','#4ade80','#facc15','#f97316','#f87171','#dc2626','#7f1d1d'];
 
