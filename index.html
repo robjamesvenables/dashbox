@@ -254,6 +254,44 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .check-point{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.5;color:var(--text);}
 .check-point-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
 
+
+/* BEST PAIR */
+.bp-splash{display:flex;flex-direction:column;align-items:center;padding:24px 16px 16px;}
+.bp-title{font-size:11px;letter-spacing:0.18em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.bp-subtitle{font-size:12px;color:var(--muted);margin-bottom:24px;text-align:center;line-height:1.5;}
+.bp-scan-btn{background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);box-shadow:0 4px 24px rgba(201,168,76,0.3);transition:all 0.2s;margin-bottom:28px;}
+.bp-scan-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.bp-scanning{text-align:center;padding:20px;font-size:12px;color:var(--muted);}
+.bp-scanning-dots{display:flex;justify-content:center;gap:6px;margin-top:12px;}
+.bp-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:typingDot 1.2s infinite;}
+.bp-dot:nth-child(2){animation-delay:0.2s;}.bp-dot:nth-child(3){animation-delay:0.4s;}
+.bp-results{width:100%;display:flex;flex-direction:column;gap:12px;}
+.bp-card{border-radius:12px;padding:18px 18px 16px;position:relative;overflow:hidden;}
+.bp-card.rank-1{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05));border:1.5px solid rgba(201,168,76,0.6);}
+.bp-card.rank-2{background:linear-gradient(135deg,rgba(160,160,180,0.12),rgba(160,160,180,0.04));border:1px solid rgba(160,160,180,0.4);}
+.bp-card.rank-3{background:linear-gradient(135deg,rgba(180,120,80,0.12),rgba(180,120,80,0.04));border:1px solid rgba(180,120,80,0.35);}
+.bp-rank-badge{position:absolute;top:14px;right:14px;font-size:22px;}
+.bp-pair-name{font-size:28px;font-weight:700;color:#e8ecf4;letter-spacing:-0.5px;margin-bottom:4px;}
+.bp-card.rank-1 .bp-pair-name{color:#f5d87a;}
+.bp-direction{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;margin-bottom:12px;}
+.bp-direction.buy{background:rgba(0,212,170,0.15);color:var(--strong);}
+.bp-direction.sell{background:rgba(224,92,92,0.15);color:var(--weak);}
+.bp-score-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.bp-score-bar-wrap{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.bp-score-bar{height:100%;border-radius:3px;}
+.rank-1 .bp-score-bar{background:linear-gradient(90deg,#c9a84c,#f5d87a);}
+.rank-2 .bp-score-bar{background:linear-gradient(90deg,#a0a0b4,#c8c8d8);}
+.rank-3 .bp-score-bar{background:linear-gradient(90deg,#b47850,#d49870);}
+.bp-score-num{font-size:13px;font-weight:700;color:var(--text);min-width:40px;text-align:right;}
+.bp-factors{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.bp-factor{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px;text-align:center;}
+.bp-factor-label{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
+.bp-factor-val{font-size:11px;font-weight:600;}
+.bp-factor-val.pos{color:var(--strong);}.bp-factor-val.neg{color:var(--weak);}.bp-factor-val.neu{color:var(--neutral);}
+.bp-timestamp{font-size:10px;color:var(--muted);text-align:center;margin-top:8px;}
+.bp-no-data{text-align:center;padding:30px;font-size:12px;color:var(--muted);line-height:1.7;}
+.bp-method{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.8;width:100%;}
+.bp-method strong{color:var(--text);}
 </style>
 </head>
 <body>
@@ -358,6 +396,18 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
       <div class="modal-title" id="modalTitle">--</div>
     </div>
     <div class="modal-body" id="modalBody"><div class="loading">Analysing...</div></div>
+  </div>
+</div>
+
+
+<!-- BEST PAIR -->
+<div class="page" id="tab-bestpair">
+  <div class="bp-splash">
+    <div class="bp-title">Best Pair of the Day</div>
+    <div class="bp-subtitle">Currency Strength + EMA + RSI + MACD + ADX<br>D1 &amp; H4 · All 28 Pairs Ranked</div>
+    <button class="bp-scan-btn" id="bpScanBtn" style="display:none">SCAN</button>
+    <div id="bpResults" style="width:100%"></div>
+    <div class="bp-method"><strong>Formula:</strong> Strength (40pts) + Bonus (5pts) + Confluence (55pts)<br><strong>Uses:</strong> EMA 20/50 · RSI 14 · MACD · ADX&ge;20 · D1+H4</div>
   </div>
 </div>
 
@@ -590,6 +640,7 @@ function showTab(name){
   if(name==='crypto') { fetchCryptoPrices().then(()=>renderCrypto()); }
   if(name==='pivots') fetchPricesFromTelegram().then(()=>renderPivots());
   if(name==='check') renderCheck();
+  if(name==='bestpair') renderBestPair();
 }
 
 // ═══════════ INDEX TAB ═══════════
@@ -1650,6 +1701,135 @@ async function runAnalysis(){
 
   btn.disabled = false;
   btn.textContent = '⚡ Analyse Chart';
+}
+
+
+// BEST PAIR
+const JSONBIN_ID = '6a2f6bf4f5f4af5e29f2bdc9';
+const JSONBIN_KEY = '$2a$10$d0.NsjXsDQakZVLZnl4Lcuv1yl9POT37dx2yf4GzHZOWZxYk/JAya';
+let bestPairData = null;
+
+function renderBestPair(){
+  showBestPairStep1();
+}
+
+function showBestPairStep1(){
+  const c = document.getElementById('bpResults');
+  c.innerHTML = `
+    <div style="text-align:center;padding:20px 0 28px;">
+      <div style="font-size:36px;margin-bottom:12px">📡</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.7">Connect to live market data<br>via your MT4 VPS</div>
+      <button onclick="connectToMarket()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 32px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);width:100%">
+        CONNECT TO MARKET
+      </button>
+    </div>`;
+}
+
+async function connectToMarket(){
+  const c = document.getElementById('bpResults');
+  c.innerHTML = '<div class="bp-scanning">Connecting...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
+  const data = await fetchBestPairFromJsonbin();
+  if(data){
+    bestPairData = data;
+    const age = data.ts ? Math.round((Date.now()-data.ts)/60000) : null;
+    const ageStr = age!==null ? (age<60?age+'m ago':Math.round(age/60)+'h ago') : '';
+    c.innerHTML = `
+      <div style="text-align:center;padding:16px 0 24px;">
+        <div style="font-size:11px;color:var(--strong);letter-spacing:0.1em;margin-bottom:4px">CONNECTED - LIVE DATA</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:24px">Last EA scan: ${ageStr}</div>
+        <button onclick="runBestPairScan()" style="background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);box-shadow:0 4px 24px rgba(201,168,76,0.3);width:100%">
+          FIND BEST SETUP
+        </button>
+      </div>`;
+  } else {
+    const fallback = calcBestPairFromIndexOnly();
+    bestPairData = fallback;
+    c.innerHTML = `
+      <div style="text-align:center;padding:16px 0 24px;">
+        <div style="font-size:11px;color:var(--neutral);letter-spacing:0.1em;margin-bottom:4px">INDEX DATA ONLY</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:24px">EA not connected</div>
+        <button onclick="runBestPairScan()" style="background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);box-shadow:0 4px 24px rgba(201,168,76,0.3);width:100%">
+          FIND BEST SETUP
+        </button>
+      </div>`;
+  }
+}
+
+async function fetchBestPairFromJsonbin(){
+  try{
+    const url='https://api.jsonbin.io/v3/b/'+JSONBIN_ID+'/latest';
+    const res=await fetch(url,{headers:{'X-Master-Key':JSONBIN_KEY}});
+    const data=await res.json();
+    const bp=data&&data.record&&data.record.bestpair;
+    const ts=data&&data.record&&data.record.ts;
+    if(!bp) return null;
+    const pairs=[];
+    ['p1','p2','p3','p4','p5'].forEach((k,i)=>{
+      if(!bp[k]) return;
+      const pair=bp[k].pair, direction=bp[k].dir, score=bp[k].score;
+      if(!pair||pair.length<6) return;
+      const base=pair.substring(0,3), quote=pair.substring(3,6);
+      const baseScore=(currentScores.find(s=>s.code===base)||{score:0}).score;
+      const quoteScore=(currentScores.find(s=>s.code===quote)||{score:0}).score;
+      pairs.push({rank:i+1,pair,direction,score,base,quote,baseScore,quoteScore});
+    });
+    if(pairs.length===0) return null;
+    return{pairs,ts:ts?ts*1000:Date.now()};
+  }catch(e){return null;}
+}
+
+function renderBestPairCards(data){
+  const c=document.getElementById('bpResults');
+  const medals=['1.','2.','3.','4.','5.'],rc=['rank-1','rank-2','rank-3','rank-3','rank-3'];
+  let html='<div class="bp-results">';
+  data.pairs.forEach((p,i)=>{
+    const dc=p.direction==='BUY'?'buy':'sell',da=p.direction==='BUY'?'BUY':'SELL';
+    const bc=p.baseScore>=0?'pos':'neg',qc=p.quoteScore>=0?'pos':'neg';
+    const diff=Math.abs(p.baseScore-p.quoteScore).toFixed(1);
+    html+=`<div class="bp-card ${rc[i]}">
+      <div class="bp-rank-badge">${medals[i]}</div>
+      <div class="bp-pair-name">${p.pair}</div>
+      <div class="bp-direction ${dc}">${da}</div>
+      <div class="bp-score-row"><div class="bp-score-bar-wrap"><div class="bp-score-bar" style="width:${p.score}%"></div></div><div class="bp-score-num">${p.score}<span style="font-size:9px;color:var(--muted)">/100</span></div></div>
+      <div class="bp-factors">
+        <div class="bp-factor"><div class="bp-factor-label">${p.base} Str</div><div class="bp-factor-val ${bc}">${p.baseScore>=0?'+':''}${(p.baseScore||0).toFixed(1)}</div></div>
+        <div class="bp-factor"><div class="bp-factor-label">${p.quote} Str</div><div class="bp-factor-val ${qc}">${p.quoteScore>=0?'+':''}${(p.quoteScore||0).toFixed(1)}</div></div>
+        <div class="bp-factor"><div class="bp-factor-label">Diff</div><div class="bp-factor-val neu">${diff}pt</div></div>
+      </div></div>`;
+  });
+  html+='</div>';
+  if(data.ts){const age=Math.round((Date.now()-data.ts)/60000);html+=`<div class="bp-timestamp">Last scan: ${age<60?age+'m ago':Math.round(age/60)+'h ago'}</div>`;}
+  c.innerHTML=html;
+}
+
+async function runBestPairScan(){
+  const c=document.getElementById('bpResults');
+  c.innerHTML='<div class="bp-scanning">Scanning...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
+  await new Promise(r=>setTimeout(r,1200));
+  if(bestPairData&&bestPairData.pairs&&bestPairData.pairs.length>0){
+    renderBestPairCards(bestPairData);
+  } else {
+    const fb=calcBestPairFromIndexOnly();
+    if(fb){bestPairData=fb;renderBestPairCards(fb);}
+    else{c.innerHTML='<div class="bp-no-data">No data available.</div>';}
+  }
+}
+
+function calcBestPairFromIndexOnly(){
+  if(!currentScores||currentScores.length<2)return null;
+  const opps=[];
+  ['EURUSD','GBPUSD','AUDUSD','NZDUSD','USDCAD','USDCHF','USDJPY','EURJPY','GBPJPY','AUDJPY','NZDJPY','CADJPY','CHFJPY','EURGBP','EURAUD','EURNZD','EURCAD','EURCHF','GBPAUD','GBPNZD','GBPCAD','GBPCHF','AUDNZD','AUDCAD','AUDCHF','NZDCAD','NZDCHF','CADCHF'].forEach(pair=>{
+    const base=pair.substring(0,3),quote=pair.substring(3,6);
+    const bs=currentScores.find(s=>s.code===base),qs=currentScores.find(s=>s.code===quote);
+    if(!bs||!qs)return;
+    const diff=bs.score-qs.score,direction=diff>0?'BUY':'SELL';
+    let score=Math.min(Math.round(Math.abs(diff)*4),40);
+    if(diff>0&&bs.score>0&&qs.score<0)score+=5;
+    if(diff<0&&bs.score<0&&qs.score>0)score+=5;
+    opps.push({pair,base,quote,direction,score,baseScore:bs.score,quoteScore:qs.score});
+  });
+  opps.sort((a,b)=>b.score-a.score);
+  return{pairs:opps.slice(0,5).map((p,i)=>({...p,rank:i+1})),ts:Date.now()};
 }
 
 async function testTelegram(){
