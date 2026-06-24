@@ -254,56 +254,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .check-point{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.5;color:var(--text);}
 .check-point-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
 
-
-/* BEST PAIR */
-.bp-splash{display:flex;flex-direction:column;align-items:center;padding:24px 16px 16px;}
-.bp-title{font-size:11px;letter-spacing:0.18em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
-.bp-subtitle{font-size:12px;color:var(--muted);margin-bottom:24px;text-align:center;line-height:1.5;}
-.bp-scan-btn{background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);box-shadow:0 4px 24px rgba(201,168,76,0.3);transition:all 0.2s;margin-bottom:28px;}
-.bp-scan-btn:disabled{opacity:0.5;cursor:not-allowed;}
-.bp-scanning{text-align:center;padding:20px;font-size:12px;color:var(--muted);}
-.bp-scanning-dots{display:flex;justify-content:center;gap:6px;margin-top:12px;}
-.bp-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:typingDot 1.2s infinite;}
-.bp-dot:nth-child(2){animation-delay:0.2s;}.bp-dot:nth-child(3){animation-delay:0.4s;}
-.bp-results{width:100%;display:flex;flex-direction:column;gap:12px;}
-.bp-card{border-radius:12px;padding:18px 18px 16px;position:relative;overflow:hidden;}
-.bp-card.rank-1{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05));border:1.5px solid rgba(201,168,76,0.6);}
-.bp-card.rank-2{background:linear-gradient(135deg,rgba(160,160,180,0.12),rgba(160,160,180,0.04));border:1px solid rgba(160,160,180,0.4);}
-.bp-card.rank-3{background:linear-gradient(135deg,rgba(180,120,80,0.12),rgba(180,120,80,0.04));border:1px solid rgba(180,120,80,0.35);}
-.bp-rank-badge{position:absolute;top:14px;right:14px;font-size:22px;}
-.bp-pair-name{font-size:28px;font-weight:700;color:#e8ecf4;letter-spacing:-0.5px;margin-bottom:4px;}
-.bp-card.rank-1 .bp-pair-name{color:#f5d87a;}
-.bp-direction{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;margin-bottom:12px;}
-.bp-direction.buy{background:rgba(0,212,170,0.15);color:var(--strong);}
-.bp-direction.sell{background:rgba(224,92,92,0.15);color:var(--weak);}
-.bp-score-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
-.bp-score-bar-wrap{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
-.bp-score-bar{height:100%;border-radius:3px;}
-.rank-1 .bp-score-bar{background:linear-gradient(90deg,#c9a84c,#f5d87a);}
-.rank-2 .bp-score-bar{background:linear-gradient(90deg,#a0a0b4,#c8c8d8);}
-.rank-3 .bp-score-bar{background:linear-gradient(90deg,#b47850,#d49870);}
-.bp-score-num{font-size:13px;font-weight:700;color:var(--text);min-width:40px;text-align:right;}
-.bp-factors{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-.bp-factor{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px;text-align:center;}
-.bp-factor-label{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
-.bp-factor-val{font-size:11px;font-weight:600;}
-.bp-factor-val.pos{color:var(--strong);}.bp-factor-val.neg{color:var(--weak);}.bp-factor-val.neu{color:var(--neutral);}
-.bp-timestamp{font-size:10px;color:var(--muted);text-align:center;margin-top:8px;}
-.bp-no-data{text-align:center;padding:30px;font-size:12px;color:var(--muted);line-height:1.7;}
-.bp-method{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.8;width:100%;}
-.bp-method strong{color:var(--text);}
-
-
-/* NON-FOREX SECTION */
-.nfx-section{width:100%;margin-top:16px;}
-.nfx-title{font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:10px;}
-.nfx-cards{display:flex;flex-direction:column;gap:8px;}
-.nfx-card{border-radius:10px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.nfx-pair{font-size:16px;font-weight:700;color:var(--text);}
-.nfx-dir{font-size:11px;font-weight:700;padding:3px 10px;border-radius:5px;}
-.nfx-dir.buy{background:rgba(0,212,170,0.15);color:var(--strong);}
-.nfx-dir.sell{background:rgba(224,92,92,0.15);color:var(--weak);}
-.nfx-score{font-size:12px;color:var(--muted);}
 </style>
 </head>
 <body>
@@ -332,7 +282,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   <button class="mkt-btn" id="tb-crypto" onclick="showTab('crypto')">₿ CRYPTO</button>
   <button class="mkt-btn" id="tb-pivots" onclick="showTab('pivots')">🎯 PIVOTS</button>
   <button class="mkt-btn" id="tb-check" onclick="showTab('check')">🔍 CHECK</button>
-  <button class="mkt-btn" id="tb-bestpair" onclick="showTab('bestpair')" style="color:var(--gold);font-weight:600;">🏆 BEST PAIR</button>
 </div>
 
 <!-- INDEX -->
@@ -346,42 +295,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   <div class="sl">Currency Strength Index — MT4 Live</div>
   <div class="chart-wrap"><canvas id="barChart" width="340" height="300"></canvas></div>
   <div class="index-legend" id="indexLegend"></div>
-</div>
-
-<!-- SIGNALS -->
-<div class="page" id="tab-signals">
-  <div class="sl">Best Setups — All Markets</div>
-  <div id="signalList"></div>
-</div>
-
-<!-- FOREX -->
-<div class="page" id="tab-forex">
-  <div class="filters">
-    <button class="filt-btn active" onclick="filterMarket('forex','all',this)">ALL</button>
-    <button class="filt-btn" onclick="filterMarket('forex','buy',this)">BUY</button>
-    <button class="filt-btn" onclick="filterMarket('forex','sell',this)">SELL</button>
-    <button class="filt-btn" onclick="filterMarket('forex','strong',this)">STRONG</button>
-    <span class="item-count" id="forexCount">-- pairs</span>
-  </div>
-  <div class="market-grid" id="forexList"></div>
-</div>
-
-<!-- METALS -->
-<div class="page" id="tab-metals">
-  <div class="sl">Metals — XAU · XAG</div>
-  <div class="market-grid" id="metalsList"></div>
-</div>
-
-<!-- INDICES -->
-<div class="page" id="tab-indices">
-  <div class="sl">Global Indices</div>
-  <div class="market-grid" id="indicesList"></div>
-</div>
-
-<!-- CRYPTO -->
-<div class="page" id="tab-crypto">
-  <div class="sl">Crypto — Top Pairs</div>
-  <div class="market-grid" id="cryptoList"></div>
 </div>
 
 <!-- PIVOTS -->
@@ -401,55 +314,14 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   <div id="pivotList"></div>
 </div>
 
-
-<!-- BEST PAIR -->
-<div class="page" id="tab-bestpair">
-  <div class="bp-splash">
-    <div class="bp-title">Best Pair of the Day</div>
-    <div class="bp-subtitle">Currency Strength + EMA + RSI + MACD + ADX<br>D1 &amp; H4 · All 28 Pairs Ranked</div>
-    <button class="bp-scan-btn" id="bpScanBtn" onclick="runBestPairScan()">&#9889; SCAN MARKET</button>
-    <div id="bpResults" style="width:100%"></div>
-    <div class="bp-method"><strong>Formula:</strong> Strength (40pts) + Bonus (5pts) + Confluence (55pts)<br><strong>Uses:</strong> EMA 20/50 · RSI 14 · MACD · ADX&ge;20 · D1+H4</div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="modal-back" onclick="closeModal()">←</button>
+      <div class="modal-title" id="modalTitle">--</div>
+    </div>
+    <div class="modal-body" id="modalBody"><div class="loading">Analysing...</div></div>
   </div>
-</div>
-
-<!-- CHECK -->
-<div class="page" id="tab-check">
-  <div class="check-upload-area" id="checkUploadArea" 
-    onclick="document.getElementById('checkFileInput').click()"
-    ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
-    ondragleave="this.style.borderColor=''"
-    ondrop="event.preventDefault();handleChartUpload({target:{files:event.dataTransfer.files}});this.style.borderColor=''">
-    <div class="check-upload-icon">📊</div>
-    <div class="check-upload-title">Upload Chart Screenshot</div>
-    <div class="check-upload-sub">Tap to upload or drag & drop any chart from MT4, TradingView or your broker.<br>Works for open trades or new setups.</div>
-  </div>
-  <input type="file" id="checkFileInput" accept="image/*" style="display:none" onchange="handleChartUpload(event)">
-  <img id="checkPreview" class="check-preview">
-  <div class="check-options" id="checkOptions" style="display:none">
-    <div class="check-option selected" id="opt-trade" onclick="selectCheckOption('trade')">
-      <div class="check-option-icon">📋</div>
-      <div class="check-option-label">Open Trade</div>
-      <div class="check-option-sub">Hold, close or watch?</div>
-    </div>
-    <div class="check-option" id="opt-setup" onclick="selectCheckOption('setup')">
-      <div class="check-option-icon">🎯</div>
-      <div class="check-option-label">New Setup</div>
-      <div class="check-option-sub">Should I take this trade?</div>
-    </div>
-    <div class="check-option" id="opt-level" onclick="selectCheckOption('level')">
-      <div class="check-option-icon">📍</div>
-      <div class="check-option-label">Key Level</div>
-      <div class="check-option-sub">Is this a strong level?</div>
-    </div>
-    <div class="check-option" id="opt-general" onclick="selectCheckOption('general')">
-      <div class="check-option-icon">💬</div>
-      <div class="check-option-label">General</div>
-      <div class="check-option-sub">What do you see?</div>
-    </div>
-  </div>
-  <button class="check-analyse-btn" id="checkAnalyseBtn" disabled onclick="runAnalysis()">⚡ Analyse Chart</button>
-  <div class="check-result" id="checkResult"></div>
 </div>
 
 <!-- MODAL -->
@@ -469,8 +341,6 @@ let liveMode = true;
 const TWELVE_KEY = '21ecfbc0db824df8bb8007785b10fe95';
 const TELEGRAM_TOKEN = '8500092691:AAHX_wIqo2p9qXOTe0RL-etw_41R1Q2bZXQ';
 const TELEGRAM_CHAT_ID = '8361135939';
-const JSONBIN_ID = '6a2f6bf4f5f4af5e29f2bdc9';
-const JSONBIN_KEY = '$2a$10$d0.NsjXsDQakZVLZnl4Lcuv1yl9POT37dx2yf4GzHZOWZxYk/JAya';
 
 async function sendTelegramAlert(message){
   try {
@@ -617,7 +487,44 @@ async function fetchPricesFromTelegram(){
 
 function getPrice(sym){ return LIVE_PRICES[sym] || DEMO_PRICES[sym] || 0; }
 
+// Live prices from MT4 via Telegram — overrides demo when available
+let LIVE_PRICES = {};
 
+function parsePricesSection(section){
+  const parts = section.split('|');
+  const prices = {};
+  parts.forEach(p => {
+    if(!p || p === 'DASHBOX_PRICES' || p.startsWith('ts:')) return;
+    const idx = p.indexOf(':');
+    if(idx > 0){ prices[p.substring(0,idx)] = parseFloat(p.substring(idx+1)); }
+  });
+  if(Object.keys(prices).length > 0) LIVE_PRICES = prices;
+}
+
+async function fetchPricesFromTelegram(){
+  try {
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!data.ok) return;
+    const updates = [...(data.result||[])].reverse();
+    for(const upd of updates){
+      const text = upd && upd.message && upd.message.text ? upd.message.text : '';
+      // Handle combined message format
+      if(text.startsWith('DASHBOX_SCORES') && text.includes('||DASHBOX_PRICES')){
+        parsePricesSection(text.split('||DASHBOX_PRICES')[1]);
+        break;
+      }
+      // Handle legacy separate DASHBOX_PRICES message
+      if(text.startsWith('DASHBOX_PRICES')){
+        parsePricesSection(text);
+        break;
+      }
+    }
+  } catch(e){ console.log('Price fetch error:', e.message); }
+}
+
+function getPrice(sym){ return LIVE_PRICES[sym] || DEMO_PRICES[sym] || 0; }
 
 const RANK_COLORS=['#00a86b','#00d4aa','#4ade80','#facc15','#f97316','#f87171','#dc2626','#7f1d1d'];
 
@@ -644,7 +551,6 @@ function showTab(name){
   if(name==='crypto') { fetchCryptoPrices().then(()=>renderCrypto()); }
   if(name==='pivots') fetchPricesFromTelegram().then(()=>renderPivots());
   if(name==='check') renderCheck();
-  if(name==='bestpair') renderBestPair();
 }
 
 // ═══════════ INDEX TAB ═══════════
@@ -1708,181 +1614,55 @@ async function runAnalysis(){
 }
 
 
-// ═══════════ BEST PAIR ═══════════
-let bestPairData = null;
-function renderBestPair(){
-  // Always show step 1 first
-  showBestPairStep1();
+// ═══════════ GOLDEN TAB ═══════════
+async function renderGolden(){
+  const content = document.getElementById('goldenContent');
+  content.innerHTML = '<div style="color:var(--muted);font-size:12px;">Checking for golden signal...</div>';
+  try {
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!data.ok){ showGoldenWaiting(); return; }
+    const updates = [...(data.result||[])].reverse();
+    for(const upd of updates){
+      const text = upd?.message?.text || '';
+      if(!text.startsWith('DASHBOX GOLDEN SIGNAL')) continue;
+      const lines = text.split('\n').filter(l=>l.trim());
+      const pairLine = lines[1] || '';
+      const parts = pairLine.split(' - ');
+      if(parts.length >= 2){
+        showGoldenSignal(parts[0].trim(), parts[1].trim(), null);
+        return;
+      }
+    }
+    showGoldenWaiting();
+  } catch(e){ showGoldenWaiting(); }
 }
 
-function showBestPairStep1(){
-  const btn = document.getElementById('bpScanBtn');
-  const c = document.getElementById('bpResults');
-  btn.style.display = 'none';
-  c.innerHTML = `
-    <div style="text-align:center;padding:20px 0 28px;">
-      <div style="font-size:36px;margin-bottom:12px">📡</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.7">
-        Connect to live market data<br>via your MT4 VPS
-      </div>
-      <button onclick="connectToMarket()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 32px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);transition:all 0.2s;width:100%">
-        ⚡ CONNECT TO MARKET
-      </button>
+function showGoldenWaiting(){
+  document.getElementById('goldenContent').innerHTML = `
+    <div style="font-size:40px;margin-bottom:16px;opacity:0.3">⭐</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.8">
+      Watching all 31 instruments<br>across 6 timeframes...<br><br>
+      When M5 M15 H1 H4 D1 W1 all agree<br>
+      + currency strength confirms<br><br>
+      Telegram fires instantly.<br><br>
+      <span style="font-size:10px">M5 · M15 · H1 · H4 · D1 · W1</span>
     </div>`;
 }
 
-async function connectToMarket(){
-  const c = document.getElementById('bpResults');
-  c.innerHTML = '<div class="bp-scanning">Connecting...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
-  
-  const data = await fetchBestPairFromTelegram();
-  
-  if(data){
-    bestPairData = data;
-    const age = data.ts ? Math.round((Date.now()-data.ts)/60000) : null;
-    const ageStr = age!==null ? (age<60?age+'m ago':Math.round(age/60)+'h ago') : '';
-    c.innerHTML = `
-      <div style="text-align:center;padding:16px 0 24px;">
-        <div style="font-size:11px;color:var(--strong);letter-spacing:0.1em;margin-bottom:4px">✅ CONNECTED — LIVE DATA</div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:24px">Last EA scan: ${ageStr}</div>
-        <button onclick="runBestPairScan()" style="background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);box-shadow:0 4px 24px rgba(201,168,76,0.3);width:100%">
-          🔍 FIND BEST SETUP
-        </button>
-      </div>`;
-  } else {
-    const fallback = calcBestPairFromIndexOnly();
-    bestPairData = fallback;
-    c.innerHTML = `
-      <div style="text-align:center;padding:16px 0 24px;">
-        <div style="font-size:11px;color:var(--neutral);letter-spacing:0.1em;margin-bottom:4px">⚠ INDEX DATA ONLY</div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:24px">EA not connected — using currency strength only</div>
-        <button onclick="runBestPairScan()" style="background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);box-shadow:0 4px 24px rgba(201,168,76,0.3);width:100%">
-          🔍 FIND BEST SETUP
-        </button>
-      </div>`;
-  }
-}
-
-async function tryLoadBestPairFromTelegram(){
-  const c=document.getElementById('bpResults');
-  c.innerHTML='<div class="bp-scanning">Looking for latest scan...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
-  const d=await fetchBestPairFromTelegram();
-  if(d){bestPairData=d;renderBestPairCards(d);}
-  else{c.innerHTML='<div class="bp-no-data">No scan yet.<br>Tap <b>CONNECT TO MARKET</b> to start.</div>';}
-}
-async function fetchBestPairFromTelegram(){
-  try{
-    const url=`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
-    const res=await fetch(url,{headers:{'X-Master-Key':JSONBIN_KEY}});
-    const data=await res.json();
-    const bp=data?.record?.bestpair;
-    const ts=data?.record?.ts;
-    if(!bp) return null;
-    const pairs=[];
-    ['p1','p2','p3','p4','p5'].forEach((k,i)=>{
-      if(!bp[k]) return;
-      const pair=bp[k].pair, direction=bp[k].dir, score=bp[k].score;
-      if(!pair||pair.length<6) return;
-      const base=pair.substring(0,3), quote=pair.substring(3,6);
-      const baseScore=(currentScores.find(s=>s.code===base)||{score:0}).score;
-      const quoteScore=(currentScores.find(s=>s.code===quote)||{score:0}).score;
-      pairs.push({rank:i+1,pair,direction,score,base,quote,baseScore,quoteScore});
-    });
-    if(pairs.length===0) return null;
-    
-    // Extract non-forex from p4/p5 if they are XAUUSD/NAS100/BTCUSD
-    // Or read from dedicated nonforex keys
-    const nonForex=[];
-    const nfxKeys=['nf1','nf2','nf3'];
-    nfxKeys.forEach((k,i)=>{
-      if(!bp[k]) return;
-      const pair=bp[k].pair,direction=bp[k].dir,score=bp[k].score;
-      if(!pair) return;
-      nonForex.push({pair,direction,score});
-    });
-    
-    return{pairs,ts:ts?ts*1000:Date.now(),nonForex};
-  }catch(e){console.log('Jsonbin fetch error:',e);return null;}
-}
-function parseBestPairMessage(text){
-  const parts=text.split('|');const pairs=[];let ts=null;
-  parts.forEach(p=>{
-    if(p==='DASHBOX_BESTPAIR')return;
-    if(p.startsWith('ts:')){ts=parseInt(p.split(':')[1])*1000;return;}
-    const segs=p.split(':');
-    if(segs.length>=4){
-      const pair=segs[1];if(!pair||pair.length!==6)return;
-      const base=pair.substring(0,3),quote=pair.substring(3,6);
-      const baseScore=(currentScores.find(s=>s.code===base)||{score:0}).score;
-      const quoteScore=(currentScores.find(s=>s.code===quote)||{score:0}).score;
-      pairs.push({rank:parseInt(segs[0]),pair,direction:segs[2],score:parseInt(segs[3]),base,quote,baseScore,quoteScore});
-    }
-  });
-  if(pairs.length===0)return null;
-  return{pairs,ts};
-}
-function renderBestPairCards(data){
-  const c=document.getElementById('bpResults');
-  const medals=['🥇','🥈','🥉','4️⃣','5️⃣'],rc=['rank-1','rank-2','rank-3','rank-3','rank-3'];
-  let html='<div class="bp-results">';
-  data.pairs.forEach((p,i)=>{
-    const dc=p.direction==='BUY'?'buy':'sell',da=p.direction==='BUY'?'▲':'▼';
-    const bc=p.baseScore>=0?'pos':'neg',qc=p.quoteScore>=0?'pos':'neg';
-    const diff=Math.abs(p.baseScore-p.quoteScore).toFixed(1);
-    html+=`<div class="bp-card ${rc[i]}">
-      <div class="bp-rank-badge">${medals[i]}</div>
-      <div class="bp-pair-name">${p.pair}</div>
-      <div class="bp-direction ${dc}">${da} ${p.direction}</div>
-      <div class="bp-score-row"><div class="bp-score-bar-wrap"><div class="bp-score-bar" style="width:${p.score}%"></div></div><div class="bp-score-num">${p.score}<span style="font-size:9px;color:var(--muted)">/100</span></div></div>
-      <div class="bp-factors">
-        <div class="bp-factor"><div class="bp-factor-label">${p.base} Str</div><div class="bp-factor-val ${bc}">${p.baseScore>=0?'+':''}${(p.baseScore||0).toFixed(1)}</div></div>
-        <div class="bp-factor"><div class="bp-factor-label">${p.quote} Str</div><div class="bp-factor-val ${qc}">${p.quoteScore>=0?'+':''}${(p.quoteScore||0).toFixed(1)}</div></div>
-        <div class="bp-factor"><div class="bp-factor-label">Diff</div><div class="bp-factor-val neu">${diff}pt</div></div>
-      </div></div>`;
-  });
-  html+='</div>';
-  if(data.ts){const age=Math.round((Date.now()-data.ts)/60000);html+=`<div class="bp-timestamp">Last scan: ${age<60?age+'m ago':Math.round(age/60)+'h ago'}</div>`;}
-
-  // NON-FOREX section
-  if(data.nonForex && data.nonForex.length>0){
-    html+=`<div class="nfx-section"><div class="nfx-title">⬡ Non-Forex</div><div class="nfx-cards">`;
-    data.nonForex.forEach(p=>{
-      const dc=p.direction==='BUY'?'buy':'sell';
-      const da=p.direction==='BUY'?'▲':'▼';
-      html+=`<div class="nfx-card"><div class="nfx-pair">${p.pair}</div><div class="nfx-dir ${dc}">${da} ${p.direction}</div><div class="nfx-score">${p.score}/100</div></div>`;
-    });
-    html+=`</div></div>`;
-  }
-
-  c.innerHTML=html;
-}
-async function runBestPairScan(){
-  const c=document.getElementById('bpResults');
-  c.innerHTML='<div class="bp-scanning">Scanning all pairs...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
-  await new Promise(r=>setTimeout(r,1200));
-  if(bestPairData&&bestPairData.pairs&&bestPairData.pairs.length>0){
-    renderBestPairCards(bestPairData);
-  } else {
-    const fb=calcBestPairFromIndexOnly();
-    if(fb){bestPairData=fb;renderBestPairCards(fb);}
-    else{c.innerHTML='<div class="bp-no-data">No data available.</div>';}
-  }
-}
-function calcBestPairFromIndexOnly(){
-  if(!currentScores||currentScores.length<2)return null;
-  const opps=[];
-  ['EURUSD','GBPUSD','AUDUSD','NZDUSD','USDCAD','USDCHF','USDJPY','EURJPY','GBPJPY','AUDJPY','NZDJPY','CADJPY','CHFJPY','EURGBP','EURAUD','EURNZD','EURCAD','EURCHF','GBPAUD','GBPNZD','GBPCAD','GBPCHF','AUDNZD','AUDCAD','AUDCHF','NZDCAD','NZDCHF','CADCHF'].forEach(pair=>{
-    const base=pair.substring(0,3),quote=pair.substring(3,6);
-    const bs=currentScores.find(s=>s.code===base),qs=currentScores.find(s=>s.code===quote);
-    if(!bs||!qs)return;
-    const diff=bs.score-qs.score,direction=diff>0?'BUY':'SELL';
-    let score=Math.min(Math.round(Math.abs(diff)*4),40);
-    if(diff>0&&bs.score>0&&qs.score<0)score+=5;
-    if(diff<0&&bs.score<0&&qs.score>0)score+=5;
-    opps.push({pair,base,quote,direction,score,baseScore:bs.score,quoteScore:qs.score});
-  });
-  opps.sort((a,b)=>b.score-a.score);
-  return{pairs:opps.slice(0,3).map((p,i)=>({...p,rank:i+1})),ts:Date.now()};
+function showGoldenSignal(pair, direction, ts){
+  const dirCls = direction==='BUY'?'var(--strong)':'var(--weak)';
+  const dirArrow = direction==='BUY'?'▲':'▼';
+  document.getElementById('goldenContent').innerHTML = `
+    <div style="width:100%;border-radius:16px;padding:32px 24px;background:linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.05));border:2px solid rgba(201,168,76,0.8);text-align:center;animation:goldenPulse 2s infinite;">
+      <div style="font-size:48px;margin-bottom:12px">⭐</div>
+      <div style="font-size:10px;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">Golden Signal — 6/6 Timeframes</div>
+      <div style="font-size:48px;font-weight:700;color:#f5d87a;letter-spacing:-1px;margin-bottom:8px;">${pair}</div>
+      <div style="display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:700;padding:8px 24px;border-radius:8px;margin-bottom:20px;background:${direction==='BUY'?'rgba(0,212,170,0.2)':'rgba(224,92,92,0.2)'};color:${dirCls}">${dirArrow} ${direction}</div>
+      <div style="font-size:12px;color:var(--gold);letter-spacing:0.1em;margin-bottom:8px;">M5 · M15 · H1 · H4 · D1 · W1</div>
+      <div style="font-size:11px;color:var(--muted)">All 6 timeframes + strength confirmed</div>
+    </div>`;
 }
 
 async function testTelegram(){
