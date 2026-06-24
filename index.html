@@ -297,6 +297,42 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   <div class="index-legend" id="indexLegend"></div>
 </div>
 
+<!-- SIGNALS -->
+<div class="page" id="tab-signals">
+  <div class="sl">Best Setups — All Markets</div>
+  <div id="signalList"></div>
+</div>
+
+<!-- FOREX -->
+<div class="page" id="tab-forex">
+  <div class="filters">
+    <button class="filt-btn active" onclick="filterMarket('forex','all',this)">ALL</button>
+    <button class="filt-btn" onclick="filterMarket('forex','buy',this)">BUY</button>
+    <button class="filt-btn" onclick="filterMarket('forex','sell',this)">SELL</button>
+    <button class="filt-btn" onclick="filterMarket('forex','strong',this)">STRONG</button>
+    <span class="item-count" id="forexCount">-- pairs</span>
+  </div>
+  <div class="market-grid" id="forexList"></div>
+</div>
+
+<!-- METALS -->
+<div class="page" id="tab-metals">
+  <div class="sl">Metals — XAU · XAG</div>
+  <div class="market-grid" id="metalsList"></div>
+</div>
+
+<!-- INDICES -->
+<div class="page" id="tab-indices">
+  <div class="sl">Global Indices</div>
+  <div class="market-grid" id="indicesList"></div>
+</div>
+
+<!-- CRYPTO -->
+<div class="page" id="tab-crypto">
+  <div class="sl">Crypto — Top Pairs</div>
+  <div class="market-grid" id="cryptoList"></div>
+</div>
+
 <!-- PIVOTS -->
 <div class="page" id="tab-pivots">
   <div class="pivot-stats">
@@ -322,6 +358,45 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
     </div>
     <div class="modal-body" id="modalBody"><div class="loading">Analysing...</div></div>
   </div>
+</div>
+
+<!-- CHECK -->
+<div class="page" id="tab-check">
+  <div class="check-upload-area" id="checkUploadArea" 
+    onclick="document.getElementById('checkFileInput').click()"
+    ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+    ondragleave="this.style.borderColor=''"
+    ondrop="event.preventDefault();handleChartUpload({target:{files:event.dataTransfer.files}});this.style.borderColor=''">
+    <div class="check-upload-icon">📊</div>
+    <div class="check-upload-title">Upload Chart Screenshot</div>
+    <div class="check-upload-sub">Tap to upload or drag & drop any chart from MT4, TradingView or your broker.<br>Works for open trades or new setups.</div>
+  </div>
+  <input type="file" id="checkFileInput" accept="image/*" style="display:none" onchange="handleChartUpload(event)">
+  <img id="checkPreview" class="check-preview">
+  <div class="check-options" id="checkOptions" style="display:none">
+    <div class="check-option selected" id="opt-trade" onclick="selectCheckOption('trade')">
+      <div class="check-option-icon">📋</div>
+      <div class="check-option-label">Open Trade</div>
+      <div class="check-option-sub">Hold, close or watch?</div>
+    </div>
+    <div class="check-option" id="opt-setup" onclick="selectCheckOption('setup')">
+      <div class="check-option-icon">🎯</div>
+      <div class="check-option-label">New Setup</div>
+      <div class="check-option-sub">Should I take this trade?</div>
+    </div>
+    <div class="check-option" id="opt-level" onclick="selectCheckOption('level')">
+      <div class="check-option-icon">📍</div>
+      <div class="check-option-label">Key Level</div>
+      <div class="check-option-sub">Is this a strong level?</div>
+    </div>
+    <div class="check-option" id="opt-general" onclick="selectCheckOption('general')">
+      <div class="check-option-icon">💬</div>
+      <div class="check-option-label">General</div>
+      <div class="check-option-sub">What do you see?</div>
+    </div>
+  </div>
+  <button class="check-analyse-btn" id="checkAnalyseBtn" disabled onclick="runAnalysis()">⚡ Analyse Chart</button>
+  <div class="check-result" id="checkResult"></div>
 </div>
 
 <!-- MODAL -->
@@ -488,6 +563,43 @@ async function fetchPricesFromTelegram(){
 function getPrice(sym){ return LIVE_PRICES[sym] || DEMO_PRICES[sym] || 0; }
 
 // Live prices from MT4 via Telegram — overrides demo when available
+let LIVE_PRICES = {};
+
+function parsePricesSection(section){
+  const parts = section.split('|');
+  const prices = {};
+  parts.forEach(p => {
+    if(!p || p === 'DASHBOX_PRICES' || p.startsWith('ts:')) return;
+    const idx = p.indexOf(':');
+    if(idx > 0){ prices[p.substring(0,idx)] = parseFloat(p.substring(idx+1)); }
+  });
+  if(Object.keys(prices).length > 0) LIVE_PRICES = prices;
+}
+
+async function fetchPricesFromTelegram(){
+  try {
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!data.ok) return;
+    const updates = [...(data.result||[])].reverse();
+    for(const upd of updates){
+      const text = upd && upd.message && upd.message.text ? upd.message.text : '';
+      // Handle combined message format
+      if(text.startsWith('DASHBOX_SCORES') && text.includes('||DASHBOX_PRICES')){
+        parsePricesSection(text.split('||DASHBOX_PRICES')[1]);
+        break;
+      }
+      // Handle legacy separate DASHBOX_PRICES message
+      if(text.startsWith('DASHBOX_PRICES')){
+        parsePricesSection(text);
+        break;
+      }
+    }
+  } catch(e){ console.log('Price fetch error:', e.message); }
+}
+
+function getPrice(sym){ return LIVE_PRICES[sym] || DEMO_PRICES[sym] || 0; }
 
 const RANK_COLORS=['#00a86b','#00d4aa','#4ade80','#facc15','#f97316','#f87171','#dc2626','#7f1d1d'];
 
@@ -1574,58 +1686,6 @@ async function runAnalysis(){
 
   btn.disabled = false;
   btn.textContent = '⚡ Analyse Chart';
-}
-
-
-// ═══════════ GOLDEN TAB ═══════════
-async function renderGolden(){
-  const content = document.getElementById('goldenContent');
-  content.innerHTML = '<div style="color:var(--muted);font-size:12px;">Checking for golden signal...</div>';
-  try {
-    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if(!data.ok){ showGoldenWaiting(); return; }
-    const updates = [...(data.result||[])].reverse();
-    for(const upd of updates){
-      const text = upd?.message?.text || '';
-      if(!text.startsWith('DASHBOX GOLDEN SIGNAL')) continue;
-      const lines = text.split('\n').filter(l=>l.trim());
-      const pairLine = lines[1] || '';
-      const parts = pairLine.split(' - ');
-      if(parts.length >= 2){
-        showGoldenSignal(parts[0].trim(), parts[1].trim(), null);
-        return;
-      }
-    }
-    showGoldenWaiting();
-  } catch(e){ showGoldenWaiting(); }
-}
-
-function showGoldenWaiting(){
-  document.getElementById('goldenContent').innerHTML = `
-    <div style="font-size:40px;margin-bottom:16px;opacity:0.3">⭐</div>
-    <div style="font-size:13px;color:var(--muted);line-height:1.8">
-      Watching all 31 instruments<br>across 6 timeframes...<br><br>
-      When M5 M15 H1 H4 D1 W1 all agree<br>
-      + currency strength confirms<br><br>
-      Telegram fires instantly.<br><br>
-      <span style="font-size:10px">M5 · M15 · H1 · H4 · D1 · W1</span>
-    </div>`;
-}
-
-function showGoldenSignal(pair, direction, ts){
-  const dirCls = direction==='BUY'?'var(--strong)':'var(--weak)';
-  const dirArrow = direction==='BUY'?'▲':'▼';
-  document.getElementById('goldenContent').innerHTML = `
-    <div style="width:100%;border-radius:16px;padding:32px 24px;background:linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.05));border:2px solid rgba(201,168,76,0.8);text-align:center;animation:goldenPulse 2s infinite;">
-      <div style="font-size:48px;margin-bottom:12px">⭐</div>
-      <div style="font-size:10px;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">Golden Signal — 6/6 Timeframes</div>
-      <div style="font-size:48px;font-weight:700;color:#f5d87a;letter-spacing:-1px;margin-bottom:8px;">${pair}</div>
-      <div style="display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:700;padding:8px 24px;border-radius:8px;margin-bottom:20px;background:${direction==='BUY'?'rgba(0,212,170,0.2)':'rgba(224,92,92,0.2)'};color:${dirCls}">${dirArrow} ${direction}</div>
-      <div style="font-size:12px;color:var(--gold);letter-spacing:0.1em;margin-bottom:8px;">M5 · M15 · H1 · H4 · D1 · W1</div>
-      <div style="font-size:11px;color:var(--muted)">All 6 timeframes + strength confirmed</div>
-    </div>`;
 }
 
 async function testTelegram(){
