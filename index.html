@@ -326,13 +326,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 </header>
 
 <div class="market-bar">
-  <button class="mkt-btn active" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
-  <button class="mkt-btn" id="tb-bestpair" onclick="showTab('bestpair')" style="color:var(--gold);font-weight:600;">🏆 BEST PAIR</button>
+  <button class="mkt-btn active" id="tb-bestpair" onclick="showTab('bestpair')" style="color:var(--gold);font-weight:600;">🏆 BEST PAIR</button>
   <button class="mkt-btn" id="tb-golden" onclick="showTab('golden')" style="color:#f5d87a;font-weight:700;">⭐ GOLDEN</button>
+  <button class="mkt-btn" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
 </div>
 
 <!-- INDEX -->
-<div class="page active" id="tab-index">
+<div class="page" id="tab-index">
   <div class="controls">
     <button class="btn primary" onclick="reloadData()">↻ Refresh</button>
     <span class="api-badge demo" id="apiBadge">● FETCHING...</span>
@@ -425,7 +425,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 </div>
 
 <!-- BEST PAIR -->
-<div class="page" id="tab-bestpair">
+<div class="page active" id="tab-bestpair">
   <div class="bp-splash">
     <div class="bp-title">Best Pair of the Day</div>
     <div class="bp-subtitle">Currency Strength + EMA + RSI + MACD + ADX<br>D1 &amp; H4 · All 28 Pairs Ranked</div>
@@ -1995,7 +1995,7 @@ async function refreshAll(){
     if(badge){ badge.textContent='● NO SIGNAL'; badge.className='api-badge demo'; }
   }
   const active = document.querySelector('.page.active');
-  if(active){ showTab(active.id.replace('tab-','')); } else { renderIndex(); }
+  if(active){ showTab(active.id.replace('tab-','')); } else { renderBestPair(); }
 }
 
 function toggleLive(){
