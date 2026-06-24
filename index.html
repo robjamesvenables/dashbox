@@ -306,6 +306,20 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .golden-dir.sell{background:rgba(224,92,92,0.2);color:var(--weak);}
 .golden-tfs{font-size:12px;color:var(--gold);letter-spacing:0.1em;margin-bottom:8px;}
 .golden-age{font-size:10px;color:var(--muted);margin-top:8px;}
+
+/* NON-FOREX TAB */
+.nfx-wrap{padding:14px;}
+.nfx-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.nfx-card.buy-card{border-left:3px solid var(--strong);}
+.nfx-card.sell-card{border-left:3px solid var(--weak);}
+.nfx-info{flex:1;}
+.nfx-sym{font-size:15px;font-weight:700;color:#e8ecf4;}
+.nfx-name{font-size:10px;color:var(--muted);margin-top:2px;}
+.nfx-dir-badge{font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;margin:0 12px;}
+.nfx-dir-badge.buy{background:rgba(0,212,170,0.15);color:var(--strong);}
+.nfx-dir-badge.sell{background:rgba(224,92,92,0.15);color:var(--weak);}
+.nfx-score{font-size:12px;color:var(--muted);min-width:50px;text-align:right;}
+.nfx-section-title{font-size:9px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin:14px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
 </style>
 </head>
 <body>
@@ -328,6 +342,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 <div class="market-bar">
   <button class="mkt-btn active" id="tb-bestpair" onclick="showTab('bestpair')" style="color:var(--gold);font-weight:600;">🏆 BEST PAIR</button>
   <button class="mkt-btn" id="tb-golden" onclick="showTab('golden')" style="color:#f5d87a;font-weight:700;">⭐ GOLDEN</button>
+  <button class="mkt-btn" id="tb-nonfx" onclick="showTab('nonfx')" style="color:var(--purple);">📊 NON-FOREX</button>
   <button class="mkt-btn" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
 </div>
 
@@ -407,6 +422,17 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   </div>
 </div>
 
+
+<!-- NON-FOREX -->
+<div class="page" id="tab-nonfx">
+  <div class="nfx-wrap">
+    <div id="nfxContent">
+      <div style="text-align:center;padding:40px;font-size:12px;color:var(--muted);">
+        Loading non-forex data...
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- GOLDEN -->
 <div class="page" id="tab-golden">
@@ -666,6 +692,7 @@ function showTab(name){
   if(name==='check') renderCheck();
   if(name==='bestpair') renderBestPair();
   if(name==='golden') renderGolden();
+  if(name==='nonfx') renderNonForex();
 }
 
 // ═══════════ INDEX TAB ═══════════
@@ -1828,17 +1855,7 @@ function renderBestPairCards(data){
   });
   html+='</div>';
   if(data.ts){const age=Math.round((Date.now()-data.ts)/60000);html+=`<div class="bp-timestamp">Last scan: ${age<60?age+'m ago':Math.round(age/60)+'h ago'}</div>`;}
-  // NON-FOREX
-  const nfxPairs=['XAUUSD','NAS100','BTCUSD'];
-  html+='<div style="width:100%;margin-top:16px;"><div style="font-size:9px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:10px;">Non-Forex</div><div style="display:flex;flex-direction:column;gap:8px;">';
-  nfxPairs.forEach(sym=>{
-    const nfScore=data.nfx&&data.nfx[sym];
-    const dir=nfScore?nfScore.dir:'--';
-    const score=nfScore?nfScore.score:'--';
-    const dc=dir==='BUY'?'var(--strong)':dir==='SELL'?'var(--weak)':'var(--muted)';
-    html+=`<div style="border-radius:10px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;"><div style="font-size:16px;font-weight:700;color:var(--text)">${sym}</div><div style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:5px;background:${dir==='BUY'?'rgba(0,212,170,0.15)':'rgba(224,92,92,0.15)'};color:${dc}">${dir==='BUY'?'▲':'▼'} ${dir}</div><div style="font-size:12px;color:var(--muted)">${score}/100</div></div>`;
-  });
-  html+='</div></div>';
+
   c.innerHTML=html;
 }
 
@@ -1919,6 +1936,49 @@ function showGoldenSignal(pair, direction){
       <div class="golden-tfs">M5 · M15 · H1 · H4 · D1 · W1</div>
       <div style="font-size:11px;color:var(--muted)">All 6 timeframes + strength confirmed</div>
     </div>`;
+}
+
+
+// ═══════════ NON-FOREX TAB ═══════════
+async function renderNonForex(){
+  const c = document.getElementById('nfxContent');
+  c.innerHTML = '<div style="text-align:center;padding:30px;font-size:12px;color:var(--muted);">Loading...</div>';
+  try {
+    const url = 'https://api.jsonbin.io/v3/b/' + JSONBIN_ID + '/latest';
+    const res = await fetch(url, {headers: {'X-Master-Key': JSONBIN_KEY}});
+    const data = await res.json();
+    const nfx = data && data.record && data.record.nonfx;
+    if(!nfx){ c.innerHTML = '<div style="text-align:center;padding:30px;font-size:12px;color:var(--muted);">No data yet.<br>Make sure EA v9 is running.</div>'; return; }
+
+    const metals = ['XAUUSD','XAGUSD'];
+    const indices = ['SPX500','NDX100','US30'];
+    const crypto = ['BTCUSD','ETHUSD','XRPUSD','LTCUSD','SOLUSD'];
+
+    function cardHTML(sym){
+      const d = nfx[sym];
+      if(!d) return '';
+      const dc = d.dir==='BUY'?'buy':'sell';
+      const da = d.dir==='BUY'?'▲ BUY':'▼ SELL';
+      return `<div class="nfx-card ${dc}-card">
+        <div class="nfx-info"><div class="nfx-sym">${sym}</div><div class="nfx-name">${d.name||sym}</div></div>
+        <div class="nfx-dir-badge ${dc}">${da}</div>
+        <div class="nfx-score">${d.score}/100</div>
+      </div>`;
+    }
+
+    let html = '<div class="nfx-section-title">Metals</div>';
+    metals.forEach(s=>{ html += cardHTML(s); });
+    html += '<div class="nfx-section-title">Indices</div>';
+    indices.forEach(s=>{ html += cardHTML(s); });
+    html += '<div class="nfx-section-title">Crypto</div>';
+    crypto.forEach(s=>{ html += cardHTML(s); });
+
+    const ts = data.record.ts;
+    if(ts){ const age=Math.round((Date.now()-ts*1000)/60000); html+=`<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:12px;">Last scan: ${age<60?age+'m ago':Math.round(age/60)+'h ago'}</div>`; }
+    c.innerHTML = html;
+  } catch(e){
+    c.innerHTML = '<div style="text-align:center;padding:30px;font-size:12px;color:var(--muted);">Error loading data.</div>';
+  }
 }
 
 async function testTelegram(){
