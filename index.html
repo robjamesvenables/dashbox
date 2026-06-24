@@ -1750,6 +1750,7 @@ function showBestPairStep1(){
 }
 
 async function connectToMarket(){
+  window.bpConnected = true;
   const c = document.getElementById('bpResults');
   c.innerHTML = '<div class="bp-scanning">Connecting...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
   const data = await fetchBestPairFromJsonbin();
