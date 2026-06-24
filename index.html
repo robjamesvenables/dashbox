@@ -1734,7 +1734,14 @@ const JSONBIN_KEY = '$2a$10$d0.NsjXsDQakZVLZnl4Lcuv1yl9POT37dx2yf4GzHZOWZxYk/JAy
 let bestPairData = null;
 
 function renderBestPair(){
-  showBestPairStep1();
+  if(bestPairData&&bestPairData.pairs&&bestPairData.pairs.length>0){
+    renderBestPairCards(bestPairData);
+  } else if(window.bpConnected){
+    const c=document.getElementById('bpResults');
+    c.innerHTML=`<div style="text-align:center;padding:16px 0 24px;"><button onclick="runBestPairScan()" style="background:linear-gradient(135deg,#c9a84c,#e8c56a);border:none;border-radius:12px;padding:16px 40px;font-size:16px;font-weight:700;color:#0a0c0f;cursor:pointer;font-family:var(--font);width:100%">FIND BEST SETUP</button></div>`;
+  } else {
+    showBestPairStep1();
+  }
 }
 
 function showBestPairStep1(){
@@ -1750,6 +1757,7 @@ function showBestPairStep1(){
 }
 
 async function connectToMarket(){
+  window.bpConnected = true;
   window.bpConnected = true;
   const c = document.getElementById('bpResults');
   c.innerHTML = '<div class="bp-scanning">Connecting...<div class="bp-scanning-dots"><div class="bp-dot"></div><div class="bp-dot"></div><div class="bp-dot"></div></div></div>';
