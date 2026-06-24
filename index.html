@@ -1735,7 +1735,11 @@ const JSONBIN_KEY = '$2a$10$d0.NsjXsDQakZVLZnl4Lcuv1yl9POT37dx2yf4GzHZOWZxYk/JAy
 let bestPairData = null;
 
 function renderBestPair(){
-  showBestPairStep1();
+  if(bestPairData&&bestPairData.pairs&&bestPairData.pairs.length>0){
+    renderBestPairCards(bestPairData);
+  } else {
+    showBestPairStep1();
+  }
 }
 
 function showBestPairStep1(){
