@@ -1799,7 +1799,8 @@ async function fetchBestPairFromJsonbin(){
       const base=pair.substring(0,3), quote=pair.substring(3,6);
       const baseScore=(currentScores.find(s=>s.code===base)||{score:0}).score;
       const quoteScore=(currentScores.find(s=>s.code===quote)||{score:0}).score;
-      pairs.push({rank:i+1,pair,direction,score,base,quote,baseScore,quoteScore});
+      const gap=bp[k].gap||0;
+      pairs.push({rank:i+1,pair,direction,score,base,quote,baseScore,quoteScore,gap});
     });
     if(pairs.length===0) return null;
     return{pairs,ts:ts?ts*1000:Date.now()};
@@ -1814,10 +1815,14 @@ function renderBestPairCards(data){
     const dc=p.direction==='BUY'?'buy':'sell',da=p.direction==='BUY'?'BUY':'SELL';
     const bc=p.baseScore>=0?'pos':'neg',qc=p.quoteScore>=0?'pos':'neg';
     const diff=Math.abs(p.baseScore-p.quoteScore).toFixed(1);
+    const gapColor = p.gap>=80?'var(--strong)':p.gap>=60?'var(--gold)':'var(--weak)';
     html+=`<div class="bp-card ${rc[i]}">
       <div class="bp-rank-badge">${medals[i]}</div>
       <div class="bp-pair-name">${p.pair}</div>
       <div class="bp-direction ${dc}">${da}</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:5px;background:rgba(0,0,0,0.2);color:${gapColor};margin-bottom:10px;">
+        ↔ ${p.gap||'--'} pips to pivot
+      </div>
       <div class="bp-score-row"><div class="bp-score-bar-wrap"><div class="bp-score-bar" style="width:${p.score}%"></div></div><div class="bp-score-num">${p.score}<span style="font-size:9px;color:var(--muted)">/100</span></div></div>
       <div class="bp-factors">
         <div class="bp-factor"><div class="bp-factor-label">${p.base} Str</div><div class="bp-factor-val ${bc}">${p.baseScore>=0?'+':''}${(p.baseScore||0).toFixed(1)}</div></div>
