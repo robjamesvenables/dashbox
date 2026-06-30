@@ -1959,11 +1959,24 @@ const ALL_WATCH_PAIRS = ['EURUSD','GBPUSD','AUDUSD','NZDUSD','USDCAD','USDCHF','
 let watchState = {};
 let watchStatus = {};
 
+let watchAutoRefreshTimer = null;
+
 async function renderWatch(){
   const c = document.getElementById('watchContent');
   c.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted);">Loading watchlist...</div>';
   await fetchWatchData();
   drawWatchList();
+
+  if(watchAutoRefreshTimer) clearInterval(watchAutoRefreshTimer);
+  watchAutoRefreshTimer = setInterval(async ()=>{
+    const activePage = document.getElementById('tab-watch');
+    if(!activePage || !activePage.classList.contains('active')){
+      clearInterval(watchAutoRefreshTimer);
+      return;
+    }
+    await fetchWatchData();
+    drawWatchList();
+  }, 60000);
 }
 
 async function fetchWatchData(){
