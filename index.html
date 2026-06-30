@@ -1982,7 +1982,14 @@ async function fetchWatchData(){
 function drawWatchList(){
   const c = document.getElementById('watchContent');
   const groups = {
-    'Forex': ALL_WATCH_PAIRS.filter(p=>!['NDX100','BTCUSD','XAUUSD','US30'].includes(p)),
+    'AUD Pairs': ['AUDUSD','AUDJPY','AUDNZD','AUDCAD','AUDCHF'],
+    'CAD Pairs': ['USDCAD','CADJPY','AUDCAD','NZDCAD','CADCHF'],
+    'CHF Pairs': ['USDCHF','CHFJPY','EURCHF','GBPCHF','AUDCHF','NZDCHF','CADCHF'],
+    'EUR Pairs': ['EURUSD','EURJPY','EURGBP','EURAUD','EURNZD','EURCAD','EURCHF'],
+    'GBP Pairs': ['GBPUSD','GBPJPY','GBPAUD','GBPNZD','GBPCAD','GBPCHF'],
+    'JPY Pairs': ['USDJPY','EURJPY','GBPJPY','AUDJPY','NZDJPY','CADJPY','CHFJPY'],
+    'NZD Pairs': ['NZDUSD','NZDJPY','AUDNZD','EURNZD','GBPNZD','NZDCAD','NZDCHF'],
+    'USD Pairs': ['EURUSD','GBPUSD','AUDUSD','NZDUSD','USDCAD','USDCHF','USDJPY'],
     'Non-Forex': ['NDX100','BTCUSD','XAUUSD','US30']
   };
 
