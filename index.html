@@ -1907,50 +1907,53 @@ function calcBestPairFromIndexOnly(){
 // ═══════════ GOLDEN TAB ═══════════
 async function renderGolden(){
   const c = document.getElementById('goldenContent');
-  c.innerHTML = '<div style="color:var(--muted);font-size:12px;">Checking...</div>';
+  c.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted);">Loading signals...</div>';
   try {
-    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
-    const res = await fetch(url);
+    const url = 'https://api.jsonbin.io/v3/b/6a437d5df5f4af5e29463a6e/latest';
+    const res = await fetch(url, {headers:{'X-Master-Key': JSONBIN_KEY}});
     const data = await res.json();
-    if(!data.ok){ showGoldenWaiting(); return; }
-    const updates = [...(data.result||[])].reverse();
-    for(const upd of updates){
-      const text = upd&&upd.message&&upd.message.text ? upd.message.text : '';
-      if(!text.startsWith('DASHBOX GOLDEN SIGNAL')) continue;
-      const lines = text.split('\n').filter(l=>l.trim());
-      const pairLine = lines[1]||'';
-      const parts = pairLine.split(' - ');
-      if(parts.length>=2){ showGoldenSignal(parts[0].trim(), parts[1].trim()); return; }
+    const log = (data && data.record && data.record.goldenlog) || [];
+
+    if(log.length === 0){
+      showGoldenWaiting();
+      return;
     }
+
+    let html = `<div style="font-size:10px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:16px;">Today's Golden Signals (${log.length})</div>`;
+
+    [...log].reverse().forEach(sig=>{
+      const dirCls = sig.dir==='BUY'?'buy':'sell';
+      const dirArrow = sig.dir==='BUY'?'▲':'▼';
+      const age = sig.ts ? Math.round((Date.now()-sig.ts*1000)/60000) : null;
+      const ageStr = age!==null ? (age<60?age+'m ago':Math.round(age/60)+'h ago') : '';
+      html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;border-left:3px solid ${sig.dir==='BUY'?'var(--strong)':'var(--weak)'};">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#e8ecf4;">${sig.pair}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">${ageStr}</div>
+        </div>
+        <div style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;background:${sig.dir==='BUY'?'rgba(0,212,170,0.15)':'rgba(224,92,92,0.15)'};color:${sig.dir==='BUY'?'var(--strong)':'var(--weak)'};">${dirArrow} ${sig.dir}</div>
+      </div>`;
+    });
+
+    document.getElementById('goldenContent').innerHTML = html;
+  } catch(e){
     showGoldenWaiting();
-  } catch(e){ showGoldenWaiting(); }
+  }
 }
 
 function showGoldenWaiting(){
   document.getElementById('goldenContent').innerHTML = `
-    <div style="font-size:40px;margin-bottom:16px;opacity:0.3">⭐</div>
+    <div style="font-size:40px;margin-bottom:16px;opacity:0.3;text-align:center;">⭐</div>
     <div class="golden-waiting">
+      No signals yet today.<br><br>
       Watching all 31 instruments<br>across 6 timeframes...<br><br>
       When M5 M15 H1 H4 D1 W1 all agree<br>
       + currency strength confirms<br><br>
-      Telegram fires instantly.<br><br>
       <span style="font-size:10px">M5 · M15 · H1 · H4 · D1 · W1</span>
     </div>`;
 }
 
-function showGoldenSignal(pair, direction){
-  const dc = direction==='BUY'?'buy':'sell';
-  const da = direction==='BUY'?'▲ BUY':'▼ SELL';
-  document.getElementById('goldenContent').innerHTML = `
-    <div class="golden-card">
-      <div class="golden-star">⭐</div>
-      <div class="golden-label">Golden Signal - 6/6 Timeframes</div>
-      <div class="golden-pair">${pair}</div>
-      <div class="golden-dir ${dc}">${da}</div>
-      <div class="golden-tfs">M5 · M15 · H1 · H4 · D1 · W1</div>
-      <div style="font-size:11px;color:var(--muted)">All 6 timeframes + strength confirmed</div>
-    </div>`;
-}
+
 
 
 // ═══════════ WATCH TAB ═══════════
