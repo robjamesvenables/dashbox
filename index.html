@@ -306,6 +306,21 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .golden-dir.sell{background:rgba(224,92,92,0.2);color:var(--weak);}
 .golden-tfs{font-size:12px;color:var(--gold);letter-spacing:0.1em;margin-bottom:8px;}
 .golden-age{font-size:10px;color:var(--muted);margin-top:8px;}
+
+/* WATCH TAB */
+.watch-wrap{padding:14px;}
+.watch-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+.watch-row.flipped-buy{border-color:rgba(0,212,170,0.6);background:rgba(0,212,170,0.06);}
+.watch-row.flipped-sell{border-color:rgba(224,92,92,0.6);background:rgba(224,92,92,0.06);}
+.watch-pair{font-size:13px;font-weight:600;color:#e8ecf4;flex:1;}
+.watch-status{font-size:10px;color:var(--muted);margin-right:10px;}
+.watch-status.buy{color:var(--strong);font-weight:700;}
+.watch-status.sell{color:var(--weak);font-weight:700;}
+.watch-toggle{position:relative;width:42px;height:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;cursor:pointer;transition:all 0.2s;flex-shrink:0;}
+.watch-toggle.on{background:rgba(0,212,170,0.3);border-color:var(--strong);}
+.watch-toggle-knob{position:absolute;top:2px;left:2px;width:18px;height:18px;background:var(--muted);border-radius:50%;transition:all 0.2s;}
+.watch-toggle.on .watch-toggle-knob{left:20px;background:var(--strong);}
+.watch-section-title{font-size:9px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin:14px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
 </style>
 </head>
 <body>
@@ -328,6 +343,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 <div class="market-bar">
   <button class="mkt-btn active" id="tb-bestpair" onclick="showTab('bestpair')" style="color:var(--gold);font-weight:600;">🏆 BEST PAIR</button>
   <button class="mkt-btn" id="tb-golden" onclick="showTab('golden')" style="color:#f5d87a;font-weight:700;">⭐ GOLDEN</button>
+  <button class="mkt-btn" id="tb-watch" onclick="showTab('watch')" style="color:#5a8fc4;font-weight:700;">👁 WATCH</button>
 </div>
 
 <!-- INDEX -->
@@ -420,6 +436,16 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
         <span style="font-size:10px">M5 · M15 · H1 · H4 · D1 · W1</span>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- WATCH -->
+<div class="page" id="tab-watch">
+  <div class="watch-wrap">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6;">
+      Toggle pairs you're manually watching. Dashbox checks H4 EMA 5/8 cross + currency strength for a directional flip and alerts you instantly.
+    </div>
+    <div id="watchContent">Loading...</div>
   </div>
 </div>
 
@@ -665,6 +691,7 @@ function showTab(name){
   if(name==='check') renderCheck();
   if(name==='bestpair') renderBestPair();
   if(name==='golden') renderGolden();
+  if(name==='watch') renderWatch();
 }
 
 // ═══════════ INDEX TAB ═══════════
@@ -1923,6 +1950,77 @@ function showGoldenSignal(pair, direction){
       <div class="golden-tfs">M5 · M15 · H1 · H4 · D1 · W1</div>
       <div style="font-size:11px;color:var(--muted)">All 6 timeframes + strength confirmed</div>
     </div>`;
+}
+
+
+// ═══════════ WATCH TAB ═══════════
+const WATCH_JSONBIN_ID = '6a4368e5f5f4af5e2945e535';
+const ALL_WATCH_PAIRS = ['EURUSD','GBPUSD','AUDUSD','NZDUSD','USDCAD','USDCHF','USDJPY','EURJPY','GBPJPY','AUDJPY','NZDJPY','CADJPY','CHFJPY','EURGBP','EURAUD','EURNZD','EURCAD','EURCHF','GBPAUD','GBPNZD','GBPCAD','GBPCHF','AUDNZD','AUDCAD','AUDCHF','NZDCAD','NZDCHF','CADCHF','NDX100','BTCUSD','XAUUSD','US30'];
+let watchState = {};
+let watchStatus = {};
+
+async function renderWatch(){
+  const c = document.getElementById('watchContent');
+  c.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted);">Loading watchlist...</div>';
+  await fetchWatchData();
+  drawWatchList();
+}
+
+async function fetchWatchData(){
+  try{
+    const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID + '/latest';
+    const res = await fetch(url, {headers:{'X-Master-Key': JSONBIN_KEY}});
+    const data = await res.json();
+    watchState = (data && data.record && data.record.watchlist) || {};
+    watchStatus = (data && data.record && data.record.status) || {};
+  } catch(e){
+    watchState = {};
+    watchStatus = {};
+  }
+}
+
+function drawWatchList(){
+  const c = document.getElementById('watchContent');
+  const groups = {
+    'Forex': ALL_WATCH_PAIRS.filter(p=>!['NDX100','BTCUSD','XAUUSD','US30'].includes(p)),
+    'Non-Forex': ['NDX100','BTCUSD','XAUUSD','US30']
+  };
+
+  let html = '';
+  Object.keys(groups).forEach(group=>{
+    html += `<div class="watch-section-title">${group}</div>`;
+    groups[group].forEach(pair=>{
+      const isOn = watchState[pair] === true;
+      const status = watchStatus[pair] || 'WATCHING';
+      const rowClass = status==='BUY' ? 'flipped-buy' : status==='SELL' ? 'flipped-sell' : '';
+      const statusClass = status==='BUY' ? 'buy' : status==='SELL' ? 'sell' : '';
+      const statusText = isOn ? status : '--';
+      html += `<div class="watch-row ${rowClass}">
+        <div class="watch-pair">${pair}</div>
+        <div class="watch-status ${statusClass}">${statusText}</div>
+        <div class="watch-toggle ${isOn?'on':''}" onclick="toggleWatch('${pair}')"><div class="watch-toggle-knob"></div></div>
+      </div>`;
+    });
+  });
+  c.innerHTML = html;
+}
+
+async function toggleWatch(pair){
+  watchState[pair] = !watchState[pair];
+  drawWatchList(); // optimistic UI update
+  await saveWatchlist();
+}
+
+async function saveWatchlist(){
+  try{
+    const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID;
+    const body = JSON.stringify({watchlist: watchState, status: watchStatus, ts: Math.floor(Date.now()/1000)});
+    await fetch(url, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY},
+      body: body
+    });
+  } catch(e){ console.log('Watchlist save error:', e); }
 }
 
 async function testTelegram(){
