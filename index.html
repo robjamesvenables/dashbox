@@ -1991,10 +1991,18 @@ function drawWatchList(){
     html += `<div class="watch-section-title">${group}</div>`;
     groups[group].forEach(pair=>{
       const isOn = watchState[pair] === true;
-      const status = watchStatus[pair] || 'WATCHING';
-      const rowClass = status==='BUY' ? 'flipped-buy' : status==='SELL' ? 'flipped-sell' : '';
-      const statusClass = status==='BUY' ? 'buy' : status==='SELL' ? 'sell' : '';
-      const statusText = isOn ? status : '--';
+      const raw = watchStatus[pair] || 'MIXED';
+      const isFlip = raw.startsWith('FLIP_');
+      const dir = isFlip ? raw.replace('FLIP_','') : raw;
+      const rowClass = isFlip ? (dir==='BUY'?'flipped-buy':'flipped-sell') : '';
+      const statusClass = dir==='BUY' ? 'buy' : dir==='SELL' ? 'sell' : '';
+      let statusText = '--';
+      if(isOn){
+        if(isFlip) statusText = '⚡ ' + dir + ' FLIP!';
+        else if(dir==='BUY') statusText = 'Currently BUY bias';
+        else if(dir==='SELL') statusText = 'Currently SELL bias';
+        else statusText = 'Mixed / no clear bias';
+      }
       html += `<div class="watch-row ${rowClass}">
         <div class="watch-pair">${pair}</div>
         <div class="watch-status ${statusClass}">${statusText}</div>
