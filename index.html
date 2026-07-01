@@ -2001,7 +2001,7 @@ function showGoldenWaiting(){
 
 
 // ═══════════ WATCH TAB ═══════════
-const WATCH_JSONBIN_ID = '6a4368e5f5f4af5e2945e535';
+const WATCH_JSONBIN_ID_STR = '6a4368e5f5f4af5e2945e535';
 let watchConditions = []; // [{curA:'AUD', curB:'USD', active:true}]
 
 async function renderWatch(){
@@ -2012,7 +2012,7 @@ async function renderWatch(){
 
 async function loadWatchConditions(){
   try {
-    const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID + '/latest';
+    const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID_STR + '/latest';
     const res = await fetch(url, {headers:{'X-Master-Key': JSONBIN_KEY}});
     const data = await res.json();
     watchConditions = (data && data.record && data.record.conditions) || [];
@@ -2021,7 +2021,7 @@ async function loadWatchConditions(){
 
 async function saveWatchConditions(){
   try {
-    const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID;
+    const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID_STR;
     await fetch(url, {
       method: 'PUT',
       headers: {'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY},
