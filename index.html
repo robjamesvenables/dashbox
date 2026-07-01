@@ -344,6 +344,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   <button class="mkt-btn active" id="tb-bestpair" onclick="showTab('bestpair')" style="color:var(--gold);font-weight:600;">🏆 BEST PAIR</button>
   <button class="mkt-btn" id="tb-golden" onclick="showTab('golden')" style="color:#f5d87a;font-weight:700;">⭐ GOLDEN</button>
   <button class="mkt-btn" id="tb-watch" onclick="showTab('watch')" style="color:#5a8fc4;font-weight:700;">👁 WATCH</button>
+  <button class="mkt-btn" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
 </div>
 
 <!-- INDEX -->
@@ -441,11 +442,36 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 <!-- WATCH -->
 <div class="page" id="tab-watch">
-  <div class="watch-wrap">
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6;">
-      Toggle pairs you're manually watching. Dashbox checks H4 EMA 5/8 cross + currency strength for a directional flip and alerts you instantly.
+  <div style="padding:14px;">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.6;">
+      Set alerts when one currency becomes stronger than another on the Daily chart. Checks every 30 minutes.
     </div>
-    <div id="watchContent">Loading...</div>
+
+    <!-- Add condition -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Add Watch Condition</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <select id="watchCurA" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:6px;font-family:var(--font);font-size:12px;">
+          <option>AUD</option><option>CAD</option><option>CHF</option><option>EUR</option>
+          <option>GBP</option><option>JPY</option><option>NZD</option><option>USD</option>
+        </select>
+        <div style="font-size:12px;color:var(--muted);">stronger than</div>
+        <select id="watchCurB" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:6px;font-family:var(--font);font-size:12px;">
+          <option>USD</option><option>AUD</option><option>CAD</option><option>CHF</option>
+          <option>EUR</option><option>GBP</option><option>JPY</option><option>NZD</option>
+        </select>
+        <button onclick="addWatchCondition()" style="background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:6px;padding:8px 16px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Watch list -->
+    <div id="watchConditionList"></div>
+
+    <!-- Current strength snapshot -->
+    <div style="margin-top:16px;">
+      <div style="font-size:9px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Current Daily Strength</div>
+      <div id="watchStrengthSnap"></div>
+    </div>
   </div>
 </div>
 
@@ -1976,94 +2002,99 @@ function showGoldenWaiting(){
 
 // ═══════════ WATCH TAB ═══════════
 const WATCH_JSONBIN_ID = '6a4368e5f5f4af5e2945e535';
-const ALL_WATCH_PAIRS = ['EURUSD','GBPUSD','AUDUSD','NZDUSD','USDCAD','USDCHF','USDJPY','EURJPY','GBPJPY','AUDJPY','NZDJPY','CADJPY','CHFJPY','EURGBP','EURAUD','EURNZD','EURCAD','EURCHF','GBPAUD','GBPNZD','GBPCAD','GBPCHF','AUDNZD','AUDCAD','AUDCHF','NZDCAD','NZDCHF','CADCHF','NDX100','BTCUSD','XAUUSD','US30'];
-let watchState = {};
-let watchStatus = {};
-
-let watchAutoRefreshTimer = null;
+let watchConditions = []; // [{curA:'AUD', curB:'USD', active:true}]
 
 async function renderWatch(){
-  const c = document.getElementById('watchContent');
-  c.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted);">Loading watchlist...</div>';
-  await fetchWatchData();
-  drawWatchList();
-
-  if(watchAutoRefreshTimer) clearInterval(watchAutoRefreshTimer);
-  watchAutoRefreshTimer = setInterval(async ()=>{
-    const activePage = document.getElementById('tab-watch');
-    if(!activePage || !activePage.classList.contains('active')){
-      clearInterval(watchAutoRefreshTimer);
-      return;
-    }
-    await fetchWatchData();
-    drawWatchList();
-  }, 60000);
+  await loadWatchConditions();
+  drawWatchConditions();
+  drawWatchStrengthSnap();
 }
 
-async function fetchWatchData(){
-  try{
+async function loadWatchConditions(){
+  try {
     const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID + '/latest';
     const res = await fetch(url, {headers:{'X-Master-Key': JSONBIN_KEY}});
     const data = await res.json();
-    watchState = (data && data.record && data.record.watchlist) || {};
-    watchStatus = (data && data.record && data.record.status) || {};
-  } catch(e){
-    watchState = {};
-    watchStatus = {};
-  }
+    watchConditions = (data && data.record && data.record.conditions) || [];
+  } catch(e){ watchConditions = []; }
 }
 
-function drawWatchList(){
-  const c = document.getElementById('watchContent');
-  const fxPairs = ALL_WATCH_PAIRS.filter(p=>!['NDX100','BTCUSD','XAUUSD','US30'].includes(p)).sort();
-  const groups = {
-    'Forex (A-Z)': fxPairs,
-    'Indices & Crypto': ['NDX100','BTCUSD','XAUUSD','US30']
-  };
-
-  let html = '';
-  Object.keys(groups).forEach(group=>{
-    html += `<div class="watch-section-title">${group}</div>`;
-    groups[group].forEach(pair=>{
-      const isOn = watchState[pair] === true;
-      const raw = watchStatus[pair] || 'MIXED';
-      const isFlip = raw.startsWith('FLIP_');
-      const dir = isFlip ? raw.replace('FLIP_','') : raw;
-      const rowClass = isFlip ? (dir==='BUY'?'flipped-buy':'flipped-sell') : '';
-      const statusClass = dir==='BUY' ? 'buy' : dir==='SELL' ? 'sell' : '';
-      let statusText = '--';
-      if(isOn){
-        if(isFlip) statusText = '⚡ ' + dir + ' FLIP!';
-        else if(dir==='BUY') statusText = 'Currently BUY bias';
-        else if(dir==='SELL') statusText = 'Currently SELL bias';
-        else statusText = 'Mixed / no clear bias';
-      }
-      html += `<div class="watch-row ${rowClass}">
-        <div class="watch-pair">${pair}</div>
-        <div class="watch-status ${statusClass}">${statusText}</div>
-        <div class="watch-toggle ${isOn?'on':''}" onclick="toggleWatch('${pair}')"><div class="watch-toggle-knob"></div></div>
-      </div>`;
+async function saveWatchConditions(){
+  try {
+    const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID;
+    await fetch(url, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY},
+      body: JSON.stringify({conditions: watchConditions, ts: Math.floor(Date.now()/1000)})
     });
+  } catch(e){ console.log('Watch save error:', e); }
+}
+
+function addWatchCondition(){
+  const curA = document.getElementById('watchCurA').value;
+  const curB = document.getElementById('watchCurB').value;
+  if(curA === curB){ alert('Please select two different currencies'); return; }
+  const exists = watchConditions.find(c=>c.curA===curA && c.curB===curB);
+  if(exists){ alert('This condition already exists'); return; }
+  watchConditions.push({curA, curB});
+  drawWatchConditions();
+  saveWatchConditions();
+}
+
+function removeWatchCondition(idx){
+  watchConditions.splice(idx, 1);
+  drawWatchConditions();
+  saveWatchConditions();
+}
+
+function drawWatchConditions(){
+  const c = document.getElementById('watchConditionList');
+  if(watchConditions.length === 0){
+    c.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted);">No conditions set yet.</div>';
+    return;
+  }
+  let html = '';
+  watchConditions.forEach((cond, idx) => {
+    const aStr = currentScores.find(s=>s.code===cond.curA);
+    const bStr = currentScores.find(s=>s.code===cond.curB);
+    const aVal = aStr ? aStr.score : null;
+    const bVal = bStr ? bStr.score : null;
+    const isTrue = aVal !== null && bVal !== null && aVal > bVal;
+    const statusColor = isTrue ? 'var(--strong)' : 'var(--weak)';
+    const statusText = aVal !== null ? (isTrue ? '✅ TRUE' : '❌ NOT YET') : '⏳ Loading...';
+    const diff = aVal !== null && bVal !== null ? (aVal - bVal).toFixed(2) : '--';
+    html += `<div style="background:var(--surface);border:1px solid ${isTrue?'rgba(0,212,170,0.5)':'var(--border)'};border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#e8ecf4;">${cond.curA} <span style="color:var(--muted);font-size:12px;">stronger than</span> ${cond.curB}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;">Gap: ${diff} pts</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="font-size:11px;font-weight:700;color:${statusColor};">${statusText}</div>
+        <button onclick="removeWatchCondition(${idx})" style="background:none;border:1px solid var(--border2);border-radius:4px;color:var(--muted);padding:4px 8px;cursor:pointer;font-size:11px;">✕</button>
+      </div>
+    </div>`;
   });
   c.innerHTML = html;
 }
 
-async function toggleWatch(pair){
-  watchState[pair] = !watchState[pair];
-  drawWatchList(); // optimistic UI update
-  await saveWatchlist();
-}
-
-async function saveWatchlist(){
-  try{
-    const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID;
-    const body = JSON.stringify({watchlist: watchState, status: watchStatus, ts: Math.floor(Date.now()/1000)});
-    await fetch(url, {
-      method: 'PUT',
-      headers: {'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY},
-      body: body
-    });
-  } catch(e){ console.log('Watchlist save error:', e); }
+function drawWatchStrengthSnap(){
+  const c = document.getElementById('watchStrengthSnap');
+  if(!currentScores || currentScores.length === 0){ c.innerHTML = '<div style="font-size:11px;color:var(--muted);">No data — refresh INDEX tab first</div>'; return; }
+  const sorted = [...currentScores].sort((a,b)=>b.score-a.score);
+  let html = '<div style="display:flex;flex-direction:column;gap:6px;">';
+  sorted.forEach((s,i) => {
+    const cls = s.score>0?'var(--strong)':s.score<0?'var(--weak)':'var(--muted)';
+    const barW = Math.min(Math.abs(s.score)/3*100, 100);
+    html += `<div style="display:flex;align-items:center;gap:8px;">
+      <div style="font-size:11px;font-weight:600;color:#e8ecf4;width:36px;">${s.code}</div>
+      <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div style="width:${barW}%;height:100%;background:${cls};border-radius:3px;"></div>
+      </div>
+      <div style="font-size:11px;color:${cls};width:40px;text-align:right;">${s.score>0?'+':''}${s.score.toFixed(1)}</div>
+    </div>`;
+  });
+  html += '</div>';
+  c.innerHTML = html;
 }
 
 async function testTelegram(){
