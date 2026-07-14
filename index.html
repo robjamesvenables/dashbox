@@ -341,9 +341,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 </header>
 
 <div class="market-bar">
-  <button class="mkt-btn active" id="tb-bestpair" onclick="showTab('bestpair')" style="color:var(--gold);font-weight:600;">🏆 BEST PAIR</button>
+  <button class="mkt-btn active" id="tb-scout" onclick="showTab('scout')" style="color:var(--gold);font-weight:600;">🎯 SCOUT</button>
   <button class="mkt-btn" id="tb-golden" onclick="showTab('golden')" style="color:#f5d87a;font-weight:700;">⭐ GOLDEN</button>
-  <button class="mkt-btn" id="tb-watch" onclick="showTab('watch')" style="color:#5a8fc4;font-weight:700;">👁 WATCH</button>
   <button class="mkt-btn" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
 </div>
 
@@ -476,7 +475,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 </div>
 
 <!-- BEST PAIR -->
-<div class="page active" id="tab-bestpair">
+<div class="page active" id="tab-scout">
   <div class="bp-splash">
     <div class="bp-title">Best Pair of the Day</div>
     <div class="bp-subtitle">Currency Strength + EMA + RSI + MACD + ADX<br>D1 &amp; H4 · All 28 Pairs Ranked</div>
@@ -715,7 +714,7 @@ function showTab(name){
   if(name==='crypto') { fetchCryptoPrices().then(()=>renderCrypto()); }
   if(name==='pivots') fetchPricesFromTelegram().then(()=>renderPivots());
   if(name==='check') renderCheck();
-  if(name==='bestpair') renderBestPair();
+  if(name==='scout') renderBestPair();
   if(name==='golden') renderGolden();
   if(name==='watch') renderWatch();
 }
