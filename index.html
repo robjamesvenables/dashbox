@@ -2142,12 +2142,7 @@ async function loadIndexStrength(){
 }
 
 async function loadIndexConditions(){
-  try {
-    const url = 'https://api.jsonbin.io/v3/b/' + INDEX_JSONBIN_ID + '/latest';
-    const res = await fetch(url, {headers:{'X-Master-Key': JSONBIN_KEY}});
-    const data = await res.json();
-    indexConditions = (data && data.record && data.record.conditions) || [];
-  } catch(e){ indexConditions = []; }
+  // Loaded by loadIndexStrength from GitHub
 }
 
 async function saveIndexConditions(){
