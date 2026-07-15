@@ -2125,8 +2125,11 @@ let indexConditions = [];
 let indexStrengthScores = [];
 
 async function renderIndex(){
+  console.log('renderIndex called');
   await loadIndexConditions();
+  console.log('after loadIndexConditions, indexConditions:', JSON.stringify(indexConditions));
   await loadIndexStrength();
+  console.log('after loadIndexStrength, indexConditions:', JSON.stringify(indexConditions));
   drawIndexConditions();
   drawIndexStrengthSnap();
 }
