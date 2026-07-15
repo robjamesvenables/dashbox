@@ -2354,6 +2354,8 @@ function updateClock(){
 currentScores = getDemoScores();
 setInterval(updateClock,1000);
 updateClock();
+// Load index conditions from localStorage on startup
+try { const s=localStorage.getItem('dashbox_index_conditions'); if(s) indexConditions=JSON.parse(s); } catch(e){}
 loadLiveData();
 renderBestPair();
 
