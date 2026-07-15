@@ -2142,18 +2142,17 @@ async function loadIndexStrength(){
 }
 
 async function loadIndexConditions(){
-  // Loaded by loadIndexStrength from GitHub
+  try {
+    const saved = localStorage.getItem('dashbox_index_conditions');
+    if(saved) indexConditions = JSON.parse(saved);
+  } catch(e){ indexConditions = []; }
 }
 
 async function saveIndexConditions(){
   try {
-    const url = 'https://disabled.invalid' + INDEX_JSONBIN_ID;
-    await fetch(url, {
-      method: 'PUT',
-      headers: {'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY},
-      body: JSON.stringify({conditions: indexConditions, ts: Math.floor(Date.now()/1000)})
-    });
-  } catch(e){ console.log('Index save error:', e); }
+    localStorage.setItem('dashbox_index_conditions', JSON.stringify(indexConditions));
+    console.log('Conditions saved locally');
+  } catch(e){ console.log('Save error:', e); }
 }
 
 function addIndexCondition(){
