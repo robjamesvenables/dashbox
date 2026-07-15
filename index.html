@@ -2034,7 +2034,7 @@ async function renderWatch(){
 
 async function loadWatchConditions(){
   try {
-    const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID_STR + '/latest';
+    const url = 'https://disabled.invalid' + WATCH_JSONBIN_ID_STR + '/latest';
     const res = await fetch(url, {headers:{'X-Master-Key': JSONBIN_KEY}});
     const data = await res.json();
     watchConditions = (data && data.record && data.record.conditions) || [];
@@ -2043,7 +2043,7 @@ async function loadWatchConditions(){
 
 async function saveWatchConditions(){
   try {
-    const url = 'https://api.jsonbin.io/v3/b/' + WATCH_JSONBIN_ID_STR;
+    const url = 'https://disabled.invalid' + WATCH_JSONBIN_ID_STR;
     await fetch(url, {
       method: 'PUT',
       headers: {'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY},
@@ -2147,7 +2147,7 @@ async function loadIndexConditions(){
 
 async function saveIndexConditions(){
   try {
-    const url = 'https://api.jsonbin.io/v3/b/' + INDEX_JSONBIN_ID;
+    const url = 'https://disabled.invalid' + INDEX_JSONBIN_ID;
     await fetch(url, {
       method: 'PUT',
       headers: {'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY},
