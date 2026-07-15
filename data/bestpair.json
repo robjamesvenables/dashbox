@@ -1,1 +1,1 @@
-{"bestpair":{},"ts":0}
+{"bestpair": {"p1": {"pair": "GBPNZD", "dir": "BUY", "score": 77}, "p2": {"pair": "EURUSD", "dir": "SELL", "score": 75}, "p3": {"pair": "GBPAUD", "dir": "BUY", "score": 71}, "p4": {"pair": "USDJPY", "dir": "BUY", "score": 68}, "p5": {"pair": "GBPCAD", "dir": "BUY", "score": 66}}, "ts": 1752557000}
