@@ -2222,7 +2222,8 @@ function drawIndexConditions(){
 
 function drawIndexStrengthSnap(){
   const c = document.getElementById('indexStrengthSnap');
-  if(!c) return;
+  console.log('drawIndexStrengthSnap called, scores:', indexStrengthScores);
+  if(!c){ console.log('indexStrengthSnap element not found'); return; }
   if(!indexStrengthScores || indexStrengthScores.length === 0){
     c.innerHTML = '<div style="font-size:11px;color:var(--muted);">No strength data — EA not connected yet.</div>';
     return;
