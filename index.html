@@ -2122,6 +2122,7 @@ function drawWatchStrengthSnap(){
 // ═══════════ INDEX TAB ═══════════
 const INDEX_JSONBIN_ID = '6a4368e5f5f4af5e2945e535';
 let indexConditions = [];
+let indexStrengthScores = [];
 
 async function renderIndex(){
   await loadIndexConditions();
@@ -2137,7 +2138,7 @@ async function loadIndexStrength(){
     const data = await res.json();
     const scores = data && data.record && data.record.strength;
     if(scores && scores.length > 0){
-      currentScores = scores;
+      indexStrengthScores = scores;
     }
   } catch(e){ console.log('Strength load error:', e); }
 }
@@ -2188,8 +2189,8 @@ function drawIndexConditions(){
   }
   let html = '';
   indexConditions.forEach((cond, idx) => {
-    const aStr = currentScores && currentScores.find(s=>s.code===cond.curA);
-    const bStr = currentScores && currentScores.find(s=>s.code===cond.curB);
+    const aStr = indexStrengthScores && indexStrengthScores.find(s=>s.code===cond.curA);
+    const bStr = indexStrengthScores && indexStrengthScores.find(s=>s.code===cond.curB);
     const aVal = aStr ? aStr.score : null;
     const bVal = bStr ? bStr.score : null;
     const isTrue = aVal !== null && bVal !== null && aVal > bVal;
@@ -2229,11 +2230,11 @@ function drawIndexConditions(){
 function drawIndexStrengthSnap(){
   const c = document.getElementById('indexStrengthSnap');
   if(!c) return;
-  if(!currentScores || currentScores.length === 0){
-    c.innerHTML = '<div style="font-size:11px;color:var(--muted);">No strength data available yet.</div>';
+  if(!indexStrengthScores || indexStrengthScores.length === 0){
+    c.innerHTML = '<div style="font-size:11px;color:var(--muted);">No strength data — EA not connected yet.</div>';
     return;
   }
-  const sorted = [...currentScores].sort((a,b)=>b.score-a.score);
+  const sorted = [...indexStrengthScores].sort((a,b)=>b.score-a.score);
   let html = '<div style="display:flex;flex-direction:column;gap:5px;">';
   sorted.forEach(s => {
     const col = s.score>0?'var(--strong)':s.score<0?'var(--weak)':'var(--muted)';
