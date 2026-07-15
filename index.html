@@ -2189,7 +2189,7 @@ function drawIndexConditions(){
     const isTrue = aVal !== null && bVal !== null && aVal > bVal;
     const borderColor = isTrue ? 'rgba(0,212,170,0.5)' : 'var(--border)';
     const statusColor = isTrue ? 'var(--strong)' : 'var(--weak)';
-    const statusText = aVal !== null ? (isTrue ? '✅ TRUE — Alert will fire' : '❌ Not yet') : '⏳ Waiting for data...';
+    const statusText = aVal !== null ? (isTrue ? '✅ Confirmed' : '⏳ Watching...') : '⏳ Loading...';
     const diff = aVal !== null && bVal !== null ? Math.abs(aVal - bVal).toFixed(2) : '--';
     const aDisp = aVal !== null ? (aVal > 0 ? '+' : '') + aVal.toFixed(2) : '--';
     const bDisp = bVal !== null ? (bVal > 0 ? '+' : '') + bVal.toFixed(2) : '--';
