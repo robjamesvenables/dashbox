@@ -2137,7 +2137,7 @@ async function loadIndexStrength(){
     const res = await fetch(url);
     const data = await res.json();
     if(data.strength && data.strength.length > 0) indexStrengthScores = data.strength;
-    if(data.conditions) indexConditions = data.conditions;
+    // conditions loaded from localStorage only — not overwritten from GitHub
   } catch(e){ console.log('Strength load error:', e); }
 }
 
