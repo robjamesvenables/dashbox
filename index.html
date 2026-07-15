@@ -2257,6 +2257,18 @@ const SCORE_MAP = {
   NXY:'NZD', CAD:'CAD', CHF:'CHF', JXY:'JPY'
 };
 
+async function fetchStrengthFromGitHub(){
+  try {
+    const url = 'https://raw.githubusercontent.com/robjamesvenables/dashbox/main/data/index.json?t='+Date.now();
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data.strength && data.strength.length > 0){
+      return {scores: data.strength, ts: data.ts};
+    }
+    return null;
+  } catch(e){ return null; }
+}
+
 async function fetchStrengthFromTelegram(){
   try {
     const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates?limit=100&allowed_updates=["message"]`;
@@ -2348,8 +2360,8 @@ async function loadLiveData(){
   const badge = document.getElementById('apiBadge');
   const ageEl = document.getElementById('scoreAge');
 
-  // Fetch scores and prices in parallel
-  const [result] = await Promise.all([fetchStrengthFromTelegram(), fetchPricesFromTelegram()]);
+  // Fetch scores from GitHub (EA writes here)
+  const [result] = await Promise.all([fetchStrengthFromGitHub(), fetchPricesFromTelegram()]);
 
   if(result && result.scores.length > 0){
     currentScores = result.scores;
