@@ -2125,8 +2125,21 @@ let indexConditions = [];
 
 async function renderIndex(){
   await loadIndexConditions();
+  await loadIndexStrength();
   drawIndexConditions();
   drawIndexStrengthSnap();
+}
+
+async function loadIndexStrength(){
+  try {
+    const url = 'https://api.jsonbin.io/v3/b/' + INDEX_JSONBIN_ID + '/latest';
+    const res = await fetch(url, {headers:{'X-Master-Key': JSONBIN_KEY}});
+    const data = await res.json();
+    const scores = data && data.record && data.record.strength;
+    if(scores && scores.length > 0){
+      currentScores = scores;
+    }
+  } catch(e){ console.log('Strength load error:', e); }
 }
 
 async function loadIndexConditions(){
