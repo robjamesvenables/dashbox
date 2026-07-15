@@ -348,15 +348,37 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
 <!-- INDEX -->
 <div class="page" id="tab-index">
-  <div class="controls">
-    <button class="btn primary" onclick="reloadData()">↻ Refresh</button>
-    <span class="api-badge demo" id="apiBadge">● FETCHING...</span>
-    <span id="scoreAge" style="font-size:10px;color:var(--muted);margin-left:8px"></span>
-    <button class="btn" onclick="testTelegram()" style="margin-left:auto">📲 Test Alert</button>
+  <div style="padding:14px;">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.6;">
+      Set conditions to watch on the Daily chart. Alert fires when one currency flips stronger than another.
+    </div>
+
+    <!-- Add condition -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Watch When</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <select id="idxCurA" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:6px;font-family:var(--font);font-size:13px;font-weight:600;">
+          <option>AUD</option><option>CAD</option><option>CHF</option><option>EUR</option>
+          <option>GBP</option><option>JPY</option><option>NZD</option><option>USD</option>
+        </select>
+        <div style="font-size:12px;color:var(--muted);">stronger than</div>
+        <select id="idxCurB" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:6px;font-family:var(--font);font-size:13px;font-weight:600;">
+          <option>USD</option><option>AUD</option><option>CAD</option><option>CHF</option>
+          <option>EUR</option><option>GBP</option><option>JPY</option><option>NZD</option>
+        </select>
+        <button onclick="addIndexCondition()" style="background:linear-gradient(135deg,#00d4aa,#00a86b);border:none;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:var(--font);">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Condition list -->
+    <div id="indexConditionList"></div>
+
+    <!-- Current D1 strength -->
+    <div style="margin-top:16px;">
+      <div style="font-size:9px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Current Daily Strength</div>
+      <div id="indexStrengthSnap"></div>
+    </div>
   </div>
-  <div class="sl">Currency Strength Index — MT4 Live</div>
-  <div class="chart-wrap"><canvas id="barChart" width="340" height="300"></canvas></div>
-  <div class="index-legend" id="indexLegend"></div>
 </div>
 
 <!-- SIGNALS -->
@@ -716,6 +738,7 @@ function showTab(name){
   if(name==='check') renderCheck();
   if(name==='scout') renderBestPair();
   if(name==='golden') renderGolden();
+  if(name==='index') renderIndex();
   if(name==='watch') renderWatch();
 }
 
@@ -2090,6 +2113,124 @@ function drawWatchStrengthSnap(){
         <div style="width:${barW}%;height:100%;background:${cls};border-radius:3px;"></div>
       </div>
       <div style="font-size:11px;color:${cls};width:40px;text-align:right;">${s.score>0?'+':''}${s.score.toFixed(1)}</div>
+    </div>`;
+  });
+  html += '</div>';
+  c.innerHTML = html;
+}
+
+// ═══════════ INDEX TAB ═══════════
+const INDEX_JSONBIN_ID = '6a4368e5f5f4af5e2945e535';
+let indexConditions = [];
+
+async function renderIndex(){
+  await loadIndexConditions();
+  drawIndexConditions();
+  drawIndexStrengthSnap();
+}
+
+async function loadIndexConditions(){
+  try {
+    const url = 'https://api.jsonbin.io/v3/b/' + INDEX_JSONBIN_ID + '/latest';
+    const res = await fetch(url, {headers:{'X-Master-Key': JSONBIN_KEY}});
+    const data = await res.json();
+    indexConditions = (data && data.record && data.record.conditions) || [];
+  } catch(e){ indexConditions = []; }
+}
+
+async function saveIndexConditions(){
+  try {
+    const url = 'https://api.jsonbin.io/v3/b/' + INDEX_JSONBIN_ID;
+    await fetch(url, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY},
+      body: JSON.stringify({conditions: indexConditions, ts: Math.floor(Date.now()/1000)})
+    });
+  } catch(e){ console.log('Index save error:', e); }
+}
+
+function addIndexCondition(){
+  const curA = document.getElementById('idxCurA').value;
+  const curB = document.getElementById('idxCurB').value;
+  if(curA === curB){ alert('Please select two different currencies'); return; }
+  const exists = indexConditions.find(c=>c.curA===curA && c.curB===curB);
+  if(exists){ alert('This condition already exists'); return; }
+  indexConditions.push({curA, curB});
+  drawIndexConditions();
+  saveIndexConditions();
+}
+
+function removeIndexCondition(idx){
+  indexConditions.splice(idx, 1);
+  drawIndexConditions();
+  saveIndexConditions();
+}
+
+function drawIndexConditions(){
+  const c = document.getElementById('indexConditionList');
+  if(!c) return;
+  if(indexConditions.length === 0){
+    c.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted);">No conditions set yet — add one above.</div>';
+    return;
+  }
+  let html = '';
+  indexConditions.forEach((cond, idx) => {
+    const aStr = currentScores && currentScores.find(s=>s.code===cond.curA);
+    const bStr = currentScores && currentScores.find(s=>s.code===cond.curB);
+    const aVal = aStr ? aStr.score : null;
+    const bVal = bStr ? bStr.score : null;
+    const isTrue = aVal !== null && bVal !== null && aVal > bVal;
+    const borderColor = isTrue ? 'rgba(0,212,170,0.5)' : 'var(--border)';
+    const statusColor = isTrue ? 'var(--strong)' : 'var(--weak)';
+    const statusText = aVal !== null ? (isTrue ? '✅ TRUE — Alert will fire' : '❌ Not yet') : '⏳ Waiting for data...';
+    const diff = aVal !== null && bVal !== null ? Math.abs(aVal - bVal).toFixed(2) : '--';
+    const aDisp = aVal !== null ? (aVal > 0 ? '+' : '') + aVal.toFixed(2) : '--';
+    const bDisp = bVal !== null ? (bVal > 0 ? '+' : '') + bVal.toFixed(2) : '--';
+    html += `<div style="background:var(--surface);border:1px solid ${borderColor};border-radius:10px;padding:14px 16px;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:15px;font-weight:700;color:#e8ecf4;">${cond.curA} <span style="color:var(--muted);font-size:11px;font-weight:400;">stronger than</span> ${cond.curB}</div>
+        <button onclick="removeIndexCondition(${idx})" style="background:none;border:1px solid var(--border2);border-radius:4px;color:var(--muted);padding:3px 8px;cursor:pointer;font-size:11px;">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;gap:12px;">
+          <div style="text-align:center;">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">${cond.curA}</div>
+            <div style="font-size:13px;font-weight:600;color:${aVal>0?'var(--strong)':'var(--weak)'};">${aDisp}</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">${cond.curB}</div>
+            <div style="font-size:13px;font-weight:600;color:${bVal>0?'var(--strong)':'var(--weak)'};">${bDisp}</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">GAP</div>
+            <div style="font-size:13px;font-weight:600;color:var(--muted);">${diff}</div>
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:${statusColor};text-align:right;">${statusText}</div>
+      </div>
+    </div>`;
+  });
+  c.innerHTML = html;
+}
+
+function drawIndexStrengthSnap(){
+  const c = document.getElementById('indexStrengthSnap');
+  if(!c) return;
+  if(!currentScores || currentScores.length === 0){
+    c.innerHTML = '<div style="font-size:11px;color:var(--muted);">No strength data available yet.</div>';
+    return;
+  }
+  const sorted = [...currentScores].sort((a,b)=>b.score-a.score);
+  let html = '<div style="display:flex;flex-direction:column;gap:5px;">';
+  sorted.forEach(s => {
+    const col = s.score>0?'var(--strong)':s.score<0?'var(--weak)':'var(--muted)';
+    const barW = Math.min(Math.abs(s.score)/3*100, 100);
+    html += `<div style="display:flex;align-items:center;gap:8px;">
+      <div style="font-size:11px;font-weight:600;color:#e8ecf4;width:36px;">${s.code}</div>
+      <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div style="width:${barW}%;height:100%;background:${col};border-radius:3px;"></div>
+      </div>
+      <div style="font-size:11px;color:${col};width:45px;text-align:right;">${s.score>0?'+':''}${s.score.toFixed(2)}</div>
     </div>`;
   });
   html += '</div>';
