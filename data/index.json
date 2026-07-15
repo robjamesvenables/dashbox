@@ -1,1 +1,1 @@
-{"conditions":[],"strength":[],"ts":0}
+{"conditions": [], "strength": [{"code": "AUD", "score": 2.1}, {"code": "CAD", "score": 1.4}, {"code": "CHF", "score": 1.28}, {"code": "NZD", "score": 1.01}, {"code": "EUR", "score": 0.92}, {"code": "GBP", "score": 0.76}, {"code": "JPY", "score": 0.27}, {"code": "USD", "score": 0.0}], "ts": 1752557000}
