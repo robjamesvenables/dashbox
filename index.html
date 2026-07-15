@@ -2136,12 +2136,13 @@ async function loadIndexStrength(){
     const url = 'https://api.jsonbin.io/v3/b/' + INDEX_JSONBIN_ID + '/latest';
     const res = await fetch(url, {headers:{'X-Master-Key': JSONBIN_KEY}});
     const data = await res.json();
-    const scores = data && data.record && data.record.strength;
-    console.log('INDEX jsonbin raw:', JSON.stringify(data && data.record));
+    console.log('INDEX full response:', JSON.stringify(data).substring(0,300));
+    const record = data && (data.record || data);
+    const scores = record && record.strength;
     console.log('INDEX scores:', scores);
     if(scores && scores.length > 0){
       indexStrengthScores = scores;
-      console.log('INDEX strength loaded:', indexStrengthScores.length, 'currencies');
+      console.log('INDEX strength loaded OK:', indexStrengthScores.length);
     }
   } catch(e){ console.log('Strength load error:', e); }
 }
