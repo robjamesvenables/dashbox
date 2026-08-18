@@ -2455,7 +2455,7 @@ async function fetchGoldCandles(tf){
   try{
     const res = await fetch(`/api/gold-klines?interval=${tf}`);
     const raw = await res.json();
-    if(!Array.isArray(raw)) throw new Error('bad response');
+    if(!Array.isArray(raw)) throw new Error(raw.error || 'bad response');
     glCandles = raw.map(c=>({ open:+c[1], high:+c[2], low:+c[3], close:+c[4], t:c[0] }));
     glLivePrice = glCandles.length ? glCandles[glCandles.length-1].close : null;
     updateGoldPriceHeader();
@@ -2464,7 +2464,7 @@ async function fetchGoldCandles(tf){
     document.getElementById('glStatus').textContent = 'live';
     return true;
   }catch(e){
-    document.getElementById('glStatus').textContent = 'price feed unavailable';
+    document.getElementById('glStatus').textContent = 'price feed error: ' + e.message;
     console.log('gold klines error', e);
     return false;
   }
