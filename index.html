@@ -2403,10 +2403,11 @@ let glLiqBins = {}; // price bucket -> count, for heatmap
 let glZones = [];
 let glSoundOn = true;
 let glLivePrice = null;
-let glKlineWs = null;
 let glLiqWs = null;
+let glPollTimer = null;
 let glInitDone = false;
 let glLastAlertAt = 0;
+let glLiqReconnectAttempts = 0;
 
 function initGoldLiq(){
   try{ const s = localStorage.getItem('dashbox_gold_zones'); glZones = s ? JSON.parse(s) : []; }catch(e){ glZones = []; }
@@ -2445,48 +2446,47 @@ function toggleGoldSound(){
 
 async function loadGoldChart(tf){
   document.getElementById('glStatus').textContent = 'loading...';
+  await fetchGoldCandles(tf);
+  startGoldPolling(tf);
+  connectGoldLiqWs();
+}
+
+async function fetchGoldCandles(tf){
   try{
     const res = await fetch(`/api/gold-klines?interval=${tf}`);
     const raw = await res.json();
+    if(!Array.isArray(raw)) throw new Error('bad response');
     glCandles = raw.map(c=>({ open:+c[1], high:+c[2], low:+c[3], close:+c[4], t:c[0] }));
     glLivePrice = glCandles.length ? glCandles[glCandles.length-1].close : null;
     updateGoldPriceHeader();
+    if(glLivePrice!=null) checkGoldZones(glLivePrice);
     drawGoldChart();
+    document.getElementById('glStatus').textContent = 'live';
+    return true;
   }catch(e){
-    document.getElementById('glStatus').textContent = 'data unavailable';
+    document.getElementById('glStatus').textContent = 'price feed unavailable';
     console.log('gold klines error', e);
+    return false;
   }
-  connectGoldWs(tf);
 }
 
-function connectGoldWs(tf){
-  if(glKlineWs){ try{ glKlineWs.close(); }catch(e){} }
+function startGoldPolling(tf){
+  if(glPollTimer) clearInterval(glPollTimer);
+  // simple repeated check every 3s — far more reliable than a live socket on mobile,
+  // and plenty fast for a couple of trades a day
+  glPollTimer = setInterval(()=>{ if(glTf===tf) fetchGoldCandles(tf); }, 3000);
+}
+
+function connectGoldLiqWs(){
   if(glLiqWs){ try{ glLiqWs.close(); }catch(e){} }
-
-  glKlineWs = new WebSocket(`wss://fstream.binance.com/market/ws/xauusdt@kline_${tf}`);
-  glKlineWs.onopen = ()=>{ document.getElementById('glStatus').textContent = 'live'; };
-  glKlineWs.onclose = ()=>{ document.getElementById('glStatus').textContent = 'reconnecting...'; setTimeout(()=>{ if(glTf===tf) connectGoldWs(tf); }, 4000); };
-  glKlineWs.onerror = ()=>{ document.getElementById('glStatus').textContent = 'connection error'; };
-  glKlineWs.onmessage = (msg)=>{
-    try{
-      const data = JSON.parse(msg.data);
-      const k = data.k;
-      if(!k) return;
-      const candle = { open:+k.o, high:+k.h, low:+k.l, close:+k.c, t:k.t };
-      if(glCandles.length && glCandles[glCandles.length-1].t === candle.t){
-        glCandles[glCandles.length-1] = candle;
-      } else {
-        glCandles.push(candle);
-        if(glCandles.length > 150) glCandles.shift();
-      }
-      glLivePrice = candle.close;
-      updateGoldPriceHeader();
-      checkGoldZones(candle.close);
-      drawGoldChart();
-    }catch(e){}
-  };
-
   glLiqWs = new WebSocket('wss://fstream.binance.com/market/ws/xauusdt@forceOrder');
+  glLiqWs.onopen = ()=>{ glLiqReconnectAttempts = 0; };
+  glLiqWs.onclose = ()=>{
+    glLiqReconnectAttempts++;
+    const delay = Math.min(3000 * glLiqReconnectAttempts, 30000); // back off up to 30s
+    setTimeout(connectGoldLiqWs, delay);
+  };
+  glLiqWs.onerror = ()=>{ try{ glLiqWs.close(); }catch(e){} };
   glLiqWs.onmessage = (msg)=>{
     try{
       const data = JSON.parse(msg.data);
