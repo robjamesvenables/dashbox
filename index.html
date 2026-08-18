@@ -2412,6 +2412,7 @@ let glLiqReconnectAttempts = 0;
 function initGoldLiq(){
   try{ const s = localStorage.getItem('dashbox_gold_zones'); glZones = s ? JSON.parse(s) : []; }catch(e){ glZones = []; }
   try{ const s = localStorage.getItem('dashbox_gold_sound'); if(s!==null) glSoundOn = s==='1'; }catch(e){}
+  loadGoldLiqBins();
   document.getElementById('glSoundBtn').textContent = glSoundOn ? '🔊' : '🔇';
   document.getElementById('glSoundBtn').classList.toggle('active', glSoundOn);
   renderGoldZones();
@@ -2428,6 +2429,22 @@ function initGoldLiq(){
   } else {
     drawGoldChart();
   }
+}
+
+function loadGoldLiqBins(){
+  try{
+    const s = localStorage.getItem('dashbox_gold_liq_bins');
+    if(!s){ glLiqBins = {}; return; }
+    const parsed = JSON.parse(s);
+    // keep building on what we've already seen, but drop it if it's more than
+    // 48h old — a liquidation shelf from days ago isn't a useful zone anymore
+    const age = Date.now() - (parsed.savedAt || 0);
+    glLiqBins = age < 48*60*60*1000 ? (parsed.bins || {}) : {};
+  }catch(e){ glLiqBins = {}; }
+}
+
+function saveGoldLiqBins(){
+  try{ localStorage.setItem('dashbox_gold_liq_bins', JSON.stringify({ bins: glLiqBins, savedAt: Date.now() })); }catch(e){}
 }
 
 function setGoldTf(tf, btn){
@@ -2495,6 +2512,7 @@ function connectGoldLiqWs(){
       addGoldFeedItem(o);
       const bucket = Math.round(+o.p / 2) * 2; // bin every $2
       glLiqBins[bucket] = (glLiqBins[bucket]||0) + parseFloat(o.q||1);
+      saveGoldLiqBins();
       drawGoldChart();
     }catch(e){}
   };
