@@ -344,6 +344,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   <button class="mkt-btn active" id="tb-scout" onclick="showTab('scout')" style="color:var(--gold);font-weight:600;">🎯 SCOUT</button>
   <button class="mkt-btn" id="tb-golden" onclick="showTab('golden')" style="color:#f5d87a;font-weight:700;">⭐ GOLDEN</button>
   <button class="mkt-btn" id="tb-index" onclick="showTab('index')">🌐 INDEX</button>
+  <button class="mkt-btn" id="tb-goldliq" onclick="showTab('goldliq')" style="color:#e6c43c;">🪙 GOLD</button>
 </div>
 
 <!-- INDEX -->
@@ -444,6 +445,45 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   </div>
 </div>
 
+
+<!-- GOLD LIQ -->
+<div class="page" id="tab-goldliq">
+  <div style="padding:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+      <div>
+        <span style="font-size:16px;font-weight:600;color:#e6c43c;">XAU/USDT</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:6px;">Gold Perp · Binance</span>
+      </div>
+      <div style="text-align:right;">
+        <span id="glPrice" style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;">--</span>
+        <span id="glStatus" style="font-size:10px;color:var(--muted);display:block;">connecting...</span>
+      </div>
+    </div>
+    <div id="glAlertBanner" style="display:none;background:rgba(230,196,60,0.12);border:1px solid #e6c43c;color:#e6c43c;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;margin-bottom:8px;"></div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;">
+      <button class="filt-btn active" onclick="setGoldTf('1m',this)">1m</button>
+      <button class="filt-btn" onclick="setGoldTf('3m',this)">3m</button>
+      <button class="filt-btn" onclick="setGoldTf('5m',this)">5m</button>
+      <button class="filt-btn" onclick="setGoldTf('15m',this)">15m</button>
+      <div style="flex:1"></div>
+      <button id="glSoundBtn" class="filt-btn active" onclick="toggleGoldSound()">🔊</button>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px;">
+      <canvas id="glCanvas" style="width:100%;height:320px;cursor:crosshair;"></canvas>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px;">Tap the chart to drop a zone. You'll get a banner + sound + Telegram alert when price enters it.</div>
+
+    <div style="margin-top:14px;">
+      <div style="font-size:9px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Your Zones</div>
+      <div id="glZoneList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <div style="font-size:9px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Live Liquidations</div>
+      <div id="glFeed" style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
 
 <!-- GOLDEN -->
 <div class="page" id="tab-golden">
@@ -738,6 +778,7 @@ function showTab(name){
   if(name==='check') renderCheck();
   if(name==='scout') renderBestPair();
   if(name==='golden') renderGolden();
+  if(name==='goldliq') initGoldLiq();
   if(name==='index') renderIndex();
   if(name==='watch') renderWatch();
 }
@@ -2353,6 +2394,295 @@ function updateClock(){
   const sgt=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Singapore'}));
   const t=[sgt.getHours(),sgt.getMinutes()].map(n=>String(n).padStart(2,'0')).join(':');
   document.getElementById('clockEl').textContent=t;
+}
+
+// ═══════════ GOLD LIQUIDATION TAB ═══════════
+let glTf = '1m';
+let glCandles = [];
+let glLiqBins = {}; // price bucket -> count, for heatmap
+let glZones = [];
+let glSoundOn = true;
+let glLivePrice = null;
+let glKlineWs = null;
+let glLiqWs = null;
+let glInitDone = false;
+let glLastAlertAt = 0;
+
+function initGoldLiq(){
+  try{ const s = localStorage.getItem('dashbox_gold_zones'); glZones = s ? JSON.parse(s) : []; }catch(e){ glZones = []; }
+  try{ const s = localStorage.getItem('dashbox_gold_sound'); if(s!==null) glSoundOn = s==='1'; }catch(e){}
+  document.getElementById('glSoundBtn').textContent = glSoundOn ? '🔊' : '🔇';
+  document.getElementById('glSoundBtn').classList.toggle('active', glSoundOn);
+  renderGoldZones();
+
+  const canvas = document.getElementById('glCanvas');
+  if(canvas && !canvas._glClickBound){
+    canvas.addEventListener('click', onGoldChartClick);
+    canvas._glClickBound = true;
+  }
+
+  if(!glInitDone){
+    glInitDone = true;
+    loadGoldChart(glTf);
+  } else {
+    drawGoldChart();
+  }
+}
+
+function setGoldTf(tf, btn){
+  glTf = tf;
+  document.querySelectorAll('#tab-goldliq .filt-btn').forEach(b=>{ if(b.textContent.match(/^\d/)) b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  loadGoldChart(tf);
+}
+
+function toggleGoldSound(){
+  glSoundOn = !glSoundOn;
+  try{ localStorage.setItem('dashbox_gold_sound', glSoundOn?'1':'0'); }catch(e){}
+  document.getElementById('glSoundBtn').textContent = glSoundOn ? '🔊' : '🔇';
+  document.getElementById('glSoundBtn').classList.toggle('active', glSoundOn);
+}
+
+async function loadGoldChart(tf){
+  document.getElementById('glStatus').textContent = 'loading...';
+  try{
+    const res = await fetch(`/api/gold-klines?interval=${tf}`);
+    const raw = await res.json();
+    glCandles = raw.map(c=>({ open:+c[1], high:+c[2], low:+c[3], close:+c[4], t:c[0] }));
+    glLivePrice = glCandles.length ? glCandles[glCandles.length-1].close : null;
+    updateGoldPriceHeader();
+    drawGoldChart();
+  }catch(e){
+    document.getElementById('glStatus').textContent = 'data unavailable';
+    console.log('gold klines error', e);
+  }
+  connectGoldWs(tf);
+}
+
+function connectGoldWs(tf){
+  if(glKlineWs){ try{ glKlineWs.close(); }catch(e){} }
+  if(glLiqWs){ try{ glLiqWs.close(); }catch(e){} }
+
+  glKlineWs = new WebSocket(`wss://fstream.binance.com/market/ws/xauusdt@kline_${tf}`);
+  glKlineWs.onopen = ()=>{ document.getElementById('glStatus').textContent = 'live'; };
+  glKlineWs.onclose = ()=>{ document.getElementById('glStatus').textContent = 'reconnecting...'; setTimeout(()=>{ if(glTf===tf) connectGoldWs(tf); }, 4000); };
+  glKlineWs.onerror = ()=>{ document.getElementById('glStatus').textContent = 'connection error'; };
+  glKlineWs.onmessage = (msg)=>{
+    try{
+      const data = JSON.parse(msg.data);
+      const k = data.k;
+      if(!k) return;
+      const candle = { open:+k.o, high:+k.h, low:+k.l, close:+k.c, t:k.t };
+      if(glCandles.length && glCandles[glCandles.length-1].t === candle.t){
+        glCandles[glCandles.length-1] = candle;
+      } else {
+        glCandles.push(candle);
+        if(glCandles.length > 150) glCandles.shift();
+      }
+      glLivePrice = candle.close;
+      updateGoldPriceHeader();
+      checkGoldZones(candle.close);
+      drawGoldChart();
+    }catch(e){}
+  };
+
+  glLiqWs = new WebSocket('wss://fstream.binance.com/market/ws/xauusdt@forceOrder');
+  glLiqWs.onmessage = (msg)=>{
+    try{
+      const data = JSON.parse(msg.data);
+      const o = data.o;
+      if(!o) return;
+      addGoldFeedItem(o);
+      const bucket = Math.round(+o.p / 2) * 2; // bin every $2
+      glLiqBins[bucket] = (glLiqBins[bucket]||0) + parseFloat(o.q||1);
+      drawGoldChart();
+    }catch(e){}
+  };
+}
+
+function updateGoldPriceHeader(){
+  const el = document.getElementById('glPrice');
+  if(el && glLivePrice!=null) el.textContent = glLivePrice.toFixed(2);
+}
+
+// ---- zones ----
+function onGoldChartClick(e){
+  const canvas = document.getElementById('glCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  const scale = canvas._glScale;
+  if(!scale) return;
+  const price = scale.pxToPrice(y);
+  const width = price * 0.0009;
+  const id = Date.now();
+  glZones.push({ id, label:`Zone ${glZones.length+1}`, min: price-width, max: price+width, inside:false });
+  saveGoldZones();
+  renderGoldZones();
+  drawGoldChart();
+}
+
+function removeGoldZone(id){
+  glZones = glZones.filter(z=>z.id!==id);
+  saveGoldZones();
+  renderGoldZones();
+  drawGoldChart();
+}
+
+function saveGoldZones(){
+  try{ localStorage.setItem('dashbox_gold_zones', JSON.stringify(glZones)); }catch(e){}
+}
+
+function renderGoldZones(){
+  const c = document.getElementById('glZoneList');
+  if(!c) return;
+  if(glZones.length===0){
+    c.innerHTML = `<div style="font-size:11px;color:var(--muted);">No zones yet — tap the chart to add one</div>`;
+    return;
+  }
+  c.innerHTML = glZones.map(z=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:6px;background:${z.inside?'rgba(230,196,60,0.15)':'var(--surface2)'};font-size:12px;">
+      <span style="color:#e6c43c;font-weight:600;">${z.label}</span>
+      <span style="color:var(--text);font-variant-numeric:tabular-nums;">${z.min.toFixed(2)}&ndash;${z.max.toFixed(2)}</span>
+      <span onclick="removeGoldZone(${z.id})" style="color:var(--muted);cursor:pointer;padding:0 4px;">✕</span>
+    </div>`).join('');
+}
+
+function checkGoldZones(price){
+  let fired = false;
+  glZones.forEach(z=>{
+    const insideNow = price >= z.min && price <= z.max;
+    if(insideNow && !z.inside){
+      fired = true;
+      showGoldAlert(`Price entered ${z.label} — ${price.toFixed(2)}`);
+      if(glSoundOn) goldBeep();
+      const now = Date.now();
+      if(now - glLastAlertAt > 15000){ // throttle telegram to avoid spamming on chop
+        glLastAlertAt = now;
+        sendTelegramAlert(`🪙 <b>GOLD ZONE ALERT</b>\n\n${z.label}: ${z.min.toFixed(2)}\u2013${z.max.toFixed(2)}\nPrice: ${price.toFixed(2)}\n\nCheck price action before entering.`);
+      }
+    }
+    z.inside = insideNow;
+  });
+  if(fired){ saveGoldZones(); renderGoldZones(); }
+}
+
+function showGoldAlert(msg){
+  const el = document.getElementById('glAlertBanner');
+  if(!el) return;
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>{ el.style.display='none'; }, 5000);
+}
+
+function goldBeep(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.35);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime+0.4);
+  }catch(e){}
+}
+
+// ---- liquidation feed list ----
+function addGoldFeedItem(o){
+  const c = document.getElementById('glFeed');
+  if(!c) return;
+  const side = o.S === 'SELL' ? 'LONG' : 'SHORT'; // a forced SELL liquidates a long position, and vice versa
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:6px;background:var(--surface2);font-size:11px;font-variant-numeric:tabular-nums;';
+  row.innerHTML = `<span style="font-weight:700;color:${side==='LONG'?'#e05c5c':'#00d4aa'};width:46px;">LIQ ${side==='LONG'?'L':'S'}</span>
+    <span style="color:var(--text);">${(+o.p).toFixed(2)}</span>
+    <span style="color:var(--muted);">${(+o.q).toFixed(3)}</span>
+    <span style="color:var(--muted);font-size:9px;">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>`;
+  c.prepend(row);
+  while(c.children.length > 25) c.removeChild(c.lastChild);
+}
+
+// ---- canvas draw ----
+function drawGoldChart(){
+  const canvas = document.getElementById('glCanvas');
+  if(!canvas || glCandles.length===0) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || canvas.parentElement.clientWidth;
+  const h = 320;
+  canvas.width = w*dpr; canvas.height = h*dpr;
+  canvas.style.width = w+'px'; canvas.style.height = h+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+
+  const chartW = w - 56;
+  const heatW = 56;
+
+  const allPrices = glCandles.flatMap(c=>[c.high,c.low]);
+  const min = Math.min(...allPrices);
+  const max = Math.max(...allPrices);
+  const pad = (max-min)*0.1 || 1;
+  const yMin = min-pad, yMax = max+pad;
+  const yToPx = p => h - ((p-yMin)/(yMax-yMin))*h;
+  const pxToPrice = y => yMin + ((h-y)/h)*(yMax-yMin);
+  canvas._glScale = { pxToPrice, chartW, h };
+
+  // grid + price labels
+  ctx.strokeStyle = 'rgba(200,205,216,0.06)';
+  ctx.font = '10px ui-monospace, monospace';
+  for(let i=0;i<=4;i++){
+    const y = (h/4)*i;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(chartW,y); ctx.stroke();
+    ctx.fillStyle = 'rgba(200,205,216,0.35)';
+    ctx.fillText((yMax-((yMax-yMin)*i/4)).toFixed(2), chartW+6, y+3);
+  }
+
+  // candles
+  const cw = chartW/glCandles.length;
+  const bw = Math.max(cw*0.55, 1.5);
+  glCandles.forEach((c,i)=>{
+    const x = i*cw + cw/2;
+    const up = c.close>=c.open;
+    ctx.strokeStyle = ctx.fillStyle = up ? '#00d4aa' : '#e05c5c';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x,yToPx(c.high)); ctx.lineTo(x,yToPx(c.low)); ctx.stroke();
+    const yo=yToPx(c.open), yc=yToPx(c.close);
+    ctx.fillRect(x-bw/2, Math.min(yo,yc), bw, Math.max(Math.abs(yc-yo),1));
+  });
+
+  // liquidation heatmap strip from accumulated bins
+  const bucketVals = Object.values(glLiqBins);
+  const maxBucket = bucketVals.length ? Math.max(...bucketVals) : 1;
+  Object.entries(glLiqBins).forEach(([price, qty])=>{
+    const p = +price;
+    if(p < yMin || p > yMax) return;
+    const y = yToPx(p);
+    const intensity = Math.min(qty/maxBucket, 1);
+    const alpha = 0.1 + intensity*0.6;
+    ctx.fillStyle = `rgba(230,196,60,${alpha})`;
+    ctx.fillRect(chartW, y-2, heatW, 4);
+  });
+
+  // zones
+  glZones.forEach(z=>{
+    const yTop = yToPx(z.max), yBot = yToPx(z.min);
+    ctx.fillStyle = z.inside ? 'rgba(230,196,60,0.22)' : 'rgba(230,196,60,0.08)';
+    ctx.fillRect(0, yTop, chartW, Math.max(yBot-yTop,2));
+    ctx.strokeStyle = z.inside ? '#e6c43c' : 'rgba(230,196,60,0.5)';
+    ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(0,yTop); ctx.lineTo(chartW,yTop); ctx.moveTo(0,yBot); ctx.lineTo(chartW,yBot); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#e6c43c';
+    ctx.font = '9px ui-monospace, monospace';
+    ctx.fillText(z.label, 4, yTop-4>8?yTop-4:yTop+11);
+  });
+
+  ctx.strokeStyle = 'rgba(200,205,216,0.12)';
+  ctx.beginPath(); ctx.moveTo(chartW,0); ctx.lineTo(chartW,h); ctx.stroke();
 }
 
 // ═══════════ INIT ═══════════
