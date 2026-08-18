@@ -2623,6 +2623,21 @@ function addGoldFeedItem(o){
   while(c.children.length > 25) c.removeChild(c.lastChild);
 }
 
+// ---- instant estimated zones from swing highs/lows (no waiting required) ----
+function computeEstimatedZones(candles){
+  const bins = {};
+  if(candles.length < 5) return bins;
+  const bucketOf = p => Math.round(p/2)*2;
+  for(let i=2;i<candles.length-2;i++){
+    const c = candles[i];
+    const isSwingHigh = c.high > candles[i-1].high && c.high > candles[i-2].high && c.high > candles[i+1].high && c.high > candles[i+2].high;
+    const isSwingLow  = c.low  < candles[i-1].low  && c.low  < candles[i-2].low  && c.low  < candles[i+1].low  && c.low  < candles[i+2].low;
+    if(isSwingHigh){ const b = bucketOf(c.high); bins[b] = (bins[b]||0) + 1; }
+    if(isSwingLow){ const b = bucketOf(c.low); bins[b] = (bins[b]||0) + 1; }
+  }
+  return bins;
+}
+
 // ---- canvas draw ----
 function drawGoldChart(){
   const canvas = document.getElementById('glCanvas');
@@ -2672,15 +2687,24 @@ function drawGoldChart(){
     ctx.fillRect(x-bw/2, Math.min(yo,yc), bw, Math.max(Math.abs(yc-yo),1));
   });
 
-  // liquidation heatmap strip from accumulated bins
-  const bucketVals = Object.values(glLiqBins);
-  const maxBucket = bucketVals.length ? Math.max(...bucketVals) : 1;
-  Object.entries(glLiqBins).forEach(([price, qty])=>{
-    const p = +price;
+  // liquidation heatmap strip — blends instant swing-based estimate (available right away)
+  // with real accumulated liquidations (grows stronger the longer you leave it open)
+  const estBins = computeEstimatedZones(glCandles);
+  const estVals = Object.values(estBins);
+  const maxEst = estVals.length ? Math.max(...estVals) : 1;
+  const liqVals = Object.values(glLiqBins);
+  const maxLiq = liqVals.length ? Math.max(...liqVals) : 1;
+
+  const allBucketPrices = new Set([...Object.keys(estBins), ...Object.keys(glLiqBins)].map(Number));
+  allBucketPrices.forEach(p=>{
     if(p < yMin || p > yMax) return;
     const y = yToPx(p);
-    const intensity = Math.min(qty/maxBucket, 1);
-    const alpha = 0.1 + intensity*0.6;
+    const estIntensity = estBins[p] ? estBins[p]/maxEst : 0;
+    const liqIntensity = glLiqBins[p] ? glLiqBins[p]/maxLiq : 0;
+    // real live liquidations count more heavily than the estimate once they start coming in
+    const intensity = Math.min(estIntensity*0.5 + liqIntensity*0.9, 1);
+    if(intensity < 0.05) return;
+    const alpha = 0.08 + intensity*0.6;
     ctx.fillStyle = `rgba(230,196,60,${alpha})`;
     ctx.fillRect(chartW, y-2, heatW, 4);
   });
