@@ -105,7 +105,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
   <div style="margin-top:16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
       <div style="font-size:9px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;">Current Daily Strength</div>
-      <button onclick="renderIndex()" style="background:none;border:1px solid var(--border2);border-radius:5px;color:var(--muted);padding:4px 10px;cursor:pointer;font-size:10px;font-family:var(--font);">↻ Refresh</button>
+      <button onclick="manualRefresh()" id="refreshBtn" style="background:none;border:1px solid var(--border2);border-radius:5px;color:var(--muted);padding:4px 10px;cursor:pointer;font-size:10px;font-family:var(--font);">↻ Refresh</button>
     </div>
     <div id="indexStrengthSnap"></div>
   </div>
@@ -178,40 +178,74 @@ function getAgeString(ts){
 }
 
 // ═══════════ LIVE STRENGTH FEED — TWELVE DATA (no MT4/EA needed) ═══════════
-// Approximates each currency's D1 strength from its move vs USD.
-// USD's own score is the average of the other 7 (inverted where USD is the base).
-const TD_PAIRS = ['EUR/USD','GBP/USD','AUD/USD','NZD/USD','USD/CAD','USD/CHF','USD/JPY'];
+// True currency strength: each currency's score is the average of its directional
+// % change across all 7 pairs it appears in (28 pairs total across 8 currencies).
+const FOREX_PAIRS = [
+  'EURUSD','GBPUSD','AUDUSD','NZDUSD','USDCAD','USDCHF','USDJPY',
+  'EURJPY','GBPJPY','AUDJPY','NZDJPY','CADJPY','CHFJPY',
+  'EURGBP','EURAUD','EURNZD','EURCAD','EURCHF',
+  'GBPAUD','GBPNZD','GBPCAD','GBPCHF',
+  'AUDNZD','AUDCAD','AUDCHF','NZDCAD','NZDCHF','CADCHF'
+];
 
-async function fetchStrengthFromTwelveData(){
+async function fetchTDChunk(pairs){
+  const symbols = pairs.map(p => p.slice(0,3)+'/'+p.slice(3,6)).join(',');
+  const url = `https://api.twelvedata.com/quote?symbol=${symbols}&apikey=${TWELVE_KEY}`;
+  const fetchPromise = fetch(url).then(r=>r.json());
+  const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
+  const data = await Promise.race([fetchPromise, timeout]);
+  const out = {};
+  pairs.forEach(p => {
+    const sym = p.slice(0,3)+'/'+p.slice(3,6);
+    const entry = pairs.length===1 ? data : data[sym];
+    if(entry && !entry.code && entry.percent_change !== undefined){
+      const pc = parseFloat(entry.percent_change);
+      if(!isNaN(pc)) out[p] = pc;
+    }
+  });
+  return out;
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function fetchStrengthFromTwelveData(onProgress){
   try {
-    const url = `https://api.twelvedata.com/quote?symbol=${TD_PAIRS.join(',')}&apikey=${TWELVE_KEY}`;
-    const fetchPromise = fetch(url).then(r=>r.json());
-    const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
-    const data = await Promise.race([fetchPromise, timeout]);
-
-    const get = sym => data[sym] && !data[sym].code ? parseFloat(data[sym].percent_change) : null;
-    const eur = get('EUR/USD'), gbp = get('GBP/USD'), aud = get('AUD/USD'), nzd = get('NZD/USD');
-    const cad = get('USD/CAD'), chf = get('USD/CHF'), jpy = get('USD/JPY');
-    const vals = [eur,gbp,aud,nzd,cad,chf,jpy];
-    if(vals.some(v => v === null || isNaN(v))) return null;
-
-    const usdScore = ((-eur)+(-gbp)+(-aud)+(-nzd)+cad+chf+jpy)/7;
-    const ts = Date.now();
-    const scores = [
-      {code:'EUR', score: parseFloat(eur.toFixed(2)), ts},
-      {code:'GBP', score: parseFloat(gbp.toFixed(2)), ts},
-      {code:'AUD', score: parseFloat(aud.toFixed(2)), ts},
-      {code:'NZD', score: parseFloat(nzd.toFixed(2)), ts},
-      {code:'CAD', score: parseFloat((-cad).toFixed(2)), ts},
-      {code:'CHF', score: parseFloat((-chf).toFixed(2)), ts},
-      {code:'JPY', score: parseFloat((-jpy).toFixed(2)), ts},
-      {code:'USD', score: parseFloat(usdScore.toFixed(2)), ts},
-    ].sort((a,b)=>b.score-a.score);
-    return {scores, ts};
+    const chunkSize = 7;
+    const results = {};
+    for(let i=0; i<FOREX_PAIRS.length; i+=chunkSize){
+      const chunk = FOREX_PAIRS.slice(i, i+chunkSize);
+      const chunkData = await fetchTDChunk(chunk);
+      Object.assign(results, chunkData);
+      if(onProgress) onProgress(buildScoresFromPairs(results));
+      if(i+chunkSize < FOREX_PAIRS.length) await sleep(9000); // stay under 8 credits/min
+    }
+    const scores = buildScoresFromPairs(results, true);
+    if(!scores) return null;
+    return {scores, ts: Date.now()};
   } catch(e){
     console.log('Twelve Data fetch failed:', e.message);
     return null;
   }
+}
+
+// Averages each currency's directional % change across every pair it appears in.
+// requireComplete=true only returns a result once all 28 pairs are in (used for final score).
+function buildScoresFromPairs(results, requireComplete){
+  const totals = {}; const counts = {};
+  ['USD','EUR','GBP','AUD','NZD','CAD','CHF','JPY'].forEach(c=>{totals[c]=0;counts[c]=0;});
+  FOREX_PAIRS.forEach(pair=>{
+    if(results[pair] === undefined) return;
+    const base = pair.slice(0,3), quote = pair.slice(3,6);
+    const pc = results[pair];
+    totals[base]+=pc; counts[base]++;
+    totals[quote]-=pc; counts[quote]++;
+  });
+  if(requireComplete && Object.values(counts).some(c=>c<7)) return null;
+  const ts = Date.now();
+  return Object.keys(totals)
+    .filter(c=>counts[c]>0)
+    .map(c=>({code:c, score: parseFloat((totals[c]/counts[c]).toFixed(2)), ts}))
+    .sort((a,b)=>b.score-a.score);
 }
 
 // ═══════════ INDEX TAB ═══════════
@@ -224,8 +258,14 @@ async function renderIndex(){
   let result = await fetchStrengthFromTelegram();
   let source = 'EA';
   if(!result){
-    result = await fetchStrengthFromTwelveData();
     source = 'TwelveData';
+    const feedAge = document.getElementById('feedAge');
+    if(feedAge) feedAge.textContent = 'loading full index…';
+    result = await fetchStrengthFromTwelveData(partial => {
+      indexStrengthScores = partial;
+      drawIndexStrengthSnap();
+      drawGolden();
+    });
   }
   const liveDot = document.getElementById('liveDot');
   const feedAge = document.getElementById('feedAge');
@@ -400,8 +440,18 @@ function checkGoldenFlip(){
   localStorage.setItem('dashbox_golden_state', JSON.stringify(goldenState));
 }
 
-async function testTelegram(){
-  await sendTelegramAlert(`✅ <b>Dashbox Connected!</b>\n\nTelegram alerts are working.`);
+let lastManualRefresh = 0;
+async function manualRefresh(){
+  const now = Date.now();
+  if(now - lastManualRefresh < 120000){ alert('Just refreshed — give it a couple minutes before refreshing again to stay within the free data quota.'); return; }
+  lastManualRefresh = now;
+  const btn = document.getElementById('refreshBtn');
+  if(btn){ btn.textContent = '↻ Refreshing…'; btn.disabled = true; }
+  await renderIndex();
+  if(btn){ btn.textContent = '↻ Refresh'; btn.disabled = false; }
+}
+
+async function testTelegram(){  await sendTelegramAlert(`✅ <b>Dashbox Connected!</b>\n\nTelegram alerts are working.`);
   alert('Test alert sent to Telegram!');
 }
 
@@ -416,7 +466,7 @@ function updateClock(){
 setInterval(updateClock,1000);
 updateClock();
 renderIndex();
-setInterval(renderIndex, 900000); // every 15 min — keeps Twelve Data's free-tier daily quota safe
+setInterval(renderIndex, 3600000); // hourly — 28-pair pull uses ~672 of the 800 daily free credits
 </script>
 </body>
 </html>
