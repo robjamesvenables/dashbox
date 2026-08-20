@@ -103,7 +103,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 
   <!-- Current D1 strength -->
   <div style="margin-top:16px;">
-    <div style="font-size:9px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Current Daily Strength</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-size:9px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;">Current Daily Strength</div>
+      <button onclick="renderIndex()" style="background:none;border:1px solid var(--border2);border-radius:5px;color:var(--muted);padding:4px 10px;cursor:pointer;font-size:10px;font-family:var(--font);">↻ Refresh</button>
+    </div>
     <div id="indexStrengthSnap"></div>
   </div>
 </div>
@@ -112,6 +115,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 // ═══════════ CONFIG ═══════════
 const TELEGRAM_TOKEN = '8500092691:AAHX_wIqo2p9qXOTe0RL-etw_41R1Q2bZXQ';
 const TELEGRAM_CHAT_ID = '8361135939';
+const TWELVE_KEY = '21ecfbc0db824df8bb8007785b10fe95';
 
 async function sendTelegramAlert(message){
   try {
@@ -173,6 +177,43 @@ function getAgeString(ts){
   return `${Math.round(age/3600)}h ago`;
 }
 
+// ═══════════ LIVE STRENGTH FEED — TWELVE DATA (no MT4/EA needed) ═══════════
+// Approximates each currency's D1 strength from its move vs USD.
+// USD's own score is the average of the other 7 (inverted where USD is the base).
+const TD_PAIRS = ['EUR/USD','GBP/USD','AUD/USD','NZD/USD','USD/CAD','USD/CHF','USD/JPY'];
+
+async function fetchStrengthFromTwelveData(){
+  try {
+    const url = `https://api.twelvedata.com/quote?symbol=${TD_PAIRS.join(',')}&apikey=${TWELVE_KEY}`;
+    const fetchPromise = fetch(url).then(r=>r.json());
+    const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
+    const data = await Promise.race([fetchPromise, timeout]);
+
+    const get = sym => data[sym] && !data[sym].code ? parseFloat(data[sym].percent_change) : null;
+    const eur = get('EUR/USD'), gbp = get('GBP/USD'), aud = get('AUD/USD'), nzd = get('NZD/USD');
+    const cad = get('USD/CAD'), chf = get('USD/CHF'), jpy = get('USD/JPY');
+    const vals = [eur,gbp,aud,nzd,cad,chf,jpy];
+    if(vals.some(v => v === null || isNaN(v))) return null;
+
+    const usdScore = ((-eur)+(-gbp)+(-aud)+(-nzd)+cad+chf+jpy)/7;
+    const ts = Date.now();
+    const scores = [
+      {code:'EUR', score: parseFloat(eur.toFixed(2)), ts},
+      {code:'GBP', score: parseFloat(gbp.toFixed(2)), ts},
+      {code:'AUD', score: parseFloat(aud.toFixed(2)), ts},
+      {code:'NZD', score: parseFloat(nzd.toFixed(2)), ts},
+      {code:'CAD', score: parseFloat((-cad).toFixed(2)), ts},
+      {code:'CHF', score: parseFloat((-chf).toFixed(2)), ts},
+      {code:'JPY', score: parseFloat((-jpy).toFixed(2)), ts},
+      {code:'USD', score: parseFloat(usdScore.toFixed(2)), ts},
+    ].sort((a,b)=>b.score-a.score);
+    return {scores, ts};
+  } catch(e){
+    console.log('Twelve Data fetch failed:', e.message);
+    return null;
+  }
+}
+
 // ═══════════ INDEX TAB ═══════════
 let indexConditions = [];
 let indexStrengthScores = [];
@@ -180,13 +221,18 @@ let conditionFlipState = {}; // tracks last known true/false per condition, for 
 
 async function renderIndex(){
   loadIndexConditions();
-  const result = await fetchStrengthFromTelegram();
+  let result = await fetchStrengthFromTelegram();
+  let source = 'EA';
+  if(!result){
+    result = await fetchStrengthFromTwelveData();
+    source = 'TwelveData';
+  }
   const liveDot = document.getElementById('liveDot');
   const feedAge = document.getElementById('feedAge');
   if(result && result.scores.length > 0){
     indexStrengthScores = result.scores;
     if(liveDot) liveDot.classList.add('live');
-    if(feedAge) feedAge.textContent = getAgeString(result.ts);
+    if(feedAge) feedAge.textContent = getAgeString(result.ts) + ' · ' + source;
   } else {
     if(liveDot) liveDot.classList.remove('live');
     if(feedAge) feedAge.textContent = indexStrengthScores.length ? 'stale' : 'no signal';
@@ -370,7 +416,7 @@ function updateClock(){
 setInterval(updateClock,1000);
 updateClock();
 renderIndex();
-setInterval(renderIndex, 60000); // keep strength + conditions live every 60s while page is open
+setInterval(renderIndex, 900000); // every 15 min — keeps Twelve Data's free-tier daily quota safe
 </script>
 </body>
 </html>
