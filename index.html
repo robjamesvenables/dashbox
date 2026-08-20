@@ -109,6 +109,12 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
     </div>
     <div id="indexStrengthSnap"></div>
   </div>
+
+  <!-- Raw pair debug -->
+  <details style="margin-top:16px;">
+    <summary style="font-size:9px;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;cursor:pointer;">Raw Pair Data (debug)</summary>
+    <div id="rawPairDebug" style="margin-top:8px;font-size:10px;color:var(--muted);line-height:1.8;"></div>
+  </details>
 </div>
 
 <script>
@@ -190,19 +196,21 @@ const FOREX_PAIRS = [
 
 async function fetchTDChunk(pairs){
   const symbols = pairs.map(p => p.slice(0,3)+'/'+p.slice(3,6)).join(',');
-  const url = `https://api.twelvedata.com/quote?symbol=${symbols}&apikey=${TWELVE_KEY}`;
+  const url = `https://api.twelvedata.com/time_series?symbol=${symbols}&interval=1day&outputsize=2&apikey=${TWELVE_KEY}`;
   const fetchPromise = fetch(url).then(r=>r.json());
   const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
   const data = await Promise.race([fetchPromise, timeout]);
-  // Whole-response error (e.g. rate limited) — signal caller to retry
   if(data && data.code && data.status === 'error') throw new Error('TD error '+data.code+': '+data.message);
   const out = {};
   pairs.forEach(p => {
     const sym = p.slice(0,3)+'/'+p.slice(3,6);
     const entry = pairs.length===1 ? data : data[sym];
-    if(entry && !entry.code && entry.percent_change !== undefined){
-      const pc = parseFloat(entry.percent_change);
-      if(!isNaN(pc)) out[p] = pc;
+    if(entry && entry.values && entry.values.length >= 2){
+      const latest = parseFloat(entry.values[0].close);
+      const prevClose = parseFloat(entry.values[1].close);
+      if(!isNaN(latest) && !isNaN(prevClose) && prevClose !== 0){
+        out[p] = (latest - prevClose) / prevClose * 100; // % change since yesterday's D1 close, same basis as a broker's Daily candle
+      }
     }
   });
   return out;
@@ -235,6 +243,7 @@ async function fetchStrengthFromTwelveData(onProgress){
       const chunkData = await fetchTDChunkWithRetry(chunk, 2);
       Object.assign(results, chunkData);
       if(onProgress) onProgress(buildScoresFromPairs(results));
+      drawRawPairDebug(results);
       if(i+chunkSize < FOREX_PAIRS.length) await sleep(12000); // stay safely under 8 credits/min
     }
     const scores = buildScoresFromPairs(results, true);
@@ -244,6 +253,17 @@ async function fetchStrengthFromTwelveData(onProgress){
     console.log('Twelve Data fetch failed:', e.message);
     return null;
   }
+}
+
+function drawRawPairDebug(results){
+  const el = document.getElementById('rawPairDebug');
+  if(!el) return;
+  let html = '';
+  FOREX_PAIRS.forEach(p=>{
+    const v = results[p];
+    html += `<div>${p}: ${v!==undefined ? (v>0?'+':'')+v.toFixed(3)+'%' : '—'}</div>`;
+  });
+  el.innerHTML = html;
 }
 
 // Averages each currency's directional % change across every pair it appears in.
