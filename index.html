@@ -293,27 +293,16 @@ let conditionFlipState = {}; // tracks last known true/false per condition, for 
 
 async function renderIndex(){
   loadIndexConditions();
-  let result = await fetchStrengthFromTelegram();
-  let source = 'EA';
-  if(!result){
-    source = 'TwelveData';
-    const feedAge = document.getElementById('feedAge');
-    if(feedAge) feedAge.textContent = 'loading full index…';
-    result = await fetchStrengthFromTwelveData(partial => {
-      indexStrengthScores = partial;
-      drawIndexStrengthSnap();
-      drawGolden();
-    });
-  }
+  const result = await fetchStrengthFromTelegram();
   const liveDot = document.getElementById('liveDot');
   const feedAge = document.getElementById('feedAge');
   if(result && result.scores.length > 0){
     indexStrengthScores = result.scores;
     if(liveDot) liveDot.classList.add('live');
-    if(feedAge) feedAge.textContent = getAgeString(result.ts) + ' · ' + source;
+    if(feedAge) feedAge.textContent = getAgeString(result.ts) + ' · EA';
   } else {
     if(liveDot) liveDot.classList.remove('live');
-    if(feedAge) feedAge.textContent = indexStrengthScores.length ? 'stale' : 'no signal';
+    if(feedAge) feedAge.textContent = indexStrengthScores.length ? 'stale' : 'no signal — EA not running';
   }
   drawIndexConditions();
   drawIndexStrengthSnap();
@@ -504,7 +493,7 @@ function updateClock(){
 setInterval(updateClock,1000);
 updateClock();
 renderIndex();
-setInterval(renderIndex, 3600000); // hourly — 28-pair pull uses ~672 of the 800 daily free credits
+setInterval(renderIndex, 60000); // EA feed is cheap to poll — check every 60s
 </script>
 </body>
 </html>
