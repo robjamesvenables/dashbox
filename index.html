@@ -194,6 +194,8 @@ async function fetchTDChunk(pairs){
   const fetchPromise = fetch(url).then(r=>r.json());
   const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
   const data = await Promise.race([fetchPromise, timeout]);
+  // Whole-response error (e.g. rate limited) — signal caller to retry
+  if(data && data.code && data.status === 'error') throw new Error('TD error '+data.code+': '+data.message);
   const out = {};
   pairs.forEach(p => {
     const sym = p.slice(0,3)+'/'+p.slice(3,6);
@@ -206,6 +208,22 @@ async function fetchTDChunk(pairs){
   return out;
 }
 
+// Fetches a chunk, retrying on failure/rate-limit before giving up on those pairs
+async function fetchTDChunkWithRetry(chunk, maxRetries){
+  for(let attempt=0; attempt<=maxRetries; attempt++){
+    try {
+      const data = await fetchTDChunk(chunk);
+      if(Object.keys(data).length === chunk.length) return data; // full success
+      if(attempt < maxRetries){ await sleep(20000); continue; } // partial — retry
+      return data; // out of retries, return whatever we got
+    } catch(e){
+      console.log('Chunk fetch error (attempt '+attempt+'):', e.message);
+      if(attempt < maxRetries) await sleep(20000);
+    }
+  }
+  return {};
+}
+
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 async function fetchStrengthFromTwelveData(onProgress){
@@ -214,10 +232,10 @@ async function fetchStrengthFromTwelveData(onProgress){
     const results = {};
     for(let i=0; i<FOREX_PAIRS.length; i+=chunkSize){
       const chunk = FOREX_PAIRS.slice(i, i+chunkSize);
-      const chunkData = await fetchTDChunk(chunk);
+      const chunkData = await fetchTDChunkWithRetry(chunk, 2);
       Object.assign(results, chunkData);
       if(onProgress) onProgress(buildScoresFromPairs(results));
-      if(i+chunkSize < FOREX_PAIRS.length) await sleep(9000); // stay under 8 credits/min
+      if(i+chunkSize < FOREX_PAIRS.length) await sleep(12000); // stay safely under 8 credits/min
     }
     const scores = buildScoresFromPairs(results, true);
     if(!scores) return null;
@@ -240,7 +258,7 @@ function buildScoresFromPairs(results, requireComplete){
     totals[base]+=pc; counts[base]++;
     totals[quote]-=pc; counts[quote]++;
   });
-  if(requireComplete && Object.values(counts).some(c=>c<7)) return null;
+  if(requireComplete && Object.values(counts).some(c=>c<6)) return null; // allow 1 dropped pair per currency
   const ts = Date.now();
   return Object.keys(totals)
     .filter(c=>counts[c]>0)
